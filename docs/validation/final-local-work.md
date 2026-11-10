@@ -10,7 +10,7 @@ Completed:
 - End-to-end generated workflow check: catalog preparation, one-epoch training/export, actual LiteRT validation inference, calibration/freeze, actual test inference and event evaluation. Small generated data must fail graduation. Added CI coverage for the same pipeline.
 - Erasure recovery now merges the encrypted external ledger and reconciles users before API listen/worker processing. Ledger read/publication is serialized with a database advisory lock and a unique atomic temporary file; older snapshots cannot silently erase newer tombstones. Corrupt encrypted ledgers fail startup/publication. Tests use separate ledgers per run and exercise concurrent publication, DB rollback recovery and re-purging a restored account using the newer disk ledger.
 - `npm run doctor` checks local runtime/configuration/services/model/APK and reports USB readiness without printing secrets, OTPs or device identifiers. [User checklist](../USER_CHECKLIST.md) and [ML guide](../../ml/README.md) contain concrete next steps.
-- GitHub Android setup uses Ubuntu24.04's SDK with pinned packages and Java21. Both application and Android jobs passed for [e164770](https://github.com/sajal-sonker/women-safety-app/actions/runs/42866669754). The new pipeline/USB-API CI configuration is checked in the subsequent run, recorded below.
+- GitHub Android setup uses Ubuntu24.04's SDK with pinned packages and Java21. Both application and Android jobs passed for [e164770](https://github.com/sajal-sonker/women-safety-app/actions/runs/42866669754). The final [b965024 run](https://github.com/sajal-sonker/women-safety-app/actions/runs/42869172217) passed all three jobs: application, actual ML toolchain and Android debug/demo build plus native unit tests. CI demo builds now use USB-loopback API127.0.0.1:4001.
 
 Contract changes: none to HTTP, database schema, mobile model or dispatch semantics. Automatic ML sending remains disabled. The existing black/purple UI and phone APK are unchanged by these tooling fixes.
 
@@ -20,6 +20,7 @@ Tests executed:
 |---|---|
 | `npm test` |32passed/0failed/0skipped with real isolated PostGIS; includes erasure/security and ML provenance regressions |
 | `npm run test:monitoring` |8passed; annotation drift, test-set calibration rejection, freeze binding, event/exposure/statistical failures |
+| `npm run test:web` |3passed in33.9s against local Auth/API/worker/web: simulated SOS/recipient ACK/revoke, route/journey arrival, evidence/withdrawal/private export |
 | `npm run typecheck`, `npm run lint`, repository guard, `git diff --check` |Passed |
 | `npm run ml:training-smoke` |Passed after fixing the reproduced invalid-export failure;35,536byte private synthetic candidate,8finite validation windows, agreement1.0; no measured phrase accuracy |
 | `npm run ml:workflow-smoke` |Passed real interpreter/calibration/scoring path; generated dataset correctly BLOCKED_EXTERNAL/failed graduation |
@@ -27,6 +28,7 @@ Tests executed:
 | `python scripts/check-apk.py <demo-apk>` |Bundled model/license/JS verified, no private ML assets, ELF load alignment checks pass; physical16KB runtime untested |
 | `npm run doctor` |PC services/config/model/APK ready; PHONE_PENDING, no authorized device attached |
 | `npm run backup:create`, `npm run restore:verify -- <encrypted-archive>` |Actual encrypted pg_dump/checksum and isolated pg_restore/ledger reconciliation passed; clean demo ledger0rows, nonempty disk recovery covered by the API regression |
+| GitHub CI at `b96502493a4b954331055338885a3bf4f61670a6` |Application/ML-toolchain/Android jobs all SUCCESS; ML training/export/inference/freezing/scoring also verified on fresh Linux. Subsequent report-only commits do not change the tested code |
 
 Phone artifact: `apps/mobile/android/app/build/outputs/apk/demo/app-demo.apk`, SHA256 `fed159996148f4f055b56a9c5173737efcb309c0277518239153fa4d707aba14`. Bundled arm64 Android10+ local demo, debug/demo signing, USB API/Auth mapping; no Metro needed. It is not production signed. [Install/test instructions](../PHONE_TEST.md).
 
