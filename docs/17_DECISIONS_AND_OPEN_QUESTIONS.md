@@ -2,6 +2,8 @@
 
 ## Decision record (approved design direction from conversation)
 
+CR-005 / 10 November2026: finish feasible local work and give the user a concrete ownership checklist. Serialize erasure-ledger publication and merge/re-purge before API/worker start; preserve newer disk tombstones across older DB restores and fail closed on an unreadable ledger. Isolate test ledgers per run. Complete ML candidate scoring/validation-only threshold freeze. GitHub's application job for b0bc9c5 passed; Android failed at setup-android before compiling. Replace that dependency with the official runner SDK, pin Ubuntu24.04/Java21 (locally verified), and record actual remote results. No schema change, live-provider choice, deployment/spending or physical acceptance implied.
+
 Continuation 10 November 2026 / CR-004: user requested finishing remaining ML/software before personally testing a phone. Implement a bundled, checksum-pinned Apache-2.0 Google YAMNet classification baseline (raw16kHz waveform15600 samples; output1x521), native opt-in microphone foreground service, bounded audio/motion confirmation-only fusion, lifecycle/diagnostic controls, and real training/evaluation tooling. Generic sound-event classification does not recognize Hindi/English words or establish assault detection. Those custom classes require licensed participant recordings and held-out evaluation. Automatic sensor dispatch stays disabled; manual SOS is independent. Device evaluation is assigned to the user; no device pass or independent gate is inferred. No live providers, shop agreement, production credentials or cloud spend is invented. Main receives product code/model/license/reports; context stays on the handoff branch.
 
 | ADR | Status | Decision | Rationale / consequences |

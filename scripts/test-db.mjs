@@ -1,11 +1,13 @@
 import 'dotenv/config';
 import pg from 'pg';
 import {spawnSync} from 'node:child_process';
+import {resolve} from 'node:path';
+import {randomUUID} from 'node:crypto';
 const url=new URL(process.env.DATABASE_URL);
 if(!['127.0.0.1','localhost'].includes(url.hostname))throw Error('Tests require an isolated local DB');
 const admin=new pg.Pool({connectionString:url.toString()});
 const exists=await admin.query("SELECT 1 FROM pg_database WHERE datname='suraksha_test'");
 if(!exists.rowCount)await admin.query('CREATE DATABASE suraksha_test');
 await admin.end();url.pathname='/suraksha_test';
-const result=spawnSync(process.execPath,['--import','tsx','--test','--test-concurrency=1',...process.argv.slice(2)],{stdio:'inherit',env:{...process.env,DATABASE_URL:url.toString(),APP_ENV:'local'}});
+const result=spawnSync(process.execPath,['--import','tsx','--test','--test-concurrency=1',...process.argv.slice(2)],{stdio:'inherit',env:{...process.env,DATABASE_URL:url.toString(),APP_ENV:'local',ERASURE_LEDGER_PATH:resolve('.local/test-ledgers/'+randomUUID()+'.enc')}});
 process.exitCode=result.status??1;

@@ -11,6 +11,9 @@ import {decrypt} from '../services/api/src/platform/security.ts';
 import {Worker} from '../services/worker/src/index.ts';
 import {reconcileErasure} from '../services/api/src/modules/privacy/index.ts';
 import {transaction} from '../services/api/src/platform/db/index.ts';
+import {persistErasureLedger,recoverErasureLedger,ledgerPath} from '../services/api/src/modules/privacy/ledger.ts';
+import {readFile,writeFile} from 'node:fs/promises';
+import {hash} from '../services/api/src/platform/security.ts';
 let server:Server,base:string;
 const identities=new Map(demoUsers.map(u=>[u.uid,u.phone]));
 const worker=new Worker();
@@ -215,4 +218,15 @@ test('unknown provider outcome remains unknown and termination prevents its queu
  await fault.delivery();assert.equal(calls,5);const detail=await call('/sos/'+event);assert.ok(detail.body.recipients.every((r:any)=>r.channels[0].status==='UNKNOWN'));
  await call('/sos/'+event+'/resolve',{method:'POST',body:{resolution:'SAFE'}});await pool.query("UPDATE notification_outbox SET next_attempt_at=now()-interval '1 second' WHERE intent_id IN (SELECT id FROM delivery_intents WHERE event_id=$1)",[event]);await fault.delivery();assert.equal(calls,5);
  assert.equal((await pool.query("SELECT count(*)::int AS n FROM notification_outbox o JOIN delivery_intents d ON d.id=o.intent_id WHERE d.event_id=$1 AND o.status IN ('PENDING','RETRY','LEASED')",[event])).rows[0].n,0);
+});
+test('concurrent publishers retain tombstones and recover newer disk erasures after DB rollback',async()=>{
+ const hashes=Array.from({length:8},()=>hash(randomUUID()));
+ await Promise.all(hashes.map(async value=>{await pool.query('INSERT INTO deletion_ledger(auth_uid_hash) VALUES($1)',[value]);await persistErasureLedger();}));
+ const disk=decrypt<any>(await readFile(ledgerPath,'utf8'));assert.ok(hashes.every(value=>disk.rows.some((r:any)=>r.auth_uid_hash===value)));
+ await pool.query('DELETE FROM deletion_ledger WHERE auth_uid_hash=ANY($1::text[])',[hashes]);await Promise.all([persistErasureLedger(),recoverErasureLedger()]);
+ assert.equal((await pool.query('SELECT count(*)::int AS n FROM deletion_ledger WHERE auth_uid_hash=ANY($1::text[])',[hashes])).rows[0].n,hashes.length);
+});
+test('unreadable erasure ledger fails closed and is never overwritten',async()=>{
+ const original=await readFile(ledgerPath,'utf8');await writeFile(ledgerPath,'corrupt-test-only');
+ try{await assert.rejects(recoverErasureLedger(),/cannot be decrypted/);await assert.rejects(persistErasureLedger(),/cannot be decrypted/);assert.equal(await readFile(ledgerPath,'utf8'),'corrupt-test-only');}finally{await writeFile(ledgerPath,original);}
 });

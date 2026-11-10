@@ -1,4 +1,4 @@
-import {persistErasureLedger} from '../../api/src/modules/privacy/ledger.ts';
+import {persistErasureLedger,recoverErasureLedger} from '../../api/src/modules/privacy/ledger.ts';
 import {processPrivacy,purgeEvents} from '../../api/src/modules/privacy/index.ts';
 import {processEvidence,purgeEvidence} from '../../api/src/modules/evidence/index.ts';
 import {pool,transaction,type DB,type Row} from '../../api/src/platform/db/index.ts';
@@ -138,7 +138,7 @@ export class Worker{
  async tick(){await this.jobs();await this.delivery();await this.advanced();}
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('services/worker/src/index.ts')){
- validateConfig();const worker=new Worker();let busy=false,lastRetention=0;
+ validateConfig();await recoverErasureLedger();const worker=new Worker();let busy=false,lastRetention=0;
  const timer=setInterval(()=>{
   if(busy)return;busy=true;
   void worker.tick().then(async()=>{if(Date.now()-lastRetention>60000){await worker.retention();lastRetention=Date.now();}}).catch(()=>console.error(JSON.stringify({event:'worker_tick_failed'}))).finally(()=>{busy=false;});
