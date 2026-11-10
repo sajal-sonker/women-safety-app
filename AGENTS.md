@@ -1,3 +1,5 @@
+<!-- Current execution checkpoint: application main 83bc3034ebd85c2ff13f171c41cce0eb9611e7e0; controlled Phase3/4 software implemented, external/independent gates still partial. Read newest EXECUTION_STATE before historical transfer text below. -->
+
 # AGENTS.md — execution instructions for coding agents
 
 ## Portable handoff status — 10 November 2026

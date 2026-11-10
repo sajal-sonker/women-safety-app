@@ -1,6 +1,6 @@
 # Resume SurakshaAI after Phase3/4 controlled-demo implementation
 
-Read AGENTS.md and EXECUTION_STATE.md here, then use the application on main at b0bc9c5fbed313d28f1bf44dbe640454489dbd02 or its later reviewed descendant. This context branch retains an old application snapshot only. Never merge/cherry-pick its agent context exceptions into main. Main must contain application/specification/validation artifacts only.
+Read AGENTS.md and EXECUTION_STATE.md here, then use the application on main at 83bc3034ebd85c2ff13f171c41cce0eb9611e7e0 or its later reviewed descendant. This context branch retains an old application snapshot only. Never merge/cherry-pick its agent context exceptions into main. Main must contain application/specification/validation artifacts only.
 
 The user authorized remaining implementation and black/purple UI; those controlled-demo changes were pushed to main. Do not restart scaffolding or erase existing work. Read current RUNNING.md, canonical contracts/CR-003, additive010/011 and phase3/4 validation reports on main. Existing partial G0�G4, missing physical/device/ML/provider/geographic/operations evidence and absence of independent review remain explicit. One executor may work B/M sequentially; no automatic subagents or self-certified independent gate.
 
@@ -9,3 +9,5 @@ Preserve manual SOS critical path, native intent idempotency/tombstones, recipie
 Inspect Git/worktree/status/tools/listeners before continuation. Private .env/DB/backups/tools do not travel in Git. Establish only a local fake setup unless separately authorized resources exist. Historical tests are not a pass on another PC. Continue dependency-ready user-authorized work, recording commands/results/blockers and exact next task locally; keep agent files off main. See PC_TRANSFER.md and current EXECUTION_STATE.md for transfer and final evidence.
 
 ML/phone-test update: main now bundles a real licensed YAMNet confirmation-only sound model and native microphone service, plus tested training/export/event-evaluation tooling. It has no validated Hindi/English phrase recognition or automatic dispatch. User performs physical testing using docs/PHONE_TEST.md on main. See the newest EXECUTION_STATE checkpoint and main docs/validation/ml-continuation.md; do not treat older no-model statements as current.
+
+Final dependency-ready update: read the newest EXECUTION_STATE section and main docs/validation/final-local-work.md. Old synthetic export/parity evidence is withdrawn and replaced by an explicitly frozen, finite-output, end-to-end tested workflow. Main docs/USER_CHECKLIST.md separates user phone testing now from real-data/provider/independent release gates. npm run doctor checks PC and USB readiness.

@@ -1,3 +1,21 @@
+# Final dependency-ready checkpoint - 10 November 2026
+
+Application main **83bc3034ebd85c2ff13f171c41cce0eb9611e7e0** is pushed. The user asked to complete everything possible locally and identify their part. Read main docs/USER_CHECKLIST.md and docs/validation/final-local-work.md first. This branch still carries an old application snapshot; execute from main only. Agent context remains exclusive to this branch/ignored local copies.
+
+Completed after b0bc9c5: erasure ledger publication reads under a DB advisory lock, merges newer encrypted disk tombstones before publication, uses unique atomic temporary files, and fails closed on corrupt ledgers. API and worker merge/reconcile disk erasures before accepting work. Tests now restore a deleted profile with its DB tombstone removed and recover from disk; concurrent publication and corrupt-ledger cases pass. Test ledgers are unique per invocation. Encrypted pg_dump/isolated pg_restore rehearsal passed (clean demo ledger0rows; nonempty cases in regressions).
+
+ML catalog CSV preparation now verifies real PCM format/duration/checksums/rights/onsets/split isolation. Candidate/YAMNet inference scores actual files, timestamps window END and includes the last stride. Validation-only calibration saves a threshold freeze bound to model, dataset and validation IDs. Test inference/evaluation require the exact freeze hash and matching original annotations/held-out coverage. Local hashes/timestamps are not independent proof against human test-set tuning.
+
+IMPORTANT CORRECTION: previous30,512byte synthetic candidate parity was invalid evidence. A Keras3 resource-based export could return NaNs; the argmax-only comparison masked it. Explicitly freezing TF2.20 variables to constants fixed the reproduced problem. Finite bounded outputs now gate publication. Actual regenerated synthetic35536byte candidate,8validation windows/agreement1.0, actual runtime predictions/calibration/test scoring all pass TOOLCHAIN_ONLY. The tiny generated dataset correctly fails graduation; no phrase accuracy is claimed. YAMNet bundled model is unchanged and still confirmation-only; no Help/Bachao recognition/automatic SOS.
+
+Final checks: npm test32pass/0fail/0skip; monitoring8pass; browser3pass (33.9s); typecheck/lint/docs/repository guard/diff checks pass. YAMNet interpreter smoke finite on generated silence/tone/noise, desktopp95~1.47ms, not phone timing. Existing mobile4/native5/build results remain valid; this continuation changes tooling/recovery, no mobile code. GitHub run42866669754 at e164770 passed both app/Android after using runner SDK + Java21. The final new ML-toolchain run42869172217 is recorded in main final-local-work report.
+
+Phone APK unchanged: apps/mobile/android/app/build/outputs/apk/demo/app-demo.apk, SHA256fed159996148f4f055b56a9c5173737efcb309c0277518239153fa4d707aba14. Static model/license/JS/ELF checks passed. Debug/demo signing; USB loopback API4001/Auth9099, no Metro. npm run doctor reports PC services/config/model/APK ready, PHONE_PENDING; no authorized device. User must connect/authorize phone and run scripts/phone-test.ps1 -Install plus docs/PHONE_TEST.md.
+
+External gates: actual physical observations/two-device energy/lifecycle/accessibility; consented/licensed phrase data (40speakers24/6/10,150heldout positives perclass,30h negatives); approved live auth/delivery/storage/scanner/hosting/signing resources, pilot field sources/shop agreements and independent reviewer. No G0-G4 independent acceptance or pilot claim. Main excludes context/credentials, all participant/data/build artifacts stay private. Do not restart scaffolding or enable blocked auto/live features. Inspect listeners/tools/env on resume; secrets never travel in Git.
+
+---
+
 # Current ML/phone-test checkpoint - 10 November 2026
 
 Application main **b0bc9c5fbed313d28f1bf44dbe640454489dbd02** is pushed. User authorized finishing remaining ML/software before personally testing the phone. Context remains on handoff/agent-context only; no agent files/private recordings/credentials entered main. This section supersedes older statements that no model/runtime is bundled.
