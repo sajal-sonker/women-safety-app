@@ -1,38 +1,35 @@
-# SurakshaAI portable execution checkpoint
+# SurakshaAI continuation checkpoint � 10 November 2026
 
-Updated10 November2026. Branch purpose: move the current project plus required agent instructions to another PC. Main is unchanged. Application baseline: `6237a1e1946af59cf208c2727070e54fb55945c0` (Phase1/2 controlled demo), after documentation baseline `eacb830`. Branch `handoff/agent-context` adds handoff context only; inspect actual HEAD for its latest commit.
+Application: main commit 4944d302b5e7ba4d64f3158ed0c0d90ac81c9ee2, pushed to origin. Context: handoff/agent-context. No handoff/agent files were merged, cherry-picked or staged on main. Main retains its strict exclusions and scripts/check-repository.mjs verifies them. This context branch retains its historical application snapshot; run/extend the current application from main, not this branch's old code.
 
-## Authorized scope and reading order
+## Current authorization and outcome
 
-The user authorized Phase1/2 implementation and push, then requested this separate portable branch. Lucknow synthetic fallback was explicitly approved. Phase3/4 are not implemented. This transfer is not an instruction to start another phase or claim independent acceptance. Read [PC_TRANSFER.md](PC_TRANSFER.md), [AGENTS.md](AGENTS.md), [executor prompt](docs/EXECUTOR_HANDOFF_PROMPT.md), [contract lock](packages/contracts/CONTRACT_LOCK.md) and [phase reports](docs/validation/phase-1.md).
+The user authorized remaining Phases3/4 implementation, black/purple UI, push application to main, keep agent context off main. One sequential executor handled backend then mobile; no subagents or independent reviewer were used. Controlled-demo additions are implemented and pushed; overall Phase3/4 and G0�G4 remain PARTIAL/unaccepted. No pilot or guaranteed safety/delivery claim.
 
-## Existing implementation
+Implemented: normal/duress scrypt/Keystore PINs and Notes/practice; native fake-call simulation/inexact reminders; default-off focused volume experiment; explicit bounded foreground motion check-in with no automatic SOS/microphone inference; private consented evidence/quarantine/recipient scopes/streams/revocation; ordered SOS context and transient responder ETA; export/delete/erasure ledger/actual local restore; black/purple mobile/web/maps; additive010/011 and CR-003. ML, real shop dispatch, MP4/real storage/scanner/geocoder remain disabled/unconfigured. Manual SOS never waits for enrichment.
 
-- Root npm workspaces/lockfile, Express API, PostgreSQL/PostGIS migrations, worker/outbox/deadlines/retention and Next responder/contact/shop/admin web.
-- Android RN/Kotlin Firebase auth, encrypted native SOS journal/transport, bounded foreground location and manual SOS/contacts/history/journey/route/shop/report UI.
-- Contact invitation/consent and optional temporary GPS, scoped browser tracking/ACK/revocation, synthetic Lucknow routing/time factors, journeys, verified-status shop workflow and moderated coarse reports.
-- No live SMS/push, ML/microphone monitoring, evidence capture, duress/fake PIN, fake call, global-key trigger or low-battery broadcast enabled.
+Canonical main contract SHA256 f92a2928a857a764c551944cd6c1037bc9ef8960fc2874a435608a55743ba8f1:80 operations (3 binary handlers),85 schemas. Existing Phase1/2 operations/schemas semantically unchanged. Sole migration stream001�011, including009a; no applied checksum changed. Historical baseline6237a1e remains the handoff branch application snapshot only.
 
-Contract SHA256 `600ced35aec5aeb350c83bc0ef5a782f58b9bbd874befcf2a6356ba4bd4993db`:64 operations/72 schemas; generated TS/Kotlin and runtime validation. Sole migration stream `services/api/migrations/`,001–009 plus009a. Do not edit applied checksums or invent a second client contract.
+## Fresh verification on this PC
 
-## Recorded verification on the original PC
+- Node26.13.0 checksum-verified portable runtime, npm11.20.0. Initial npm ci and subsequent exact dependency installation passed. System Node20 unchanged.
+- Local isolated PostgreSQL17/PostGIS3.6.2 created from local binaries under ignored tools; system PostgreSQL service/data not modified. Root .env preserved without disclosure. Docker daemon unavailable.
+- npm test:24 passed/0failed/0skipped. npm run test:security:18 passed. Actual PostGIS and media/rights/statistics tests, two-worker expired lease and UNKNOWN retry suppression.
+- npm run test:mobile:4 passed, native mocked. Initial setup-load timeout recorded, then reruns passed.
+- npm run test:web:3 passed with Chromium and real emulated phone OTP/fake messages: SOS/ACK/revoke; route/journey; evidence/withdrawal/export.
+- npm run typecheck/lint/build/contracts:check/verify:docs passed. Browser390/1440px visually inspected,0page errors,0horizontal overflow.
+- Local burst:500creates,5verified fictional contacts each,concurrency10,100owner polls,0errors,p50~17ms/p95~30ms over~11.6sec. Not the30min staging/device/provider gate.
+- Encrypted pg_dump and actual pg_restore into suraksha_restore_test passed with checksum/latest-ledger merge/re-purge. Nonempty erasure reconciliation separately regression-tested. Production backup expiry/RPO/RTO not validated.
+- Audit0critical/0high,19moderate/9low after sharp0.35.5 remediation. CycloneDX SBOM generated privately. Direct ML evaluator exits2 BLOCKED_EXTERNAL without private manifest/model.
+- Android arm64 assembleDemo and compileDebugKotlin passed, including final39sec incremental rebuild after fixing a pre-existing signed-out/null-journal bug. First stale-input compile and first Hermes-location packaging failure were fixed and rerun. Local JDK21/SDK36/NDK27.1.12297006/CMake3.22.1; CI pins17, no local17 result claimed.
+- Bundled demo-signed APK at apps/mobile/android/app/build/outputs/apk/demo/app-demo.apk (ignored), v2 signature verified, embedded JS1521748bytes. SHA2569076ad5ab889063c630e066beff858f3ea51ff4244059774cdc7e146feb56265. Not production signing. No physical phone attached; adb devices empty.
 
-15 API/PostGIS/contract/scoring tests,2 mocked mobile component tests and2 Chromium/Auth-emulator end-to-end flows passed. Root/web/mobile type checks, lint, contract regeneration and documentation links passed. Next production build, arm64 debugAPK and Metro production bundle succeeded. Browser smoke at390px/1440px recorded no page errors/horizontal overflow. These are historical local results, not a new-PC pass or physical-device validation. Detailed boundaries: [Phase1](docs/validation/phase-1.md), [Phase2](docs/validation/phase-2.md), [provider register](docs/validation/provider-register.md).
+## Required external work � not a completed release
 
-At that inspection the full dependency tree had0high/critical and9low/19moderate audit findings; tooling compatibility warnings are recorded. Do not claim the audit is current without rerunning it. Remote GitHub workflow status is not certified by this checkpoint.
+Independent G0�G4 reviewer; two physical phones with lifecycle/TalkBack/font-scale/key/PIN/camera/audio/16KB/battery matrix; licensed consented dataset/trained LiteRT/model/parity/evaluation; real permitted provider/auth/storage/scanner/geocoder/hosting/signing resources and budgets; shop operational agreements; surveyed geographic sources; TLS/least-privilege/managed backup/rotation/rollback operations. Automatic audio/model dispatch remains disabled. Committed fake-call/PIN/evidence require native acceptance, not a relabelled experimental waiver. Full staging location/freshness/soak and fault campaign remain open.
 
-## Open gates and remaining work
+Reports and implementation are on main: docs/validation/phase-3.md and phase-4.md, infra/OPERATIONS.md, ml/MODEL_CARD.md, apps/mobile/docs/monitoring-contract.md. Do not mark missing gates passed or restart scaffolding. Continue only dependency-ready fixes or the affected external-gate work when resources are supplied.
 
-G0/G1/G2 remain PARTIAL: independent review, actual native lifecycle/permission/battery/16KB/accessibility tests, broad failure/load/security matrix, real-provider setup and surveyed geographic evidence are missing. P1-T12 real-provider validation, P1-T15 independent gate, P2-T05 field validation and P2-T12 independent gate remain BLOCKED_EXTERNAL. Other Phase1/2 tasks are implemented within their documented evidence boundaries; outstanding owner reissue UI, deployment least-privilege/backup/privacy work is explicitly in the validation reports. P3/P4 tasks are NOT_STARTED.
+## Local recovery
 
-## New-PC setup and recovery
-
-No running sessions, service PIDs, local database or emulator users transfer with Git. Install Node26.13.0/npm11.20.0 and PostgreSQL17/PostGIS3.6; Android uses JDK17, SDK36/build-tools36.0.0, NDK27.1.12297006/CMake3.22.1 and the checked-in Gradle wrapper. Original tools lived outside the repository; do not assume those paths exist here.
-
-Privately copy root `.env` or generate a fresh one if starting with empty data; never display its contents. Existing DB backups require the matching encryption key and a separate private restore. Normal demo setup needs only migrate/seed and Auth emulator accounts. No production Firebase credentials or release keys are configured. Android debug key is generated locally, not transferred. Ports: Postgres54329, Auth9099/UI4000, API4001, web3000, Metro8081. Inspect listeners before starting a second service. Browser Origin is `http://localhost:3000`.
-
-Preserve existing applied migrations, intent tombstones, leases and encrypted records when restoring an existing DB. Restart workers rather than blindly replaying attempted sends. Root secrets and backups remain excluded. Main excludes agent files; this branch explicitly versions exactly seven required handoff files.
-
-## Exact next executable task
-
-Owner: one assigned executor. Working directory: cloned repository root on `handoff/agent-context`. First inspect Git status/tool versions, then follow PC_TRANSFER/RUNNING to install dependencies and configure local services. Run `npm run db:migrate`, `npm run seed:demo`, `npm run dev` after Auth/PostGIS are ready. Verify emulated owner sign-in, SOS/inbox/ACK/resolve, route comparison and journey controls; update this state with actual results and blockers. After that, follow the user's next authorized task and the master plan's gate rules. Do not restart Phase1, assume old process IDs work, self-certify review or start Phase3 solely from this transfer.
+Ignored .tools/.local contain portable Node/PostGIS, private DB data/backups/ledger and verification artifacts. Never commit them or .env. Loopback Auth9099/UI4000, API4001, web3000 and worker were running at delivery; inspect actual listeners, never trust historical process IDs. Root .env points at the newly initialized local DB. Use RUNNING.md on main. Existing event/outbox/tombstones remain authoritative; no blind send replay. Preserve newest encrypted erasure ledger outside a restored DB before serving traffic. No real emergency calls/messages were sent.
