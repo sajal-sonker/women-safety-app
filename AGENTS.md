@@ -2,7 +2,7 @@
 
 ## Portable handoff status — 10 November 2026
 
-This branch carries the application plus agent context for another PC. Read `PC_TRANSFER.md`, `EXECUTION_STATE.md`, `docs/EXECUTOR_HANDOFF_PROMPT.md` and the phase validation reports first. Current application lives on main at `4944d30`, including controlled-demo Phase3/4 additions; all independent/device/provider/model/operations gates remain PARTIAL. This context branch retains the historical `6237a1e` application snapshot. Use main for code and current phase reports; never merge these seven agent-file exceptions into main. The earlier planning-only restriction applies to the independent reviewer role, not an executor subsequently authorized by the user. Do not restart scaffolding or claim the existing partial gates passed. One executor may work B/M sequentially; no automatic sub-agent delegation.
+This branch carries the application plus agent context for another PC. Read `PC_TRANSFER.md`, `EXECUTION_STATE.md`, `docs/EXECUTOR_HANDOFF_PROMPT.md` and the phase validation reports first. Current application lives on main at `b0bc9c5`, including controlled-demo Phase3/4 additions; all independent/device/provider/model/operations gates remain PARTIAL. This context branch retains the historical `6237a1e` application snapshot. Use main for code and current phase reports; never merge these seven agent-file exceptions into main. The earlier planning-only restriction applies to the independent reviewer role, not an executor subsequently authorized by the user. Do not restart scaffolding or claim the existing partial gates passed. One executor may work B/M sequentially; no automatic sub-agent delegation.
 
 On this handoff branch the seven explicitly listed agent files are intentionally versioned at the user's request. Keep credentials, `.env`, private keys, caches, build outputs and other local agent configuration excluded. Main's policy remains unchanged. Do not merge the handoff exceptions into main unless the user changes that policy.
 
@@ -61,3 +61,5 @@ Next phase prerequisites: [satisfied / missing]
 ## Definition of done for a feature
 
 Spec ID linked, error/edge cases handled, unit + integration tests, security/privacy test, accessibility and device checks if relevant, documentation updated, observability event present, demo fixture reproducible, no credentials or real personal data in repository.
+
+ML/phone-test update: main now bundles a real licensed YAMNet confirmation-only sound model and native microphone service, plus tested training/export/event-evaluation tooling. It has no validated Hindi/English phrase recognition or automatic dispatch. User performs physical testing using docs/PHONE_TEST.md on main. See the newest EXECUTION_STATE checkpoint and main docs/validation/ml-continuation.md; do not treat older no-model statements as current.
