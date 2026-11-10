@@ -1,0 +1,46 @@
+# Local agent instructions, configuration, prompts, and execution state.
+# Rules without a slash apply at every directory depth.
+[Aa][Gg][Ee][Nn][Tt][Ss].md
+AGENTS.override.md
+CLAUDE.md
+GEMINI.md
+.agents/
+.codex/
+.claude/
+.cursor/
+.github/copilot-instructions.md
+AGENT_OWNERSHIP.md
+EXECUTOR_HANDOFF_PROMPT.md
+22_CODEX_REVIEWER_HANDOFF.md
+EXECUTION_STATE_TEMPLATE.md
+EXECUTION_STATE.md
+IMPLEMENTATION_STATUS.md
+
+# Credentials and local environment configuration.
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+firebase-adminsdk*.json
+
+# Dependencies, generated builds, and local tooling.
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.gradle/
+.idea/
+.vscode/
+local.properties
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
