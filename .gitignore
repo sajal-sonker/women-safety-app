@@ -57,3 +57,13 @@ next-env.d.ts
 /apps/mobile/Gemfile
 # iOS is outside the Android-first implementation scope.
 /apps/mobile/ios/
+
+# Explicit portable handoff exceptions on handoff/agent-context only.
+# Main keeps its original agent-file exclusions.
+!/AGENTS.md
+!/EXECUTION_STATE.md
+!/docs/AGENT_OWNERSHIP.md
+!/docs/EXECUTOR_HANDOFF_PROMPT.md
+!/docs/EXECUTION_STATE_TEMPLATE.md
+!/docs/22_CODEX_REVIEWER_HANDOFF.md
+!/apps/responder-web/AGENTS.md

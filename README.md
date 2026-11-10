@@ -60,7 +60,7 @@ Development agents: read [AGENTS.md](AGENTS.md), where available locally, and th
 
 ## Reviewed execution package
 
-Agent instruction, ownership, handoff and execution-state files referenced below are local-only and intentionally excluded from GitHub by .gitignore. The shared architecture, implementation plan and technical specifications remain versioned.
+On **handoff/agent-context**, the seven required agent instruction, ownership, handoff and execution-state files are intentionally versioned so work can move to another PC. See [PC_TRANSFER.md](PC_TRANSFER.md). Main continues to exclude these files. Credentials, private machine settings and build outputs remain excluded on both branches. The shared architecture, implementation plan and technical specifications remain versioned.
 
 | Document | Purpose |
 |---|---|

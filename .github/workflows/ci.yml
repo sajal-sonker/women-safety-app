@@ -38,12 +38,8 @@ jobs:
       - run: npm run test:mobile
       - run: npm run build
       - run: npm run verify:docs
-      - name: Check that local agent files are never tracked
-        shell: bash
-        run: |
-          if git ls-files | rg -i '(^|/)(AGENTS(\.override)?\.md|CLAUDE\.md|GEMINI\.md|AGENT_OWNERSHIP\.md|EXECUTOR_HANDOFF_PROMPT\.md|22_CODEX_REVIEWER_HANDOFF\.md|EXECUTION_STATE_TEMPLATE\.md|EXECUTION_STATE\.md|IMPLEMENTATION_STATUS\.md)$|(^|/)(\.codex|\.agents|\.claude|\.cursor)/'; then
-            exit 1
-          fi
+      - name: Check approved handoff files and credential exclusions
+        run: node scripts/check-handoff-files.mjs
   android:
     runs-on: ubuntu-latest
     steps:
