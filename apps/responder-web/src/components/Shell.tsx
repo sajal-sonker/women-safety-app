@@ -1,0 +1,3 @@
+export function Shell({children,compact=false}:{children:React.ReactNode,compact?:boolean}){
+ return <><header className="topbar"><a href="/" className="brand"><span className="brand-mark">S</span>Suraksha<span>AI</span></a><span className="private-label">Private by design</span><a href="tel:112" className="emergency-link">Emergency · 112 ↗</a></header><div className="demo-banner">CONTROLLED DEMO · Messages are simulated. Lucknow route data is fictional. No police dispatch.</div><main className={compact?'compact':'page'}>{children}</main><footer>This app supplements emergency services. Help, message delivery and favorable route conditions are never guaranteed.</footer></>;
+}

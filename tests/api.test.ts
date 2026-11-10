@@ -1,0 +1,142 @@
+import assert from 'node:assert/strict';
+import {test,before,after} from 'node:test';
+import {randomUUID} from 'node:crypto';
+import type {Server} from 'node:http';
+import {createApp} from '../services/api/src/app.ts';
+import {pool,routePool} from '../services/api/src/platform/db/index.ts';
+import {migrate} from '../services/api/src/platform/db/migrate.ts';
+import {config} from '../services/api/src/platform/config.ts';
+import {seed,demoUsers,fixtureId} from '../services/api/src/seed.ts';
+import {decrypt} from '../services/api/src/platform/security.ts';
+import {Worker} from '../services/worker/src/index.ts';
+let server:Server,base:string;
+const identities=new Map(demoUsers.map(u=>[u.uid,u.phone]));
+const worker=new Worker();
+before(async()=>{
+ assert.equal(new URL(config.databaseUrl).pathname,'/suraksha_test','Never run integration tests on the app database');
+ await migrate();
+ const tables=(await pool.query("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename NOT IN ('schema_migrations','spatial_ref_sys')")).rows.map(r=>'"'+r.tablename+'"');
+ await pool.query('TRUNCATE '+tables.join(',')+' CASCADE');
+ await seed();
+ server=createApp(async raw=>{const phone=identities.get(raw);if(!phone)throw Error('invalid');return {uid:raw,phone_number:phone,auth_time:Date.now()/1000};}).listen(0,'127.0.0.1');
+ await new Promise<void>(r=>server.once('listening',()=>r()));
+ base='http://127.0.0.1:'+(server.address() as {port:number}).port;
+});
+after(async()=>{await new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()));await Promise.all([pool.end(),routePool.end()]);});
+async function call(path:string,options:{uid?:string;method?:string;body?:unknown;key?:string;headers?:Record<string,string>}={}){
+ const method=options.method??'GET';
+ const res=await fetch(base+'/v1'+path,{method,headers:{Authorization:'Bearer '+(options.uid??'owner-demo'),Origin:config.origin,...(options.body!==undefined?{'Content-Type':'application/json'}:{}),...(method!=='GET'?{'Idempotency-Key':options.key??randomUUID()}:{}),...options.headers},...(options.body!==undefined?{body:JSON.stringify(options.body)}:{})});
+ return {status:res.status,body:res.status===204?null:await res.json() as any,headers:res.headers};
+}
+const sosBody=(key:string)=>({trigger_type:'MANUAL',client_request_id:key,triggered_at:new Date().toISOString(),location:null,location_status:'UNAVAILABLE'});
+test('five concurrent SOS replays persist one event and one intent per recipient, without GPS',async()=>{
+ const key=randomUUID(),body=sosBody(key);
+ const replies=await Promise.all(Array.from({length:5},()=>call('/sos',{method:'POST',body,key})));
+ assert.equal(replies.filter(r=>r.status===201).length,1);
+ assert.equal(replies.filter(r=>r.status===200).length,4);
+ const eventId=replies[0].body.event_id;
+ assert.ok(replies.every(r=>r.body.event_id===eventId));
+ assert.ok(replies[0].body.warnings.includes('LOCATION_UNAVAILABLE'));
+ const counts=await pool.query('SELECT (SELECT count(*)::int FROM sos_events WHERE client_request_id=$1) AS events,(SELECT count(*)::int FROM delivery_intents WHERE event_id=$2) AS sends',[key,eventId]);
+ assert.deepEqual(counts.rows[0],{events:1,sends:5});
+ assert.equal((await call('/sos',{method:'POST',body:{...body,triggered_at:new Date(Date.now()-1000).toISOString()},key})).status,409);
+ assert.equal((await call('/sos/'+eventId,{uid:'second-demo'})).status,404);
+});
+test('terminal tombstone wins against a late create; absence of event is not cancellation proof',async()=>{
+ const key=randomUUID();
+ assert.equal((await call('/sos/intents/'+key+'/terminate',{method:'POST',body:{reason:'SAFE'}})).status,200);
+ const late=await call('/sos',{method:'POST',key,body:sosBody(key)});
+ assert.equal(late.status,409);assert.equal(late.body.error.code,'INTENT_TERMINATED');
+});
+test('provider acceptance is distinct from delivery, tracking is scoped and revokes immediately',async()=>{
+ const key=randomUUID(),created=await call('/sos',{method:'POST',body:sosBody(key),key});
+ await worker.delivery();
+ const detail=await call('/sos/'+created.body.event_id);
+ assert.ok(detail.body.recipients.every((r:any)=>r.channels[0].status==='PROVIDER_ACCEPTED'));
+ const msg=await pool.query('SELECT m.material_ciphertext FROM fake_messages m JOIN notification_outbox o ON o.id=m.outbox_id JOIN delivery_intents d ON d.id=o.intent_id WHERE d.event_id=$1 LIMIT 1',[created.body.event_id]);
+ const raw=decrypt<any>(msg.rows[0].material_ciphertext).url.split('#token=')[1],exchangeId=randomUUID();
+ const ex=await call('/tracking/exchange',{method:'POST',body:{token:raw,exchange_id:exchangeId}});
+ assert.equal(ex.status,200);
+ const cookie=ex.headers.get('set-cookie')!.split(';')[0];
+ const headers={Cookie:cookie,'X-Tracking-Grant-ID':ex.body.grant_id,'X-CSRF-Token':ex.body.csrf_token};
+ assert.equal((await call('/tracking/exchange',{method:'POST',body:{token:raw,exchange_id:exchangeId}})).status,200);
+ assert.equal((await call('/tracking/exchange',{method:'POST',body:{token:raw,exchange_id:randomUUID()}})).status,409);
+ const view=await call('/tracking/event',{headers});
+ assert.equal(view.status,200);assert.equal(view.body.event_id,created.body.event_id);
+ assert.equal('recipients'in view.body,false);assert.equal('phone_e164'in view.body,false);
+ const ack=await call('/tracking/acknowledge',{method:'POST',body:{can_assist:true,eta_minutes:8},headers});
+ assert.equal(ack.status,200);assert.equal(ack.body.acknowledgement,'CAN_ASSIST');
+ assert.equal((await call('/tracking/acknowledge',{method:'POST',body:{can_assist:false},headers:{...headers,'X-CSRF-Token':'wrong'}})).status,403);
+ assert.equal((await call('/sos/'+created.body.event_id+'/resolve',{method:'POST',body:{resolution:'SAFE'}})).status,200);
+ assert.equal((await call('/tracking/event',{headers})).status,410);
+});
+test('contact cap is transactional under six simultaneous additions',async()=>{
+ const replies=await Promise.all(Array.from({length:6},(_,i)=>call('/contacts',{uid:'second-demo',method:'POST',body:{name:'Synthetic '+i,phone_e164:'+1650555080'+i,priority:1}})));
+ assert.equal(replies.filter(r=>r.status===201).length,5);assert.equal(replies.filter(r=>r.status===409).length,1);
+});
+test('contact location requires independent consent and only exposes availability to owner',async()=>{
+ const contact=fixtureId('trusted-1');
+ assert.equal((await call('/contact-location/sessions',{method:'POST',body:{contact_id:contact,consent_version:'consent-v1',duration_minutes:5}})).status,403);
+ const s=await call('/contact-location/sessions',{uid:'contact-1',method:'POST',body:{contact_id:contact,consent_version:'consent-v1',duration_minutes:5}});
+ assert.equal(s.status,201);
+ assert.equal((await call('/contact-location/sessions/'+s.body.session_id+'/position',{uid:'contact-1',method:'PUT',body:{sample_id:randomUUID(),location:{lat:26.85,lon:80.946,accuracy_m:20,captured_at:new Date().toISOString(),source:'gps'}}})).status,200);
+ const contacts=await call('/contacts');assert.equal(contacts.body.items.find((c:any)=>c.id===contact).location_available,true);
+ assert.equal(JSON.stringify(contacts.body).includes('26.85'),false);
+});
+test('routes use the seeded walking graph with honest synthetic provenance and bounded estimates',async()=>{
+ const result=await call('/routes/evaluate',{method:'POST',body:{origin:{lat:26.848,lon:80.943},destination:{lat:26.852,lon:80.949},depart_at:new Date().toISOString(),mode:'walking'}});
+ assert.equal(result.status,200);assert.ok(result.body.routes.length>=1&&result.body.routes.length<=3);
+ assert.match(result.body.coverage_warning,/fictional/i);
+ for(const r of result.body.routes){assert.equal(r.geometry.type,'LineString');assert.ok(r.risk_indicator===null||r.risk_indicator>=0&&r.risk_indicator<=100);assert.ok(r.confidence>=0&&r.confidence<=1);}
+ const bad=await call('/routes/evaluate',{method:'POST',body:{origin:{lat:28,lon:77},destination:{lat:26.852,lon:80.949},depart_at:new Date().toISOString(),mode:'walking'}});
+ assert.equal(bad.status,422);
+});
+test('journey deadline escalation is durable, idempotent and independent from arrival after escalation',async()=>{
+ const j=await call('/journeys',{uid:'second-demo',method:'POST',body:{destination:{lat:26.85,lon:80.946},expected_arrival_at:new Date(Date.now()+60000).toISOString(),auto_escalate:true,share_with_contacts:false,contact_ids:[]}});
+ assert.equal(j.status,201);
+ const key=j.body.journey_id;
+ await pool.query("UPDATE journeys SET expected_arrival_at=now()-interval '3 minutes',checkin_due_at=now()-interval '3 minutes',escalate_at=now()-interval '1 minute' WHERE id=$1",[key]);
+ await pool.query("UPDATE scheduled_jobs SET due_at=now()-interval '1 second' WHERE aggregate_id=$1",[key]);
+ await Promise.all([worker.jobs(),new Worker().jobs()]);
+ await worker.jobs();
+ const out=await call('/journeys/'+key,{uid:'second-demo'});
+ assert.equal(out.body.status,'ESCALATED');assert.ok(out.body.sos_event_id);
+ const arrived=await call('/journeys/'+key+'/arrive',{uid:'second-demo',method:'POST',body:{}});
+ assert.equal(arrived.body.sos_event_id,out.body.sos_event_id);
+ assert.equal((await call('/sos/'+out.body.sos_event_id,{uid:'second-demo'})).body.status,'CREATED');
+});
+test('pending reports have no public effect and three independent approved reporters yield only coarse cells',async()=>{
+ const reports:string[]=[];
+ for(let n=0;n<3;n++){
+  const uid='reporter-'+n;identities.set(uid,'+1650555090'+n);
+  const result=await call('/incident-reports',{uid,method:'POST',body:{category:'LIGHTING',location:{lat:26.85,lon:80.946,accuracy_m:null,captured_at:new Date().toISOString(),source:'manual'},happened_at:new Date().toISOString(),description:'Synthetic lighting observation'}});
+  assert.equal(result.status,201);reports.push(result.body.id);
+ }
+ assert.equal((await call('/incident-reports/aggregate')).body.cells.length,0);
+ for(const key of reports){const r=await call('/admin/reports/'+key+'/moderate',{uid:'moderator-demo',method:'POST',body:{action:'APPROVE',reason:'Synthetic moderation test',expected_revision:1}});assert.equal(r.status,200);}
+ const aggregate=await call('/incident-reports/aggregate');
+ assert.equal(aggregate.body.cells.length,1);assert.equal(aggregate.body.cells[0].count_bucket,'3-5');
+ assert.equal('reporter_user_id'in aggregate.body.cells[0],false);assert.equal('location'in aggregate.body.cells[0],false);
+ assert.equal((await call('/admin/review-queue?kind=REPORT')).status,403);
+});
+test('privacy retention erases completed journey coordinates without breaking history contracts',async()=>{
+ const result=await call('/journeys',{uid:'second-demo'});
+ const journey=result.body.items.find((j:any)=>j.status==='ESCALATED');
+ assert.ok(journey);
+ await pool.query("UPDATE journeys SET completed_at=now()-interval '25 hours' WHERE id=$1",[journey.journey_id]);
+ await worker.retention();
+ const history=await call('/journeys/'+journey.journey_id,{uid:'second-demo'});
+ assert.equal(history.status,200);
+ assert.equal(history.body.origin,null);
+ assert.equal(history.body.destination,null);
+ assert.equal(history.body.sos_event_id,journey.sos_event_id);
+});
+test('shop status requires verification; confirmation cannot override an explicit closure',async()=>{
+ const shop=fixtureId('shop-0');
+ const close=await call('/safe-shops/'+shop+'/availability',{uid:'shop-demo',method:'PATCH',body:{action:'CLOSE',expected_revision:1}});
+ assert.equal(close.status,200);assert.equal(close.body.open_status,'CLOSED');
+ const confirm=await call('/safe-shops/'+shop+'/availability',{uid:'shop-demo',method:'PATCH',body:{action:'CONFIRM_OPEN',expected_revision:close.body.revision}});
+ assert.equal(confirm.status,409);
+ const shops=await call('/safe-shops?lat=26.85&lon=80.946&radius_m=1000');
+ assert.ok(shops.body.items.every((s:any)=>s.status==='ACTIVE'&&!('owner_user_id'in s)));
+});

@@ -1,0 +1,68 @@
+name: Verify Phase 1 and 2
+on:
+  push:
+  pull_request:
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.6
+        env:
+          POSTGRES_USER: suraksha
+          POSTGRES_PASSWORD: isolated_ci_fixture
+          POSTGRES_DB: suraksha
+        ports: ["54329:5432"]
+        options: >-
+          --health-cmd "pg_isready -U suraksha"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: local
+      DATABASE_URL: postgresql://suraksha:isolated_ci_fixture@127.0.0.1:54329/suraksha
+      DATA_KEY_HEX: "0000000000000000000000000000000000000000000000000000000000000000"
+      RECEIPT_SECRET: "isolated_ci_receipt_secret_not_for_deployment"
+      FIREBASE_PROJECT_ID: demo-surakshaai
+      FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run contracts:check
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:mobile
+      - run: npm run build
+      - run: npm run verify:docs
+      - name: Check that local agent files are never tracked
+        shell: bash
+        run: |
+          if git ls-files | rg -i '(^|/)(AGENTS(\.override)?\.md|CLAUDE\.md|GEMINI\.md|AGENT_OWNERSHIP\.md|EXECUTOR_HANDOFF_PROMPT\.md|22_CODEX_REVIEWER_HANDOFF\.md|EXECUTION_STATE_TEMPLATE\.md|EXECUTION_STATE\.md|IMPLEMENTATION_STATUS\.md)$|(^|/)(\.codex|\.agents|\.claude|\.cursor)/'; then
+            exit 1
+          fi
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006" "cmake;3.22.1"
+      - run: npm ci
+      - run: chmod +x apps/mobile/android/gradlew
+      - working-directory: apps/mobile/android
+        run: ./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a --console=plain
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-debug
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk

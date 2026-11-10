@@ -55,3 +55,13 @@ Provider cost model before activation: dailyOTP attempts×regionalOTP tariff; (i
 Routine implementation follows these defaults without another planning round. Record dependency patches and observed capabilities in `EXECUTION_STATE.md`; do not reopen settled choices merely because another library exists. Stop only the affected live integration when credentials, spending, provider permission, unavailable resources or a genuine product/security change is needed. Continue independent fake-mode tasks.
 
 For a contract change record CR ID, affected requirement, reason, wire/schema diff, migration/backward compatibility, privacy impact and tests. B edits shared contracts; M reviews consuming behavior; reviewer accepts the complete integration batch. Changes to contact pool, consent, automatic dispatch or exclusions require explicit team/product decision per [AGENTS.md](../AGENTS.md).
+## Phase 1/2 implementation decisions — 10 November2026
+
+The user explicitly authorized implementation of both phases and GitHub push, superseding the prior planning-only scope. One executor performed backend/mobile sequentially; no executor agents were launched and independent acceptance is not self-certified. See [Phase1 evidence](validation/phase-1.md) and [Phase2 evidence](validation/phase-2.md).
+
+- Pilot: Lucknow with user-approved synthetic fallback. Fixtures are fictional and visibly labelled; real geographic validation remains blocked.
+- Native: RN0.88.1/React19.3.0 on AndroidSDK36/JDK17 compiled. SDK37 requested by template was unavailable;36 is an evidenced local-demo fallback. No store policy/device compatibility conclusion follows from compilation.
+- Contracts: P1/2 baseline only; added contact-consent discovery, nullable retained journey destination and stable microsecond cursors in one producer/consumer/test batch. Details/hash in [contract lock](../packages/contracts/CONTRACT_LOCK.md). Complete four-phase G0 and independent sign-off remain pending.
+- Delivery: only fake adapters. No provider credentials, real Firebase phones, TLS deployment or approved emergency push mechanism are assumed.
+- G0/G1/G2: PARTIAL due independent/device/provider/fault-matrix gaps. User-requested demo implementation of both phases is complete in this declared scope; live-release gate criteria remain binding.
+- Dependency tree: safe patches/override removed high findings;9low/19moderate remain at inspection. Resolve toolchain advisories with compatibility evidence during Phase4; never force a vulnerable old Firebase major to satisfy npm audit suggestions.

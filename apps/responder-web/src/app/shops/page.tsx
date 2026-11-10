@@ -1,0 +1,14 @@
+'use client';
+import {useEffect,useState} from 'react';
+import {createClient,type Model} from '@surakshaai/contracts/client';
+import {Shell} from '../../components/Shell';
+import {SignIn,useIdentity,Logout} from '../../components/Auth';
+import {browserAuth} from '../../lib/auth';
+export default function Shops(){
+ const {user}=useIdentity(),[shops,setShops]=useState<Model<'Shop'>[]>([]),[name,setName]=useState(''),[consent,setConsent]=useState(false),[error,setError]=useState('');
+ const api=createClient('',async()=>await browserAuth().currentUser?.getIdToken()??null);
+ const refresh=()=>api<Model<'Shops'>>('/safe-shops/mine').then(r=>setShops(r.items));
+ useEffect(()=>{if(user)void refresh().catch(()=>setError('Could not load shops.'));},[user?.uid]);
+ async function action(s:Model<'Shop'>,value:string){try{await api('/safe-shops/'+s.id+'/availability',{method:'PATCH',key:crypto.randomUUID(),body:{action:value,expected_revision:s.revision}});await refresh();setError('');}catch{setError('Could not update. Refresh and check verification before resuming.');}}
+ return <Shell compact>{!user?<SignIn initialPhone="+16505550188"/>:<><section className="panel"><h1>A place to ask<br/>for assistance.</h1><p>Participating shops are not emergency professionals. Applications require manual verification; emergency notifications are disabled until separate agreements exist.</p><label>Business name<input value={name} onChange={e=>setName(e.target.value)}/></label><p className="small">Demo application location:26.850,80.946. Hours07:00–22:00 Asia/Kolkata.</p><label className="check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>I consent to listing this demo assistance point.</label><button disabled={!name||!consent} onClick={async()=>{try{await api('/safe-shops/apply',{method:'POST',key:crypto.randomUUID(),body:{name,position:{lat:26.85,lon:80.946},public_phone:null,hours:{timezone:'Asia/Kolkata',weekly:Array.from({length:7},(_,i)=>({day:i+1,intervals:[{start:'07:00',end:'22:00'}]})),exceptions:[]},listing_consent_version:'consent-v1',opt_in_alerts:false,agreement_version:null}});setName('');await refresh();}catch{setError('Application could not be submitted.');}}}>Apply for review</button></section>{error&&<p className="error">{error}</p>}{shops.map(s=><section className="panel" key={s.id}><h2>{s.name}</h2><p>{s.status} · {s.verification_level} · {s.open_status}</p><div className="actions">{[['CONFIRM_OPEN','Confirm open'],['CLOSE','Close for12h'],['PAUSE','Pause'],['RESUME','Resume']].map(([v,label])=><button className="secondary" key={v} onClick={()=>action(s,v)}>{label}</button>)}</div><button className="text-button danger" onClick={async()=>{try{await api('/safe-shops/'+s.id,{method:'DELETE',key:crypto.randomUUID()});await refresh();}catch{setError('Withdrawal unconfirmed.');}}}>Withdraw listing</button></section>)}<Logout/></>}</Shell>;
+}

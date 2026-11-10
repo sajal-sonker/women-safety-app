@@ -2,7 +2,13 @@
 
 **Working name:** SurakshaAI (changeable; do not hard-code product branding).
 **Product:** Android-first, India-focused women's safety mobile app with emergency alerting, explainable time-aware route risk indicators, verified/registered safe-shop discovery, situational on-device distress detection, and discreet safety controls.
-**Documentation baseline:** review-1.2, 10 November 2026. **Status:** Reviewed execution specification; no application has been implemented. Local foundation work may begin at P1-T01; G0 must freeze generated contracts before parallel feature work. Live emergency deployment remains blocked by provider/device/data/privacy prerequisites.
+**Documentation baseline:** review-1.2, 10 November 2026. **Implementation status:** Phase 1 and Phase 2 have a controlled local demo implementation: Android app, API/worker, PostgreSQL/PostGIS and responder/admin web. Lucknow uses clearly labelled fictional map and shop fixtures, as approved for the demo. Authentication uses the Firebase emulator; SMS/push are simulated. Independent acceptance, physical-device testing and live-provider validation remain pending. Phases 3 and 4 remain planned.
+
+## Run the demo
+
+See [RUNNING.md](RUNNING.md) for clean setup, test accounts, Android instructions and troubleshooting. See the [Phase 1 evidence](docs/validation/phase-1.md) and [Phase 2 evidence](docs/validation/phase-2.md) for implemented scope and remaining acceptance work. This is not a production emergency deployment.
+
+The repository contains `apps/mobile`, `apps/responder-web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `scripts` and `tests`. The [machine-readable API](packages/contracts/openapi.yaml) is the implemented Phase 1/2 wire contract; later-phase endpoints in planning documents are still specifications.
 
 > **Safety positioning:** This app supplements, and must never replace, official emergency services. It does not predict or guarantee personal safety. In India, include a direct 112 emergency-call shortcut; do not claim police dispatch integration without an actual agreement/API.
 
@@ -50,7 +56,7 @@
 | 21 | [21_REQUIREMENTS_TRACEABILITY.md](docs/21_REQUIREMENTS_TRACEABILITY.md) | Trace professor vs team vs source document |
 | 22 | [22_CODEX_REVIEWER_HANDOFF.md](docs/22_CODEX_REVIEWER_HANDOFF.md) | Copy-ready reviewer and executor prompts |
 
-Development agents: read [AGENTS.md](AGENTS.md) and the reviewed execution package below before editing code. The repository currently contains documentation and Git metadata; planned application directories do not exist yet. Preserve the existing user changes.
+Development agents: read [AGENTS.md](AGENTS.md), where available locally, and the reviewed execution package below before editing code. The original architecture review describes the documentation-only baseline; the validation reports above describe the subsequent implementation. Preserve existing user changes.
 
 ## Reviewed execution package
 

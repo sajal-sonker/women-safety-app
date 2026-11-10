@@ -1,0 +1,3611 @@
+{
+  "Point": {
+    "type": "object",
+    "properties": {
+      "lat": {
+        "type": "number",
+        "minimum": -90,
+        "maximum": 90
+      },
+      "lon": {
+        "type": "number",
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    "required": [
+      "lat",
+      "lon"
+    ],
+    "additionalProperties": false
+  },
+  "Location": {
+    "type": "object",
+    "properties": {
+      "lat": {
+        "type": "number",
+        "minimum": -90,
+        "maximum": 90
+      },
+      "lon": {
+        "type": "number",
+        "minimum": -180,
+        "maximum": 180
+      },
+      "accuracy_m": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "captured_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "source": {
+        "type": "string",
+        "enum": [
+          "gps",
+          "network",
+          "last_known",
+          "manual"
+        ]
+      }
+    },
+    "required": [
+      "lat",
+      "lon",
+      "accuracy_m",
+      "captured_at",
+      "source"
+    ],
+    "additionalProperties": false
+  },
+  "Error": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "retry_after_s": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 86400
+          },
+          "recovery_action": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "RESOLVE_EVENT",
+              "REAUTHENTICATE",
+              "RECONFIRM_SOS"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "required": [
+      "error"
+    ],
+    "additionalProperties": false
+  },
+  "Empty": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+  },
+  "Health": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "OK",
+          "DEGRADED"
+        ]
+      }
+    },
+    "required": [
+      "status"
+    ],
+    "additionalProperties": false
+  },
+  "Profile": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "display_name": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "locale": {
+        "type": "string",
+        "enum": [
+          "en",
+          "hi"
+        ]
+      },
+      "phone_e164": {
+        "type": "string",
+        "pattern": "^\\+[1-9][0-9]{7,14}$",
+        "maxLength": 16
+      },
+      "consents": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "enum": [
+              "consent-v1"
+            ]
+          },
+          "monitoring": {
+            "type": "boolean"
+          },
+          "evidence": {
+            "type": "boolean"
+          },
+          "shop_alerts": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version",
+          "monitoring",
+          "evidence",
+          "shop_alerts"
+        ],
+        "additionalProperties": false
+      },
+      "capabilities": {
+        "type": "object",
+        "properties": {
+          "push_live": {
+            "type": "boolean"
+          },
+          "monitoring": {
+            "type": "boolean"
+          },
+          "duress": {
+            "type": "boolean"
+          },
+          "key_trigger": {
+            "type": "boolean"
+          },
+          "shop_alerts": {
+            "type": "boolean"
+          },
+          "evidence": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "push_live",
+          "monitoring",
+          "duress",
+          "key_trigger",
+          "shop_alerts",
+          "evidence"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "id",
+      "display_name",
+      "locale",
+      "phone_e164",
+      "consents",
+      "capabilities"
+    ],
+    "additionalProperties": false
+  },
+  "ProfilePatch": {
+    "type": "object",
+    "properties": {
+      "display_name": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "locale": {
+        "type": "string",
+        "enum": [
+          "en",
+          "hi"
+        ]
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  },
+  "ConsentPatch": {
+    "type": "object",
+    "properties": {
+      "version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      },
+      "monitoring": {
+        "type": "boolean"
+      },
+      "evidence": {
+        "type": "boolean"
+      },
+      "shop_alerts": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "version"
+    ],
+    "additionalProperties": false
+  },
+  "Contact": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "name": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "phone_e164": {
+        "type": "string",
+        "pattern": "^\\+[1-9][0-9]{7,14}$",
+        "maxLength": 16
+      },
+      "priority": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      },
+      "invite_status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "VERIFIED",
+          "DECLINED",
+          "REVOKED"
+        ]
+      },
+      "location_available": {
+        "type": "boolean"
+      },
+      "consent_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "id",
+      "name",
+      "phone_e164",
+      "priority",
+      "invite_status",
+      "location_available",
+      "consent_at"
+    ],
+    "additionalProperties": false
+  },
+  "ContactCreate": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "maxLength": 80,
+        "minLength": 1
+      },
+      "phone_e164": {
+        "type": "string",
+        "pattern": "^\\+[1-9][0-9]{7,14}$",
+        "maxLength": 16
+      },
+      "priority": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      }
+    },
+    "required": [
+      "name",
+      "phone_e164",
+      "priority"
+    ],
+    "additionalProperties": false
+  },
+  "ContactPatch": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "maxLength": 80,
+        "minLength": 1
+      },
+      "priority": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  },
+  "Contacts": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Contact"
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "Invitation": {
+    "type": "object",
+    "properties": {
+      "invite_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING"
+        ]
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "invite_id",
+      "status",
+      "expires_at"
+    ],
+    "additionalProperties": false
+  },
+  "AcceptInvite": {
+    "type": "object",
+    "properties": {
+      "token": {
+        "type": "string",
+        "maxLength": 128
+      },
+      "consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      }
+    },
+    "required": [
+      "token",
+      "consent_version"
+    ],
+    "additionalProperties": false
+  },
+  "DeclineInvite": {
+    "type": "object",
+    "properties": {
+      "token": {
+        "type": "string",
+        "maxLength": 128
+      },
+      "block_future_invites": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "token",
+      "block_future_invites"
+    ],
+    "additionalProperties": false
+  },
+  "Reconsent": {
+    "type": "object",
+    "properties": {
+      "consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      }
+    },
+    "required": [
+      "consent_version"
+    ],
+    "additionalProperties": false
+  },
+  "InvitationItem": {
+    "type": "object",
+    "properties": {
+      "invite_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "contact_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "owner_display_name": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "VERIFIED",
+          "DECLINED",
+          "REVOKED"
+        ]
+      }
+    },
+    "required": [
+      "invite_id",
+      "contact_id",
+      "owner_display_name",
+      "expires_at",
+      "status"
+    ],
+    "additionalProperties": false
+  },
+  "Invitations": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/InvitationItem"
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "ContactConsent": {
+    "type": "object",
+    "properties": {
+      "contact_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "owner_display_name": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "VERIFIED",
+          "DECLINED",
+          "REVOKED"
+        ]
+      },
+      "consent_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "contact_id",
+      "owner_display_name",
+      "status",
+      "consent_at"
+    ],
+    "additionalProperties": false
+  },
+  "ContactConsents": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ContactConsent"
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "DeviceWrite": {
+    "type": "object",
+    "properties": {
+      "push_token": {
+        "type": "string",
+        "maxLength": 4096
+      },
+      "platform": {
+        "type": "string",
+        "enum": [
+          "ANDROID"
+        ]
+      },
+      "notifications_enabled": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "push_token",
+      "platform",
+      "notifications_enabled"
+    ],
+    "additionalProperties": false
+  },
+  "Device": {
+    "type": "object",
+    "properties": {
+      "device_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "registered_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "device_id",
+      "registered_at"
+    ],
+    "additionalProperties": false
+  },
+  "SessionStart": {
+    "type": "object",
+    "properties": {
+      "contact_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      },
+      "duration_minutes": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 120
+      }
+    },
+    "required": [
+      "contact_id",
+      "consent_version",
+      "duration_minutes"
+    ],
+    "additionalProperties": false
+  },
+  "ContactSession": {
+    "type": "object",
+    "properties": {
+      "session_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "session_id",
+      "expires_at"
+    ],
+    "additionalProperties": false
+  },
+  "PositionWrite": {
+    "type": "object",
+    "properties": {
+      "sample_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "location": {
+        "$ref": "#/components/schemas/Location"
+      }
+    },
+    "required": [
+      "sample_id",
+      "location"
+    ],
+    "additionalProperties": false
+  },
+  "PositionReceipt": {
+    "type": "object",
+    "properties": {
+      "sample_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "accepted": {
+        "type": "boolean"
+      },
+      "is_latest": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "sample_id",
+      "accepted",
+      "is_latest"
+    ],
+    "additionalProperties": false
+  },
+  "ContextPatch": {
+    "type": "object",
+    "properties": {
+      "battery_pct": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "motion_context": {
+        "type": "string",
+        "enum": [
+          "UNKNOWN",
+          "STATIONARY",
+          "WALKING",
+          "RUNNING",
+          "VEHICLE"
+        ]
+      },
+      "motion_confidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "speed_mps": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "observed_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "observed_at"
+    ],
+    "additionalProperties": false
+  },
+  "ContextView": {
+    "type": "object",
+    "properties": {
+      "battery_pct": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "motion_context": {
+        "type": "string",
+        "enum": [
+          "UNKNOWN",
+          "STATIONARY",
+          "WALKING",
+          "RUNNING",
+          "VEHICLE"
+        ]
+      },
+      "motion_confidence": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "speed_mps": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "observed_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "age_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "stale": {
+        "type": "boolean"
+      },
+      "landmark": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "source": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "observed_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              }
+            },
+            "required": [
+              "label",
+              "source",
+              "observed_at"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "battery_pct",
+      "motion_context",
+      "motion_confidence",
+      "speed_mps",
+      "observed_at",
+      "age_s",
+      "stale",
+      "landmark"
+    ],
+    "additionalProperties": false
+  },
+  "SosCreate": {
+    "type": "object",
+    "properties": {
+      "trigger_type": {
+        "type": "string",
+        "enum": [
+          "MANUAL",
+          "JOURNEY_OVERDUE",
+          "DURESS_PIN",
+          "VOLUME_CODE",
+          "SHAKE",
+          "ML_FUSION"
+        ]
+      },
+      "client_request_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "triggered_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "location": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Location"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "location_status": {
+        "type": "string",
+        "enum": [
+          "CURRENT",
+          "APPROXIMATE",
+          "STALE",
+          "UNAVAILABLE"
+        ]
+      },
+      "device_context": {
+        "$ref": "#/components/schemas/ContextPatch"
+      }
+    },
+    "required": [
+      "trigger_type",
+      "client_request_id",
+      "triggered_at",
+      "location",
+      "location_status"
+    ],
+    "additionalProperties": false
+  },
+  "SosCreated": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "event_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "CREATED",
+          "DISPATCHING",
+          "ACTIVE",
+          "RESOLVED",
+          "CANCELLED"
+        ]
+      },
+      "dispatch_status": {
+        "type": "string",
+        "enum": [
+          "QUEUED",
+          "IN_PROGRESS",
+          "ATTEMPTED",
+          "NO_ELIGIBLE_RECIPIENTS",
+          "STOPPED"
+        ]
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "initial_location_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "eligible_recipient_count": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "replayed": {
+        "type": "boolean"
+      },
+      "emergency_call_number": {
+        "type": "string",
+        "enum": [
+          "112"
+        ]
+      },
+      "warnings": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "LOCATION_UNAVAILABLE",
+            "LOCATION_STALE",
+            "LOCATION_APPROXIMATE",
+            "NO_ELIGIBLE_RECIPIENTS",
+            "PUSH_UNAVAILABLE"
+          ]
+        },
+        "maxItems": 5
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "event_id",
+      "status",
+      "dispatch_status",
+      "created_at",
+      "initial_location_at",
+      "eligible_recipient_count",
+      "expires_at",
+      "replayed",
+      "emergency_call_number",
+      "warnings"
+    ],
+    "additionalProperties": false
+  },
+  "Recipient": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "contact_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "priority_rank": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      },
+      "role": {
+        "type": "string",
+        "enum": [
+          "PRIMARY",
+          "ALTERNATE"
+        ]
+      },
+      "acknowledgement": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "CAN_ASSIST",
+          "CANNOT_ASSIST"
+        ]
+      },
+      "acknowledged_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "eta_minutes": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 240
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "channels": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "channel": {
+              "type": "string",
+              "enum": [
+                "SMS",
+                "PUSH"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "QUEUED",
+                "PROVIDER_ACCEPTED",
+                "DELIVERED",
+                "FAILED",
+                "UNKNOWN",
+                "SUPPRESSED"
+              ]
+            },
+            "last_attempt_at": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "channel",
+            "status",
+            "last_attempt_at"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 2
+      }
+    },
+    "required": [
+      "id",
+      "contact_id",
+      "priority_rank",
+      "role",
+      "acknowledgement",
+      "acknowledged_at",
+      "eta_minutes",
+      "channels"
+    ],
+    "additionalProperties": false
+  },
+  "EvidenceMetadata": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "AUDIO",
+          "PHOTO",
+          "VIDEO"
+        ]
+      },
+      "mime": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "size_bytes": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10485760
+      },
+      "duration_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "captured_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "REQUESTED",
+          "UPLOADING",
+          "QUARANTINED",
+          "AVAILABLE",
+          "FAILED",
+          "DELETED"
+        ]
+      },
+      "delete_after": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "id",
+      "kind",
+      "mime",
+      "size_bytes",
+      "duration_s",
+      "captured_at",
+      "status",
+      "delete_after"
+    ],
+    "additionalProperties": false
+  },
+  "SosDetail": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "event_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "CREATED",
+          "DISPATCHING",
+          "ACTIVE",
+          "RESOLVED",
+          "CANCELLED"
+        ]
+      },
+      "dispatch_status": {
+        "type": "string",
+        "enum": [
+          "QUEUED",
+          "IN_PROGRESS",
+          "ATTEMPTED",
+          "NO_ELIGIBLE_RECIPIENTS",
+          "STOPPED"
+        ]
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "initial_location_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "eligible_recipient_count": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "replayed": {
+        "type": "boolean"
+      },
+      "emergency_call_number": {
+        "type": "string",
+        "enum": [
+          "112"
+        ]
+      },
+      "warnings": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "LOCATION_UNAVAILABLE",
+            "LOCATION_STALE",
+            "LOCATION_APPROXIMATE",
+            "NO_ELIGIBLE_RECIPIENTS",
+            "PUSH_UNAVAILABLE"
+          ]
+        },
+        "maxItems": 5
+      },
+      "trigger_type": {
+        "type": "string",
+        "enum": [
+          "MANUAL",
+          "JOURNEY_OVERDUE",
+          "DURESS_PIN",
+          "VOLUME_CODE",
+          "SHAKE",
+          "ML_FUSION"
+        ]
+      },
+      "resolution": {
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": [
+              "SAFE",
+              "FALSE_ALARM",
+              "EXPIRED"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "position": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Location"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "location_age_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "context": {
+        "$ref": "#/components/schemas/ContextView"
+      },
+      "recipients": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Recipient"
+        },
+        "maxItems": 5
+      },
+      "evidence": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/EvidenceMetadata"
+        },
+        "maxItems": 20
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "event_id",
+      "status",
+      "dispatch_status",
+      "created_at",
+      "initial_location_at",
+      "eligible_recipient_count",
+      "expires_at",
+      "replayed",
+      "emergency_call_number",
+      "warnings",
+      "trigger_type",
+      "resolution",
+      "position",
+      "location_age_s",
+      "context",
+      "recipients",
+      "evidence"
+    ],
+    "additionalProperties": false
+  },
+  "SosSummary": {
+    "type": "object",
+    "properties": {
+      "event_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "trigger_type": {
+        "type": "string",
+        "enum": [
+          "MANUAL",
+          "JOURNEY_OVERDUE",
+          "DURESS_PIN",
+          "VOLUME_CODE",
+          "SHAKE",
+          "ML_FUSION"
+        ]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "CREATED",
+          "DISPATCHING",
+          "ACTIVE",
+          "RESOLVED",
+          "CANCELLED"
+        ]
+      },
+      "dispatch_status": {
+        "type": "string",
+        "enum": [
+          "QUEUED",
+          "IN_PROGRESS",
+          "ATTEMPTED",
+          "NO_ELIGIBLE_RECIPIENTS",
+          "STOPPED"
+        ]
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "ended_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "event_id",
+      "trigger_type",
+      "status",
+      "dispatch_status",
+      "created_at",
+      "ended_at"
+    ],
+    "additionalProperties": false
+  },
+  "SosHistory": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SosSummary"
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "Resolve": {
+    "type": "object",
+    "properties": {
+      "resolution": {
+        "type": "string",
+        "enum": [
+          "SAFE",
+          "FALSE_ALARM"
+        ]
+      },
+      "note": {
+        "type": "string",
+        "maxLength": 200
+      }
+    },
+    "required": [
+      "resolution"
+    ],
+    "additionalProperties": false
+  },
+  "Terminate": {
+    "type": "object",
+    "properties": {
+      "reason": {
+        "type": "string",
+        "enum": [
+          "SAFE",
+          "FALSE_ALARM"
+        ]
+      }
+    },
+    "required": [
+      "reason"
+    ],
+    "additionalProperties": false
+  },
+  "Terminated": {
+    "type": "object",
+    "properties": {
+      "intent_state": {
+        "type": "string",
+        "enum": [
+          "TERMINATED"
+        ]
+      },
+      "event_id": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "status": {
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DISPATCHING",
+              "ACTIVE",
+              "RESOLVED",
+              "CANCELLED"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "intent_state",
+      "event_id",
+      "status"
+    ],
+    "additionalProperties": false
+  },
+  "GrantIssued": {
+    "type": "object",
+    "properties": {
+      "grant_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "dispatch_status": {
+        "type": "string",
+        "enum": [
+          "QUEUED"
+        ]
+      }
+    },
+    "required": [
+      "grant_id",
+      "expires_at",
+      "dispatch_status"
+    ],
+    "additionalProperties": false
+  },
+  "Exchange": {
+    "type": "object",
+    "properties": {
+      "token": {
+        "type": "string",
+        "maxLength": 128,
+        "minLength": 40
+      },
+      "exchange_id": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "required": [
+      "token",
+      "exchange_id"
+    ],
+    "additionalProperties": false
+  },
+  "Exchanged": {
+    "type": "object",
+    "properties": {
+      "grant_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "grant_kind": {
+        "type": "string",
+        "enum": [
+          "SOS_READ",
+          "JOURNEY_READ",
+          "SHOP_ALERT"
+        ]
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "csrf_token": {
+        "type": "string",
+        "maxLength": 128
+      }
+    },
+    "required": [
+      "grant_id",
+      "grant_kind",
+      "expires_at",
+      "csrf_token"
+    ],
+    "additionalProperties": false
+  },
+  "TrackingView": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "event_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "event_status": {
+        "type": "string",
+        "enum": [
+          "CREATED",
+          "DISPATCHING",
+          "ACTIVE",
+          "RESOLVED",
+          "CANCELLED"
+        ]
+      },
+      "started_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "trigger_class": {
+        "type": "string",
+        "enum": [
+          "MANUAL",
+          "POTENTIAL_DISTRESS",
+          "JOURNEY_OVERDUE"
+        ]
+      },
+      "shared_name": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "position": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Location"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "location_age_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "context": {
+        "$ref": "#/components/schemas/ContextView"
+      },
+      "priority_role": {
+        "type": "string",
+        "enum": [
+          "PRIMARY",
+          "ALTERNATE"
+        ]
+      },
+      "own_acknowledgement": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "CAN_ASSIST",
+          "CANNOT_ASSIST"
+        ]
+      },
+      "assisting_count": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+      },
+      "evidence": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/EvidenceMetadata"
+        },
+        "maxItems": 20
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "event_id",
+      "event_status",
+      "started_at",
+      "trigger_class",
+      "shared_name",
+      "position",
+      "location_age_s",
+      "context",
+      "priority_role",
+      "own_acknowledgement",
+      "assisting_count",
+      "evidence",
+      "expires_at"
+    ],
+    "additionalProperties": false
+  },
+  "Locations": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "sample_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "location": {
+              "$ref": "#/components/schemas/Location"
+            },
+            "received_at": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            }
+          },
+          "required": [
+            "sample_id",
+            "location",
+            "received_at"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "Acknowledge": {
+    "type": "object",
+    "properties": {
+      "can_assist": {
+        "type": "boolean"
+      },
+      "eta_minutes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 240
+      }
+    },
+    "required": [
+      "can_assist"
+    ],
+    "additionalProperties": false
+  },
+  "Acknowledged": {
+    "type": "object",
+    "properties": {
+      "acknowledgement": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "CAN_ASSIST",
+          "CANNOT_ASSIST"
+        ]
+      },
+      "eta_minutes": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 240
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      }
+    },
+    "required": [
+      "acknowledgement",
+      "eta_minutes",
+      "revision"
+    ],
+    "additionalProperties": false
+  },
+  "BrowserSessionStart": {
+    "type": "object",
+    "properties": {
+      "id_token": {
+        "type": "string",
+        "maxLength": 8192
+      }
+    },
+    "required": [
+      "id_token"
+    ],
+    "additionalProperties": false
+  },
+  "BrowserSession": {
+    "type": "object",
+    "properties": {
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "csrf_token": {
+        "type": "string",
+        "maxLength": 128
+      }
+    },
+    "required": [
+      "expires_at",
+      "csrf_token"
+    ],
+    "additionalProperties": false
+  },
+  "JourneyCreate": {
+    "type": "object",
+    "properties": {
+      "origin": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Location"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "destination": {
+        "$ref": "#/components/schemas/Point"
+      },
+      "expected_arrival_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "selected_route_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "auto_escalate": {
+        "type": "boolean"
+      },
+      "share_with_contacts": {
+        "type": "boolean"
+      },
+      "contact_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "maxItems": 5
+      }
+    },
+    "required": [
+      "destination",
+      "expected_arrival_at",
+      "auto_escalate",
+      "share_with_contacts",
+      "contact_ids"
+    ],
+    "additionalProperties": false
+  },
+  "Journey": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "journey_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "ARRIVED",
+          "OVERDUE",
+          "ESCALATED",
+          "CANCELLED"
+        ]
+      },
+      "origin": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Location"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "destination": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Point"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "selected_route_id": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "expected_arrival_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "checkin_due_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "escalate_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "auto_escalate": {
+        "type": "boolean"
+      },
+      "share_with_contacts": {
+        "type": "boolean"
+      },
+      "contact_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "maxItems": 5
+      },
+      "deadline_version": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "sos_event_id": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "journey_id",
+      "status",
+      "origin",
+      "destination",
+      "selected_route_id",
+      "expected_arrival_at",
+      "checkin_due_at",
+      "escalate_at",
+      "auto_escalate",
+      "share_with_contacts",
+      "contact_ids",
+      "deadline_version",
+      "sos_event_id",
+      "expires_at"
+    ],
+    "additionalProperties": false
+  },
+  "Journeys": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Journey"
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "CheckIn": {
+    "type": "object",
+    "properties": {
+      "answer": {
+        "type": "string",
+        "enum": [
+          "SAFE",
+          "NEED_HELP",
+          "EXTEND"
+        ]
+      },
+      "extend_minutes": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 60
+      },
+      "expected_deadline_version": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      }
+    },
+    "required": [
+      "answer",
+      "expected_deadline_version"
+    ],
+    "additionalProperties": false
+  },
+  "Sharing": {
+    "type": "object",
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "contact_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "maxItems": 5
+      }
+    },
+    "required": [
+      "enabled",
+      "contact_ids"
+    ],
+    "additionalProperties": false
+  },
+  "JourneyTracking": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "journey_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "ARRIVED",
+          "OVERDUE",
+          "ESCALATED",
+          "CANCELLED"
+        ]
+      },
+      "shared_name": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "position": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Location"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "location_age_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "expected_arrival_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "journey_id",
+      "status",
+      "shared_name",
+      "position",
+      "location_age_s",
+      "expected_arrival_at",
+      "expires_at"
+    ],
+    "additionalProperties": false
+  },
+  "RouteRequest": {
+    "type": "object",
+    "properties": {
+      "origin": {
+        "$ref": "#/components/schemas/Point"
+      },
+      "destination": {
+        "$ref": "#/components/schemas/Point"
+      },
+      "depart_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "walking"
+        ]
+      }
+    },
+    "required": [
+      "origin",
+      "destination",
+      "depart_at",
+      "mode"
+    ],
+    "additionalProperties": false
+  },
+  "LineString": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "LineString"
+        ]
+      },
+      "coordinates": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 10000,
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            }
+          ],
+          "items": false
+        }
+      }
+    },
+    "required": [
+      "type",
+      "coordinates"
+    ],
+    "additionalProperties": false
+  },
+  "RouteCandidate": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "geometry": {
+        "$ref": "#/components/schemas/LineString"
+      },
+      "eta_seconds": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1000000000
+      },
+      "distance_m": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1000000000
+      },
+      "risk_indicator": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "confidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "detour_pct": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1000000000
+      },
+      "reason_codes": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "maxItems": 12
+      },
+      "explanations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "maxItems": 12
+      },
+      "segments_summary": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "segment_ref": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "arrival_at": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            "indicator": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "coverage": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "source_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "maxItems": 32
+            }
+          },
+          "required": [
+            "segment_ref",
+            "arrival_at",
+            "indicator",
+            "coverage",
+            "source_refs"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 2000
+      },
+      "worst_stretch": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "geometry": {
+                "$ref": "#/components/schemas/LineString"
+              },
+              "reason_codes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "maxItems": 12
+              }
+            },
+            "required": [
+              "geometry",
+              "reason_codes"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "source_refs": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "maxItems": 32
+      }
+    },
+    "required": [
+      "id",
+      "geometry",
+      "eta_seconds",
+      "distance_m",
+      "risk_indicator",
+      "confidence",
+      "detour_pct",
+      "reason_codes",
+      "explanations",
+      "segments_summary",
+      "worst_stretch",
+      "source_refs"
+    ],
+    "additionalProperties": false
+  },
+  "RouteEvaluation": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "evaluation_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "score_version": {
+        "type": "string",
+        "maxLength": 40
+      },
+      "data_version": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "computed_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "routes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/RouteCandidate"
+        },
+        "maxItems": 3
+      },
+      "roles": {
+        "type": "object",
+        "properties": {
+          "fastest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "balanced": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lower_estimated_risk": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "fastest",
+          "balanced",
+          "lower_estimated_risk"
+        ],
+        "additionalProperties": false
+      },
+      "coverage_warning": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 300
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "alternatives_reason": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 300
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "evaluation_id",
+      "score_version",
+      "data_version",
+      "computed_at",
+      "routes",
+      "roles",
+      "coverage_warning",
+      "alternatives_reason"
+    ],
+    "additionalProperties": false
+  },
+  "Hours": {
+    "type": "object",
+    "properties": {
+      "timezone": {
+        "type": "string",
+        "enum": [
+          "Asia/Kolkata"
+        ]
+      },
+      "weekly": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "day": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 7
+            },
+            "intervals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "string",
+                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                  },
+                  "end": {
+                    "type": "string",
+                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                  }
+                },
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 4
+            }
+          },
+          "required": [
+            "day",
+            "intervals"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 7
+      },
+      "exceptions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "format": "date"
+            },
+            "intervals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "string",
+                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                  },
+                  "end": {
+                    "type": "string",
+                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                  }
+                },
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 4
+            }
+          },
+          "required": [
+            "date",
+            "intervals"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 60
+      }
+    },
+    "required": [
+      "timezone",
+      "weekly",
+      "exceptions"
+    ],
+    "additionalProperties": false
+  },
+  "Shop": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "name": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "position": {
+        "$ref": "#/components/schemas/Point"
+      },
+      "public_phone": {
+        "anyOf": [
+          {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{7,14}$",
+            "maxLength": 16
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "ACTIVE",
+          "PAUSED",
+          "REVOKED"
+        ]
+      },
+      "verification_level": {
+        "type": "string",
+        "enum": [
+          "NONE",
+          "PILOT_CHECKED"
+        ]
+      },
+      "verified_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "hours": {
+        "$ref": "#/components/schemas/Hours"
+      },
+      "open_status": {
+        "type": "string",
+        "enum": [
+          "CONFIRMED_OPEN",
+          "SCHEDULED_OPEN",
+          "UNKNOWN",
+          "CLOSED"
+        ]
+      },
+      "confirmed_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "confirmation_expires_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "availability_override": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": [
+                  "CLOSED"
+                ]
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              }
+            },
+            "required": [
+              "state",
+              "expires_at"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "distance_m": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "walking_eta_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "listing_consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      },
+      "opt_in_alerts": {
+        "type": "boolean"
+      },
+      "agreement_version": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 40
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "id",
+      "name",
+      "position",
+      "public_phone",
+      "status",
+      "verification_level",
+      "verified_at",
+      "hours",
+      "open_status",
+      "confirmed_at",
+      "confirmation_expires_at",
+      "availability_override",
+      "distance_m",
+      "walking_eta_s",
+      "listing_consent_version",
+      "opt_in_alerts",
+      "agreement_version"
+    ],
+    "additionalProperties": false
+  },
+  "Shops": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Shop"
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "ShopApply": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "maxLength": 120,
+        "minLength": 1
+      },
+      "position": {
+        "$ref": "#/components/schemas/Point"
+      },
+      "public_phone": {
+        "anyOf": [
+          {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{7,14}$",
+            "maxLength": 16
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "hours": {
+        "$ref": "#/components/schemas/Hours"
+      },
+      "listing_consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      },
+      "opt_in_alerts": {
+        "type": "boolean"
+      },
+      "agreement_version": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 40
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "name",
+      "position",
+      "public_phone",
+      "hours",
+      "listing_consent_version",
+      "opt_in_alerts",
+      "agreement_version"
+    ],
+    "additionalProperties": false
+  },
+  "ShopPatch": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "public_phone": {
+        "anyOf": [
+          {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{7,14}$",
+            "maxLength": 16
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "hours": {
+        "$ref": "#/components/schemas/Hours"
+      },
+      "listing_consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  },
+  "ShopAvailability": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "PAUSE",
+          "RESUME",
+          "CONFIRM_OPEN",
+          "CLOSE"
+        ]
+      },
+      "expected_revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      }
+    },
+    "required": [
+      "action",
+      "expected_revision"
+    ],
+    "additionalProperties": false
+  },
+  "ShopModerate": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "ACTIVATE",
+          "REJECT",
+          "PAUSE"
+        ]
+      },
+      "reason": {
+        "type": "string",
+        "maxLength": 500,
+        "minLength": 1
+      },
+      "expected_revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      }
+    },
+    "required": [
+      "action",
+      "reason",
+      "expected_revision"
+    ],
+    "additionalProperties": false
+  },
+  "ReportCreate": {
+    "type": "object",
+    "properties": {
+      "category": {
+        "type": "string",
+        "enum": [
+          "LIGHTING",
+          "HARASSMENT",
+          "ROAD_OBSTRUCTION",
+          "OTHER_CONDITION"
+        ]
+      },
+      "location": {
+        "$ref": "#/components/schemas/Location"
+      },
+      "happened_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 1000
+      }
+    },
+    "required": [
+      "category",
+      "location",
+      "happened_at"
+    ],
+    "additionalProperties": false
+  },
+  "Report": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "category": {
+        "type": "string",
+        "enum": [
+          "LIGHTING",
+          "HARASSMENT",
+          "ROAD_OBSTRUCTION",
+          "OTHER_CONDITION"
+        ]
+      },
+      "location": {
+        "$ref": "#/components/schemas/Location"
+      },
+      "happened_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "description": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 1000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "REJECTED",
+          "WITHDRAWN"
+        ]
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "moderation_reason": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 500
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "schema_version",
+      "revision",
+      "updated_at",
+      "server_time",
+      "id",
+      "category",
+      "location",
+      "happened_at",
+      "description",
+      "status",
+      "created_at",
+      "expires_at",
+      "moderation_reason"
+    ],
+    "additionalProperties": false
+  },
+  "Reports": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Report"
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "ReportModerate": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "APPROVE",
+          "REJECT",
+          "REMOVE"
+        ]
+      },
+      "reason": {
+        "type": "string",
+        "maxLength": 500,
+        "minLength": 1
+      },
+      "expected_revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      }
+    },
+    "required": [
+      "action",
+      "reason",
+      "expected_revision"
+    ],
+    "additionalProperties": false
+  },
+  "Polygon": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "Polygon"
+        ]
+      },
+      "coordinates": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              },
+              {
+                "type": "number",
+                "minimum": -90,
+                "maximum": 90
+              }
+            ],
+            "items": false
+          },
+          "maxItems": 100
+        },
+        "maxItems": 5
+      }
+    },
+    "required": [
+      "type",
+      "coordinates"
+    ],
+    "additionalProperties": false
+  },
+  "Aggregates": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": 1,
+        "type": "integer"
+      },
+      "cells": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "cell_id": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "geometry": {
+              "$ref": "#/components/schemas/Polygon"
+            },
+            "category": {
+              "type": "string",
+              "enum": [
+                "LIGHTING",
+                "HARASSMENT",
+                "ROAD_OBSTRUCTION",
+                "OTHER_CONDITION"
+              ]
+            },
+            "count_bucket": {
+              "type": "string",
+              "enum": [
+                "3-5",
+                "6-10",
+                "11+"
+              ]
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            }
+          },
+          "required": [
+            "cell_id",
+            "geometry",
+            "category",
+            "count_bucket",
+            "updated_at"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 1000
+      },
+      "suppression_m": {
+        "const": 250,
+        "type": "integer"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "schema_version",
+      "cells",
+      "suppression_m",
+      "server_time"
+    ],
+    "additionalProperties": false
+  },
+  "ReviewQueue": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "REPORT",
+                "SHOP"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "submitted_at": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "submitted_at",
+            "status",
+            "label"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "ProviderReceipt": {
+    "type": "object",
+    "properties": {
+      "receipt_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "provider_message_ref": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PROVIDER_ACCEPTED",
+          "DELIVERED",
+          "FAILED"
+        ]
+      }
+    },
+    "required": [
+      "receipt_id",
+      "provider_message_ref",
+      "status"
+    ],
+    "additionalProperties": false
+  }
+}

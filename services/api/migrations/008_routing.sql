@@ -1,0 +1,8 @@
+CREATE TABLE data_imports(id uuid PRIMARY KEY, source_url text NOT NULL, license text NOT NULL, acquired_at timestamptz NOT NULL, boundary geometry(Polygon,4326) NOT NULL, checksum text NOT NULL, version text UNIQUE NOT NULL, coverage jsonb NOT NULL);
+CREATE TABLE road_segments(id uuid PRIMARY KEY, source_osm_ref text, geom geometry(LineString,4326) NOT NULL, length_m double precision NOT NULL, walk_access boolean NOT NULL, lit_tag text, data_version text NOT NULL);
+CREATE INDEX road_spatial ON road_segments USING gist(geom);
+CREATE TABLE segment_factors(segment_id uuid REFERENCES road_segments(id), time_bucket text NOT NULL, feature_version text NOT NULL, factors jsonb NOT NULL, source_refs jsonb NOT NULL, evaluated_at timestamptz NOT NULL, valid_until timestamptz NOT NULL, PRIMARY KEY(segment_id,time_bucket,feature_version));
+CREATE TABLE route_evaluations(id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES app_users(id), origin jsonb, destination jsonb, depart_at timestamptz NOT NULL, profile text NOT NULL DEFAULT 'walking', score_version text NOT NULL, computed_at timestamptz NOT NULL DEFAULT now(), response jsonb NOT NULL, expires_at timestamptz NOT NULL);
+CREATE TABLE route_candidates(id uuid PRIMARY KEY, evaluation_id uuid NOT NULL REFERENCES route_evaluations(id), geom geometry(LineString,4326), eta_seconds double precision NOT NULL, length_m double precision NOT NULL, risk_indicator integer CHECK(risk_indicator BETWEEN 0 AND 100), confidence double precision NOT NULL CHECK(confidence BETWEEN 0 AND 1), rank integer NOT NULL);
+CREATE INDEX candidate_spatial ON route_candidates USING gist(geom);
+CREATE INDEX route_expiry ON route_evaluations(expires_at);

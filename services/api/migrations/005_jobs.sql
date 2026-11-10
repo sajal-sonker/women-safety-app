@@ -1,0 +1,5 @@
+CREATE TABLE delivery_attempts(id uuid PRIMARY KEY, intent_id uuid NOT NULL REFERENCES delivery_intents(id), attempt_no integer NOT NULL, provider text NOT NULL, started_at timestamptz NOT NULL DEFAULT now(), finished_at timestamptz, outcome text, provider_message_ref text, UNIQUE(intent_id,attempt_no));
+CREATE TABLE provider_receipts(provider text NOT NULL, receipt_id uuid NOT NULL, provider_message_ref text NOT NULL, status text NOT NULL, received_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(provider,receipt_id));
+CREATE TABLE scheduled_jobs(id uuid PRIMARY KEY, kind text NOT NULL, aggregate_id uuid NOT NULL, due_at timestamptz NOT NULL, version integer NOT NULL DEFAULT 1, status text NOT NULL DEFAULT 'PENDING', lease_owner uuid, lease_expires_at timestamptz, dedupe_key text UNIQUE NOT NULL);
+CREATE INDEX scheduled_ready ON scheduled_jobs(status,due_at);
+CREATE TABLE domain_events(aggregate_id uuid NOT NULL, revision integer NOT NULL, type text NOT NULL, occurred_at timestamptz NOT NULL DEFAULT now(), payload_redacted jsonb NOT NULL DEFAULT '{}', PRIMARY KEY(aggregate_id,revision));

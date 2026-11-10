@@ -1,0 +1,642 @@
+[
+  {
+    "method": "GET",
+    "path": "/health/live",
+    "input": null,
+    "output": "Health",
+    "phase": 1,
+    "auth": "public",
+    "success": 200,
+    "operationId": "get_health_live"
+  },
+  {
+    "method": "GET",
+    "path": "/health/ready",
+    "input": null,
+    "output": "Health",
+    "phase": 1,
+    "auth": "public",
+    "success": 200,
+    "operationId": "get_health_ready"
+  },
+  {
+    "method": "GET",
+    "path": "/me",
+    "input": null,
+    "output": "Profile",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_me"
+  },
+  {
+    "method": "PATCH",
+    "path": "/me",
+    "input": "ProfilePatch",
+    "output": "Profile",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "patch_me"
+  },
+  {
+    "method": "PATCH",
+    "path": "/me/consents",
+    "input": "ConsentPatch",
+    "output": "Profile",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "patch_me_consents"
+  },
+  {
+    "method": "POST",
+    "path": "/identity/browser-session",
+    "input": "BrowserSessionStart",
+    "output": "BrowserSession",
+    "phase": 1,
+    "auth": "public",
+    "success": 200,
+    "operationId": "post_identity_browser_session"
+  },
+  {
+    "method": "POST",
+    "path": "/identity/logout",
+    "input": "Empty",
+    "output": null,
+    "phase": 1,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "post_identity_logout"
+  },
+  {
+    "method": "GET",
+    "path": "/contacts",
+    "input": null,
+    "output": "Contacts",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_contacts"
+  },
+  {
+    "method": "POST",
+    "path": "/contacts",
+    "input": "ContactCreate",
+    "output": "Contact",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 201,
+    "operationId": "post_contacts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/contacts/{id}",
+    "input": "ContactPatch",
+    "output": "Contact",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "patch_contacts__id_"
+  },
+  {
+    "method": "DELETE",
+    "path": "/contacts/{id}",
+    "input": null,
+    "output": null,
+    "phase": 1,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "delete_contacts__id_"
+  },
+  {
+    "method": "POST",
+    "path": "/contacts/{id}/invite",
+    "input": "Empty",
+    "output": "Invitation",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_contacts__id__invite"
+  },
+  {
+    "method": "GET",
+    "path": "/contacts/invitations",
+    "input": null,
+    "output": "Invitations",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_contacts_invitations"
+  },
+  {
+    "method": "GET",
+    "path": "/contact-consents",
+    "input": null,
+    "output": "ContactConsents",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_contact_consents"
+  },
+  {
+    "method": "POST",
+    "path": "/contacts/invitations/accept",
+    "input": "AcceptInvite",
+    "output": "Contact",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_contacts_invitations_accept"
+  },
+  {
+    "method": "POST",
+    "path": "/contacts/invitations/decline",
+    "input": "DeclineInvite",
+    "output": null,
+    "phase": 1,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "post_contacts_invitations_decline"
+  },
+  {
+    "method": "DELETE",
+    "path": "/contact-consents/{contactId}",
+    "input": null,
+    "output": null,
+    "phase": 1,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "delete_contact_consents__contactId_"
+  },
+  {
+    "method": "POST",
+    "path": "/contact-consents/{contactId}/reopen",
+    "input": "Reconsent",
+    "output": "Contact",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_contact_consents__contactId__reopen"
+  },
+  {
+    "method": "POST",
+    "path": "/contact-location/sessions",
+    "input": "SessionStart",
+    "output": "ContactSession",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 201,
+    "operationId": "post_contact_location_sessions"
+  },
+  {
+    "method": "PUT",
+    "path": "/contact-location/sessions/{id}/position",
+    "input": "PositionWrite",
+    "output": "PositionReceipt",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "put_contact_location_sessions__id__position"
+  },
+  {
+    "method": "DELETE",
+    "path": "/contact-location/sessions/{id}",
+    "input": null,
+    "output": null,
+    "phase": 1,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "delete_contact_location_sessions__id_"
+  },
+  {
+    "method": "PUT",
+    "path": "/devices/{installationId}",
+    "input": "DeviceWrite",
+    "output": "Device",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "put_devices__installationId_"
+  },
+  {
+    "method": "DELETE",
+    "path": "/devices/{installationId}",
+    "input": null,
+    "output": null,
+    "phase": 1,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "delete_devices__installationId_"
+  },
+  {
+    "method": "GET",
+    "path": "/sos",
+    "input": null,
+    "output": "SosHistory",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_sos"
+  },
+  {
+    "method": "POST",
+    "path": "/sos",
+    "input": "SosCreate",
+    "output": "SosCreated",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 201,
+    "operationId": "post_sos"
+  },
+  {
+    "method": "GET",
+    "path": "/sos/by-client-request/{clientRequestId}",
+    "input": null,
+    "output": "SosDetail",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_sos_by_client_request__clientRequestId_"
+  },
+  {
+    "method": "POST",
+    "path": "/sos/intents/{clientRequestId}/terminate",
+    "input": "Terminate",
+    "output": "Terminated",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_sos_intents__clientRequestId__terminate"
+  },
+  {
+    "method": "GET",
+    "path": "/sos/{id}",
+    "input": null,
+    "output": "SosDetail",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_sos__id_"
+  },
+  {
+    "method": "POST",
+    "path": "/sos/{id}/locations",
+    "input": "PositionWrite",
+    "output": "PositionReceipt",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_sos__id__locations"
+  },
+  {
+    "method": "POST",
+    "path": "/sos/{id}/resolve",
+    "input": "Resolve",
+    "output": "SosDetail",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_sos__id__resolve"
+  },
+  {
+    "method": "POST",
+    "path": "/sos/{id}/cancel",
+    "input": "Empty",
+    "output": "SosDetail",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_sos__id__cancel"
+  },
+  {
+    "method": "POST",
+    "path": "/sos/{id}/recipients/{recipientId}/tracking-grant",
+    "input": "Empty",
+    "output": "GrantIssued",
+    "phase": 1,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_sos__id__recipients__recipientId__tracking_grant"
+  },
+  {
+    "method": "DELETE",
+    "path": "/sos/{id}/recipients/{recipientId}/tracking-grant",
+    "input": null,
+    "output": null,
+    "phase": 1,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "delete_sos__id__recipients__recipientId__tracking_grant"
+  },
+  {
+    "method": "POST",
+    "path": "/providers/{provider}/receipts",
+    "input": "ProviderReceipt",
+    "output": null,
+    "phase": 1,
+    "auth": "public",
+    "success": 204,
+    "operationId": "post_providers__provider__receipts"
+  },
+  {
+    "method": "POST",
+    "path": "/tracking/exchange",
+    "input": "Exchange",
+    "output": "Exchanged",
+    "phase": 1,
+    "auth": "public",
+    "success": 200,
+    "operationId": "post_tracking_exchange"
+  },
+  {
+    "method": "GET",
+    "path": "/tracking/event",
+    "input": null,
+    "output": "TrackingView",
+    "phase": 1,
+    "auth": "tracking",
+    "success": 200,
+    "operationId": "get_tracking_event"
+  },
+  {
+    "method": "GET",
+    "path": "/tracking/locations",
+    "input": null,
+    "output": "Locations",
+    "phase": 1,
+    "auth": "tracking",
+    "success": 200,
+    "operationId": "get_tracking_locations"
+  },
+  {
+    "method": "POST",
+    "path": "/tracking/acknowledge",
+    "input": "Acknowledge",
+    "output": "Acknowledged",
+    "phase": 1,
+    "auth": "tracking",
+    "success": 200,
+    "operationId": "post_tracking_acknowledge"
+  },
+  {
+    "method": "POST",
+    "path": "/tracking/logout",
+    "input": "Empty",
+    "output": null,
+    "phase": 1,
+    "auth": "tracking",
+    "success": 204,
+    "operationId": "post_tracking_logout"
+  },
+  {
+    "method": "POST",
+    "path": "/routes/evaluate",
+    "input": "RouteRequest",
+    "output": "RouteEvaluation",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_routes_evaluate"
+  },
+  {
+    "method": "POST",
+    "path": "/journeys",
+    "input": "JourneyCreate",
+    "output": "Journey",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 201,
+    "operationId": "post_journeys"
+  },
+  {
+    "method": "GET",
+    "path": "/journeys",
+    "input": null,
+    "output": "Journeys",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_journeys"
+  },
+  {
+    "method": "GET",
+    "path": "/journeys/{id}",
+    "input": null,
+    "output": "Journey",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_journeys__id_"
+  },
+  {
+    "method": "POST",
+    "path": "/journeys/{id}/arrive",
+    "input": "Empty",
+    "output": "Journey",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_journeys__id__arrive"
+  },
+  {
+    "method": "POST",
+    "path": "/journeys/{id}/cancel",
+    "input": "Empty",
+    "output": "Journey",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_journeys__id__cancel"
+  },
+  {
+    "method": "POST",
+    "path": "/journeys/{id}/check-in",
+    "input": "CheckIn",
+    "output": "Journey",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_journeys__id__check_in"
+  },
+  {
+    "method": "POST",
+    "path": "/journeys/{id}/sharing",
+    "input": "Sharing",
+    "output": "Journey",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_journeys__id__sharing"
+  },
+  {
+    "method": "POST",
+    "path": "/journeys/{id}/locations",
+    "input": "PositionWrite",
+    "output": "PositionReceipt",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_journeys__id__locations"
+  },
+  {
+    "method": "GET",
+    "path": "/tracking/journey",
+    "input": null,
+    "output": "JourneyTracking",
+    "phase": 2,
+    "auth": "tracking",
+    "success": 200,
+    "operationId": "get_tracking_journey"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-shops",
+    "input": null,
+    "output": "Shops",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_safe_shops"
+  },
+  {
+    "method": "GET",
+    "path": "/safe-shops/mine",
+    "input": null,
+    "output": "Shops",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_safe_shops_mine"
+  },
+  {
+    "method": "POST",
+    "path": "/safe-shops/apply",
+    "input": "ShopApply",
+    "output": "Shop",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 201,
+    "operationId": "post_safe_shops_apply"
+  },
+  {
+    "method": "PATCH",
+    "path": "/safe-shops/{id}",
+    "input": "ShopPatch",
+    "output": "Shop",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "patch_safe_shops__id_"
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-shops/{id}",
+    "input": null,
+    "output": null,
+    "phase": 2,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "delete_safe_shops__id_"
+  },
+  {
+    "method": "PATCH",
+    "path": "/safe-shops/{id}/availability",
+    "input": "ShopAvailability",
+    "output": "Shop",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "patch_safe_shops__id__availability"
+  },
+  {
+    "method": "POST",
+    "path": "/incident-reports",
+    "input": "ReportCreate",
+    "output": "Report",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 201,
+    "operationId": "post_incident_reports"
+  },
+  {
+    "method": "GET",
+    "path": "/incident-reports/mine",
+    "input": null,
+    "output": "Reports",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_incident_reports_mine"
+  },
+  {
+    "method": "GET",
+    "path": "/incident-reports/aggregate",
+    "input": null,
+    "output": "Aggregates",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_incident_reports_aggregate"
+  },
+  {
+    "method": "POST",
+    "path": "/incident-reports/{id}/withdraw",
+    "input": "Empty",
+    "output": "Report",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_incident_reports__id__withdraw"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/review-queue",
+    "input": null,
+    "output": "ReviewQueue",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_admin_review_queue"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/reports/{id}",
+    "input": null,
+    "output": "Report",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_admin_reports__id_"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/shops/{id}",
+    "input": null,
+    "output": "Shop",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get_admin_shops__id_"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/reports/{id}/moderate",
+    "input": "ReportModerate",
+    "output": "Report",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_admin_reports__id__moderate"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/shops/{id}/verify",
+    "input": "ShopModerate",
+    "output": "Shop",
+    "phase": 2,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post_admin_shops__id__verify"
+  }
+]

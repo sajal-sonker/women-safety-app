@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgis/postgis:17-3.6
+    environment:
+      POSTGRES_USER: suraksha
+      POSTGRES_DB: suraksha
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    ports: ["127.0.0.1:54329:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U suraksha"]
+      interval: 5s
+      retries: 10
+  auth:
+    image: node:24
+    working_dir: /app
+    command: npx --yes firebase-tools@15.35.0 emulators:start --only auth --project demo-surakshaai
+    volumes: ["./firebase.json:/app/firebase.json:ro"]
+    ports: ["127.0.0.1:9099:9099", "127.0.0.1:4000:4000"]
+volumes:
+  pgdata:

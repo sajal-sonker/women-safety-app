@@ -44,3 +44,16 @@ local.properties
 *.tmp
 .DS_Store
 Thumbs.db
+.tools/
+.local/
+playwright-report/
+test-results/
+*.apk
+*.aab
+*.hprof
+*.tsbuildinfo
+next-env.d.ts
+/apps/mobile/.bundle/
+/apps/mobile/Gemfile
+# iOS is outside the Android-first implementation scope.
+/apps/mobile/ios/
