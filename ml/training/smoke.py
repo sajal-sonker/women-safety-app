@@ -1,5 +1,6 @@
 """Synthetic execution test only. No generated data is retained as evaluation evidence."""
 import hashlib
+import csv
 import json
 import pathlib
 import subprocess
@@ -25,9 +26,17 @@ for s, split in enumerate(["train", "validation", "test"]):
                          "class": label, "split": split, "speaker": f"SYNTHETIC-{split}", "session": f"SYNTHETIC-{split}",
                          "environment": f"SYNTHETIC-{split}", "device": "GENERATED", "duration_s": .975,
                          "negative": label == "NEGATIVE", "consent_ref": "NO_PARTICIPANTS_GENERATED_PCM",
-                         "license": "GENERATED_TOOLCHAIN_TEST_ONLY"})
+                         "license": "GENERATED_TOOLCHAIN_TEST_ONLY", "language": "GENERATED",
+                         "noise": "GENERATED", "events": [] if label == "NEGATIVE" else [{"class": label, "start_s": 0}]})
 manifest = folder / "manifest.json"
-manifest.write_text(json.dumps(rows))
+catalog = folder / "catalog.csv"
+fields = ["id", "path", "class", "split", "speaker", "session", "environment", "device", "language", "noise", "consent_ref", "license", "event_start_s"]
+with catalog.open("w", newline="", encoding="utf-8") as stream:
+    writer = csv.DictWriter(stream, fieldnames=fields)
+    writer.writeheader()
+    for row in rows:
+        writer.writerow({**{key: row[key] for key in fields if key != "event_start_s"}, "event_start_s": "" if row["negative"] else "0"})
+subprocess.run([sys.executable, str(ROOT / "ml/runtime/prepare.py"), str(catalog), str(manifest)], check=True)
 result = subprocess.run([sys.executable, str(ROOT / "ml/training/train.py"), str(manifest), "--epochs", "1", "--output", str(folder / "candidate")], check=False)
 if result.returncode:
     sys.exit(result.returncode)

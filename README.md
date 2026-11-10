@@ -6,6 +6,8 @@
 
 ## Run the demo
 
+Start with [your next steps](docs/USER_CHECKLIST.md): run `npm run doctor`, connect/authorize a USB phone, and install the bundled demo APK. The checklist also identifies the data, accounts and independent review needed for the remaining external gates.
+
 The latest phone-test build includes bundled offline YAMNet sound classification and opt-in audio/motion check-ins. It is confirmation-only; no automatic sensor SOS and no Help/Bachao word recognition. See [phone setup](docs/PHONE_TEST.md), [ML tools](ml/README.md) and [continuation evidence](docs/validation/ml-continuation.md). The user will supply physical-device observations; trained phrase/real-provider/independent gates remain open.
 
 See [RUNNING.md](RUNNING.md) for clean setup, test accounts, Android instructions and troubleshooting. See the [Phase 1 evidence](docs/validation/phase-1.md) and [Phase 2 evidence](docs/validation/phase-2.md) for implemented scope and remaining acceptance work. This is not a production emergency deployment.

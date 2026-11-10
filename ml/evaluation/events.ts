@@ -27,8 +27,8 @@ export function eventMetrics(recordings:EventRecording[],threshold:number){
  for(const r of recordings){
   if(ids.has(r.id)||!r.id||!Number.isFinite(r.duration_s)||r.duration_s<=0||!r.device||!r.language||!r.noise)throw Error('Invalid recording provenance');ids.add(r.id);
   if(r.negative&&r.events.length)throw Error('Negative recording cannot contain positive annotations');
-  for(const e of r.events)if(!(e.class in byClass)||!Number.isFinite(e.start_s)||e.start_s<0||e.start_s>=r.duration_s)throw Error('Invalid annotation');
-  for(const p of r.predictions)if(!(p.class in byClass)||!Number.isFinite(p.at_s)||p.at_s<0||p.at_s>r.duration_s||!Number.isFinite(p.score)||p.score<0||p.score>1)throw Error('Invalid prediction');
+  for(const e of r.events)if(!Object.hasOwn(byClass,e.class)||!Number.isFinite(e.start_s)||e.start_s<0||e.start_s>=r.duration_s)throw Error('Invalid annotation');
+  for(const p of r.predictions)if(!Object.hasOwn(byClass,p.class)||!Number.isFinite(p.at_s)||p.at_s<0||p.at_s>r.duration_s||!Number.isFinite(p.score)||p.score<0||p.score>1)throw Error('Invalid prediction');
   const predicted=episodes(r.predictions,threshold),matched=new Set<number>(),key=[r.language,r.device,r.noise].join('/'),g=groups[key]??=summary();
   if(r.negative){negatives+=r.duration_s/3600;falseBefore+=predicted.length;falseAfter+=episodes(r.predictions,threshold,120).length;}
   for(const p of predicted){const index=r.events.findIndex((e,i)=>!matched.has(i)&&e.class===p.class&&p.at_s>=e.start_s&&p.at_s-e.start_s<=5);if(index<0){byClass[p.class].fp++;g.fp++;const nearby=r.events.find(e=>p.at_s>=e.start_s&&p.at_s-e.start_s<=5);recordConfusion(nearby?.class??'NEGATIVE',p.class);}else{matched.add(index);recordConfusion(p.class,p.class);const delay=p.at_s-r.events[index].start_s;byClass[p.class].tp++;byClass[p.class].delays_s.push(delay);g.tp++;g.delays_s.push(delay);}}

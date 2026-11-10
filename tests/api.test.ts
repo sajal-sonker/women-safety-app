@@ -9,8 +9,6 @@ import {config} from '../services/api/src/platform/config.ts';
 import {seed,demoUsers,fixtureId} from '../services/api/src/seed.ts';
 import {decrypt} from '../services/api/src/platform/security.ts';
 import {Worker} from '../services/worker/src/index.ts';
-import {reconcileErasure} from '../services/api/src/modules/privacy/index.ts';
-import {transaction} from '../services/api/src/platform/db/index.ts';
 import {persistErasureLedger,recoverErasureLedger,ledgerPath} from '../services/api/src/modules/privacy/ledger.ts';
 import {readFile,writeFile} from 'node:fs/promises';
 import {hash} from '../services/api/src/platform/security.ts';
@@ -201,7 +199,9 @@ test('recent-auth export excludes contact GPS; deletion revokes, purges and surv
  const remains=(await pool.query('SELECT * FROM app_users WHERE id=$1',[owner.id])).rows[0];assert.equal(remains.phone_e164,'+10000000000');assert.equal((await pool.query('SELECT * FROM sos_events WHERE user_id=$1',[owner.id])).rowCount,0);
  assert.equal((await pool.query("SELECT artifact_ciphertext FROM privacy_jobs WHERE id=$1",[job.body.job_id])).rows[0].artifact_ciphertext,null);
  // Simulate restoring the old profile beside the newer externally preserved erasure ledger.
- await pool.query('UPDATE app_users SET auth_uid=$2,phone_e164=$3,deleted_at=NULL,disabled=false WHERE id=$1',[owner.id,owner.auth_uid,owner.phone_e164]);await transaction(reconcileErasure);
+ await pool.query('UPDATE app_users SET auth_uid=$2,phone_e164=$3,deleted_at=NULL,disabled=false WHERE id=$1',[owner.id,owner.auth_uid,owner.phone_e164]);
+ await pool.query('DELETE FROM deletion_ledger WHERE auth_uid_hash=$1',[hash(owner.auth_uid)]);
+ await recoverErasureLedger();
  assert.equal((await call('/me',{uid})).status,401);assert.equal((await pool.query('SELECT phone_e164 FROM app_users WHERE id=$1',[owner.id])).rows[0].phone_e164,'+10000000000');
 });
 test('expired leases recover with two workers without duplicating logical deliveries',async()=>{

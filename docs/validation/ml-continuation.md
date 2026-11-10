@@ -1,5 +1,7 @@
 # ML/software continuation - 10 November 2026
 
+**Final tooling correction:** see the [latest local report](final-local-work.md). The earlier synthetic candidate export could produce invalid numbers, so its argmax-only parity result is withdrawn as valid inference evidence. Explicitly frozen variables and finite-output checks now pass actual end-to-end inference/calibration/scoring. The bundled YAMNet model is unaffected. Validation controls export parity; test inference now requires a separate validation freeze artifact.
+
 Phase:3/4 continuation, CR-004. Scope: finish dependency-ready software and deliver a controlled phone-test build; user performs physical testing. **Ready for controlled phone testing; independent/physical/live acceptance remains PARTIAL.**
 
 Completed:

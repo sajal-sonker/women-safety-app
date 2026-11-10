@@ -11,6 +11,7 @@ import sys
 import wave
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
 
 CLASSES = ["NEGATIVE", "SCREAM", "HELP", "BACHAO"]
 SAMPLES = 15600
@@ -113,32 +114,44 @@ def run(args):
     model.compile(optimizer=tf.keras.optimizers.Adam(.001), loss="sparse_categorical_crossentropy")
     # Validation controls early stopping; test is never used to tune training/thresholds.
     model.fit(dataset("train"), validation_data=dataset("validation"), epochs=args.epochs,
-              callbacks=[tf.keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True)], verbose=2)
+              callbacks=[tf.keras.callbacks.TerminateOnNaN(), tf.keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True)], verbose=2)
     export = Export(model)
     concrete = export.serve.get_concrete_function()
-    converter = tf.lite.TFLiteConverter.from_concrete_functions([concrete], export)
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    converted = converter.convert()
     folder = pathlib.Path(args.output)
     folder.mkdir(parents=True, exist_ok=True)
-    (folder / "candidate.tflite").write_bytes(converted)
+    # Freeze Keras3 variables explicitly on this pinned TF2.20 toolchain. Merely
+    # saving a resource-based graph can leave invalid READ_VARIABLE nodes in LiteRT.
+    frozen = convert_variables_to_constants_v2(concrete)
+    frozen_module = tf.Module()
+    frozen_module.serve = frozen
+    tf.saved_model.save(frozen_module, str(folder / "float.savedmodel"), signatures={"serving_default": frozen})
+    converter = tf.lite.TFLiteConverter.from_saved_model(str(folder / "float.savedmodel"))
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converted = converter.convert()
     runtime = tf.lite.Interpreter(model_content=converted)
     runtime.allocate_tensors()
     matches, total = 0, 0
-    for row in [r for r in rows if r["split"] == "test"]:
+    for row in [r for r in rows if r["split"] == "validation"]:
         for w in windows(waveform(row["path"])):
             expected = export.serve(tf.constant(w)).numpy()
             runtime.set_tensor(runtime.get_input_details()[0]["index"], w)
             runtime.invoke()
             actual = runtime.get_tensor(runtime.get_output_details()[0]["index"])
+            if not np.isfinite(expected).all() or not np.isfinite(actual).all():
+                raise ValueError("Non-finite float/export inference; candidate cannot be published")
+            if expected.shape != (1, 4) or actual.shape != (1, 4) or (actual < 0).any() or (actual > 1).any() or abs(actual.sum()-1) > .001:
+                raise ValueError("Invalid candidate probability tensor")
             matches += int(expected.argmax() == actual.argmax())
             total += 1
+    if not total:
+        raise ValueError("No validation parity windows")
+    (folder / "candidate.tflite").write_bytes(converted)
     report = {"status": "SYNTHETIC_TOOLCHAIN_TEST_ONLY" if any(r["license"] == "GENERATED_TOOLCHAIN_TEST_ONLY" for r in rows) else "CANDIDATE_NOT_GRADUATED", "seed": args.seed, "classes": CLASSES,
               "sha256": hashlib.sha256(converted).hexdigest(), "size_bytes": len(converted),
               "input": [15600], "output": [1, 4], "sample_rate_hz": 16000,
               "preprocessing": "STFT400/160/512, power,64mel125..7500Hz,log(x+.001); inside graph",
-              "held_out_float_quantized_decision_agreement": matches/total if total else None,
-              "held_out_windows": total, "automatic_dispatch": False,
+              "parity_split": "validation", "validation_float_quantized_decision_agreement": matches/total if total else None,
+              "validation_windows": total, "automatic_dispatch": False,
               "event_metrics": "Run frozen-threshold event evaluator; clip accuracy is not graduation"}
     (folder / "candidate.json").write_text(json.dumps(report, indent=2))
     print(json.dumps(report, indent=2))

@@ -20,7 +20,7 @@
     "contracts:check": "node scripts/generate-contracts.mjs --check",
     "db:migrate": "tsx services/api/src/platform/db/migrate.ts",
     "seed:demo": "tsx services/api/src/seed.ts",
-    "test": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/scoring.test.ts tests/monitoring.test.ts tests/media.test.ts",
+    "test": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/scoring.test.ts tests/monitoring.test.ts tests/media.test.ts tests/ml-workflow.test.ts",
     "test:unit": "tsx --test tests/scoring.test.ts tests/contracts.test.ts",
     "test:contract": "tsx --test tests/contracts.test.ts",
     "test:integration": "node scripts/test-db.mjs tests/api.test.ts",
@@ -32,7 +32,7 @@
     "verify:docs": "node scripts/verify-docs.mjs",
     "auth:emulator": "firebase emulators:start --only auth --project demo-surakshaai --config firebase.json",
     "mobile:metro": "npm run start -w @surakshaai/mobile",
-    "test:monitoring": "tsx --test tests/monitoring.test.ts",
+    "test:monitoring": "tsx --test tests/monitoring.test.ts tests/ml-workflow.test.ts",
     "ml:evaluate": "tsx ml/evaluation/evaluate.ts",
     "test:security": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/media.test.ts",
     "backup:create": "tsx scripts/backup.ts create",
@@ -42,7 +42,12 @@
     "ml:verify": "node scripts/verify-model.mjs",
     "ml:smoke": "node scripts/ml-python.mjs ml/runtime/smoke.py",
     "ml:train": "node scripts/ml-python.mjs ml/training/train.py",
-    "ml:training-smoke": "node scripts/ml-python.mjs ml/training/smoke.py"
+    "ml:training-smoke": "node scripts/ml-python.mjs ml/training/smoke.py",
+    "ml:prepare": "node scripts/ml-python.mjs ml/runtime/prepare.py",
+    "ml:predict": "node scripts/ml-python.mjs ml/runtime/predict.py",
+    "ml:calibrate": "tsx ml/evaluation/calibrate.ts",
+    "ml:workflow-smoke": "node scripts/ml-workflow-smoke.mjs",
+    "doctor": "node scripts/doctor.mjs"
   },
   "dependencies": {
     "ajv": "8.20.0",

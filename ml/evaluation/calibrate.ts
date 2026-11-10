@@ -1,0 +1,10 @@
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {dirname} from 'node:path';
+import {verifyFiles,type Recording} from './protocol.ts';
+import {selectValidationThreshold,sha256,type PredictionFile} from './freeze.ts';
+const [manifestPath,predictionsPath,outputPath]=process.argv.slice(2);
+if(!manifestPath||!predictionsPath||!outputPath)throw Error('Usage: ml:calibrate <private-manifest> <validation-predictions> <freeze-output>');
+const raw=await readFile(manifestPath,'utf8'),rows=JSON.parse(raw) as Recording[];await verifyFiles(rows);
+const result=selectValidationThreshold(rows,JSON.parse(await readFile(predictionsPath,'utf8')) as PredictionFile,sha256(raw));
+await mkdir(dirname(outputPath),{recursive:true});await writeFile(outputPath,JSON.stringify(result,null,2)+'\n',{mode:0o600});
+console.log(JSON.stringify({status:result.calibration_status,source_split:result.source_split,threshold:result.threshold,automatic_dispatch:false}));
