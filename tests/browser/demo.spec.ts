@@ -43,3 +43,21 @@ test('temporal route comparison and journey arrival work with fictional Lucknow 
  await page.getByRole('button',{name:'I have arrived',exact:true}).click();
  await expect(page.getByRole('button',{name:'I have arrived',exact:true})).toHaveCount(0);
 });
+test('dark controls expose consented evidence, withdrawal and private export status',async({page,request})=>{
+ await login(page,request,'+16505550101');
+ await page.getByRole('button',{name:'SOS Send test alert'}).click();
+ await expect(page.getByRole('heading',{name:'Optional private evidence'})).toBeVisible();
+ await page.getByLabel('I consent to upload this media and share it with the selected contacts.').check();
+ await page.getByLabel('Contact 1',{exact:true}).check();
+ const h=Buffer.alloc(44);h.write('RIFF');h.writeUInt32LE(32036,4);h.write('WAVEfmt ',8);h.writeUInt32LE(16,16);h.writeUInt16LE(1,20);h.writeUInt16LE(1,22);h.writeUInt32LE(16000,24);h.writeUInt32LE(32000,28);h.writeUInt16LE(2,32);h.writeUInt16LE(16,34);h.write('data',36);h.writeUInt32LE(32000,40);
+ await page.getByLabel('Choose JPEG, PNG or PCM WAV').setInputFiles({name:'synthetic-silence.wav',mimeType:'audio/wav',buffer:Buffer.concat([h,Buffer.alloc(32000)])});
+ await page.getByRole('button',{name:'Upload selected evidence',exact:true}).click();
+ await expect(page.getByText(/AUDIO · AVAILABLE/)).toBeVisible({timeout:20000});
+ await page.getByRole('button',{name:'Withdraw evidence consent',exact:true}).click();
+ await expect(page.getByText(/Evidence consent withdrawn/)).toBeVisible();
+ await page.getByRole('button',{name:'Resolve — I am safe',exact:true}).click();
+ await page.getByRole('button',{name:'Controls & privacy',exact:true}).click();
+ await page.getByRole('button',{name:'Request private export',exact:true}).click();
+ await page.getByRole('button',{name:'Refresh export status',exact:true}).click();
+ await expect(async()=>{await page.getByRole('button',{name:'Refresh export status',exact:true}).click();await expect(page.getByRole('button',{name:'Download my private export'})).toBeVisible();}).toPass({timeout:15000});
+});

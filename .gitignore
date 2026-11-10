@@ -57,3 +57,8 @@ next-env.d.ts
 /apps/mobile/Gemfile
 # iOS is outside the Android-first implementation scope.
 /apps/mobile/ios/
+
+# Private participant data and model evaluation inputs are never application assets.
+/ml/data/private/
+/ml/data/recordings/
+/ml/data/manifests/private*

@@ -1,4 +1,4 @@
-# Local Phase 1/2 demo
+# SurakshaAI controlled local demo
 
 This implementation is for a controlled demonstration. It never sends real emergency SMS/push. Phone verification is emulated; all seeded contacts, routes, reports and shops are fictional. The Lucknow walking grid is not an imported street map and must not be used for travel.
 
@@ -106,3 +106,13 @@ npm run verify:docs
 Stop development processes with Ctrl+C. Preserve DB volumes, outbox, intent tombstones and `.env`. Restart services and let leased work recover; do not manually replay already-attempted messages. Native SOS retries silently for at most five minutes, then requires reconfirmation; local stop during disconnection cannot confirm remote revocation. Terminal server state revokes portal access. A failed route evaluation has a manual-ETA journey fallback and cannot hold the SOS database connection pool.
 
 Live configuration is intentionally blocked: approved SMS provider/sender/templates, a permitted push path, real Firebase project settings, HTTPS hosting, restricted DB roles, retention/privacy review and validated street data are external prerequisites. FCM is not enabled for emergency delivery because of [official usage guidance](https://firebase.google.com/docs/cloud-messaging/customize-messages/setting-message-priority). Do not enable it by renaming a fake adapter.
+
+## Advanced controls and privacy
+
+The mobile Controls tab provides fake-call simulation/reminders, normal/duress PIN setup and rehearsal, a foreground-only motion check-in experiment and export/deletion. Setup/reset/export/deletion require a phone authentication within five minutes; sign out and sign in again after resolving active sharing if needed. Duress is not guaranteed hidden: Android location indicators, notification previews, network activity and recipient messages can reveal it. Rehearse without dispatch first. Audio AI/automatic sensor dispatch and shop alerts remain disabled.
+
+After an SOS is accepted, optional evidence requires separate consent and selected contacts. Local fake storage supports JPEG/PNG and =10sec16kHz mono PCM WAV, re-encodes images to remove metadata, quarantines before processing and streams only to current authorized recipients. MP4, a real malware scanner/private object host and geocoder are not configured. Native photo uses the system camera preview; audio stops when the app leaves foreground. Browser Controls & privacy provides24h private export and account deletion status.
+
+Run `npm run test:monitoring`, `npm run test:security`, `npm run test:load`, and `npm run ml:evaluate`. The last command returns exit2 without private data/model, never a fake ML pass. See [operations](infra/OPERATIONS.md) for encrypted backup/restore and the separate erasure ledger. `npm run restore:verify -- <archive>` replaces only the explicitly named local restore-test database.
+
+A bundled arm64 controlled-demo APK can be built with `./gradlew :app:assembleDemo -PreactNativeArchitectures=arm64-v8a` (Windows: `.\gradlew.bat`). This uses local debug signing, `.demo` application ID and emulated auth/local HTTP; it is not a production signed release. Production release signing is deliberately unconfigured. Final artifact/build observations are in [Phase4 evidence](docs/validation/phase-4.md). Physical/device claims remain pending.

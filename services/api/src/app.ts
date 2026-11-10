@@ -9,16 +9,20 @@ import {config,validateConfig} from './platform/config.ts';
 import {pool,routePool,transaction,lock,type DB,type Row} from './platform/db/index.ts';
 import {id,token,hash,bodyHash,encrypt,decrypt,safeEqual,ApiError,requireCondition} from './platform/security.ts';
 import {authenticate,verifyFirebase,principal,requireModerator,type VerifyToken} from './platform/auth.ts';
-import {after,iso,metadata,audit,cursorPage,decodeCursor,assertHours,validateLocation} from './modules/common.ts';
+import {after,iso,metadata,audit,cursorPage,decodeCursor,assertHours,validateLocation,contextView} from './modules/common.ts';
 import {createContact,contactView,ownContact,invite,decideInvite,revokeContact,contactPosition} from './modules/contacts/index.ts';
 import {createSos,ownEvent,sosView,resolveSos,terminateIntent,appendLocation,grant,enqueue,eventChange} from './modules/sos/index.ts';
 import {exchange,trackingSession,trackingView,acknowledge,cookieName} from './modules/tracking/index.ts';
 import {createJourney,ownJourney,journeyView,checkIn,shareJourney,finishJourney,journeyTracking} from './modules/journeys/index.ts';
 import {evaluateRoutes,cellId,cellGeometry} from './modules/routing/index.ts';
 import {shopView} from './modules/shops/index.ts';
+import {presignEvidence,completeEvidence,evidenceAccess,evidenceView,deleteEvidence} from './modules/evidence/index.ts';
+import {requestExport,requestDeletion,privacyJob,exportView} from './modules/privacy/index.ts';
+import {mountStreams} from './modules/streams.ts';
+import {persistErasureLedger} from './modules/privacy/ledger.ts';
 type Context={db:DB,req:Request,res:Response,user:Row,b:Row,verify:VerifyToken};
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const profile=(u:Row)=>({...metadata(u),id:u.id,display_name:u.display_name,locale:u.locale,phone_e164:u.phone_e164,consents:u.consents,capabilities:{push_live:false,monitoring:false,duress:false,key_trigger:false,shop_alerts:false,evidence:false}});
+const profile=(u:Row)=>({...metadata(u),id:u.id,display_name:u.display_name,locale:u.locale,phone_e164:u.phone_e164,consents:u.consents,capabilities:{push_live:false,monitoring:false,duress:true,key_trigger:false,shop_alerts:false,evidence:config.env==='local'}});
 const reportView=(r:Row)=>({...metadata(r),id:r.id,category:r.category,location:r.location,happened_at:iso(r.happened_at),description:r.description,status:r.moderation_status,created_at:iso(r.created_at),expires_at:iso(r.expires_at),moderation_reason:r.moderation_reason});
 async function limit(db:DB,key:string,cap:number,seconds:number){
  const bucket=Math.floor(Date.now()/1000/seconds);
@@ -44,7 +48,7 @@ async function dispatch(c:Context,key:string):Promise<unknown>{
  if(key==='POST /identity/browser-session'){
   requireCondition(req.headers.origin===config.origin,403,'FORBIDDEN');
   const u=await principal(await verify(b.id_token,true)),session=token(),csrf=token(),expires=after(900000);
-  await db.query('INSERT INTO browser_sessions(id,principal_id,session_hash,csrf_hash,idle_expires_at,expires_at) VALUES($1,$2,$3,$4,$5,$5)',[id(),u.id,hash(session),hash(csrf),expires]);
+  await db.query('INSERT INTO browser_sessions(id,principal_id,session_hash,csrf_hash,idle_expires_at,expires_at,auth_time) VALUES($1,$2,$3,$4,$5,$5,$6)',[id(),u.id,hash(session),hash(csrf),expires,new Date(u.auth_time*1000)]);
   res.cookie('identity',session,{httpOnly:true,sameSite:'lax',secure:config.env!=='local',path:'/v1',maxAge:900000});
   return {expires_at:expires,csrf_token:csrf};
  }
@@ -52,6 +56,21 @@ async function dispatch(c:Context,key:string):Promise<unknown>{
   await db.query('UPDATE browser_sessions SET revoked_at=now() WHERE principal_id=$1',[user.id]);res.clearCookie('identity',{path:'/v1'});return;
  }
  if(key==='GET /me')return profile(user);
+ if(key==='POST /me/export')return requestExport(db,user);
+ if(key==='GET /me/export/{jobId}')return exportView(await privacyJob(db,user,p.jobId));
+ if(key==='DELETE /me')return requestDeletion(db,user,b.confirm_end_active_sharing);
+ if(key==='GET /me/deletion/{jobId}'){const j=await privacyJob(db,user,p.jobId,'DELETE');return {deletion_job_id:j.id,status:j.status};}
+ if(key==='PATCH /sos/{id}/context'){
+  const e=await ownEvent(db,p.id,user.id,true);requireCondition(!e.ended_at&&e.expires_at>new Date(),409,'INVALID_TRANSITION');
+  requireCondition(Object.keys(b).some(k=>k!=='observed_at')&&Date.parse(b.observed_at)<=Date.now()+60000&&Date.parse(b.observed_at)>=Date.now()-86400000,400,'VALIDATION_ERROR');
+  if(!e.context.observed_at||Date.parse(b.observed_at)>Date.parse(e.context.observed_at)){await db.query('UPDATE sos_events SET context=context||$2::jsonb WHERE id=$1',[e.id,b]);await eventChange(db,e.id,'CONTEXT_UPDATED');}
+  const current=(await db.query('SELECT * FROM sos_events WHERE id=$1',[e.id])).rows[0];return {context:contextView(current.context),revision:current.revision};
+ }
+ if(key==='POST /sos/{id}/evidence/presign')return presignEvidence(db,user,p.id,b);
+ if(key==='POST /sos/{id}/evidence/{assetId}/complete')return completeEvidence(db,user,p.id,p.assetId);
+ if(key==='GET /evidence/{assetId}')return evidenceView((await evidenceAccess(db,p.assetId,user.id?user:null,req)).asset);
+ if(key==='DELETE /evidence/{assetId}'){await deleteEvidence(db,user,p.assetId);return;}
+ if(key.includes('/shop-alert'))throw new ApiError(503,'FEATURE_DISABLED');
  if(key==='PATCH /me'){
   const r=await db.query('UPDATE app_users SET display_name=COALESCE($2,display_name),locale=COALESCE($3,locale),revision=revision+1,updated_at=now() WHERE id=$1 RETURNING *',[user.id,b.display_name??null,b.locale??null]);
   return profile(r.rows[0]);
@@ -145,6 +164,12 @@ async function dispatch(c:Context,key:string):Promise<unknown>{
   const g=await trackingSession(db,req,key.includes('/journey')?'JOURNEY_READ':key.includes('/logout')?undefined:'SOS_READ');
   if(key==='GET /tracking/event')return trackingView(db,g);
   if(key==='GET /tracking/journey')return journeyTracking(db,g);
+  if(key==='POST /tracking/navigation'){
+   requireCondition(b.consent===true,403,'CONSENT_REQUIRED');const e=(await db.query('SELECT position FROM sos_events WHERE id=$1',[g.sos_event_id])).rows[0];
+   if(!e.position)return {distance_m:null,eta_seconds:null,method:'UNAVAILABLE',warning:'Owner location unavailable. Tracking remains usable.'};
+   const d=(await db.query('SELECT ST_Distance(ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,ST_SetSRID(ST_MakePoint($3,$4),4326)::geography) AS metres',[b.origin.lon,b.origin.lat,e.position.lon,e.position.lat])).rows[0].metres;
+   return {distance_m:d,eta_seconds:Math.round(d/1.2),method:'STRAIGHT_LINE_ESTIMATE',warning:'Straight-line walking estimate; obstacles and actual routes are unknown. Origin is not stored.'};
+  }
   if(key==='POST /tracking/acknowledge')return acknowledge(db,g,b);
   if(key==='POST /tracking/logout'){await db.query('UPDATE browser_sessions SET revoked_at=now() WHERE id=$1',[g.session_id]);res.clearCookie(cookieName(g.id),{path:'/v1'});return;}
   if(key==='GET /tracking/locations'){
@@ -276,6 +301,7 @@ export function createApp(verify:VerifyToken=verifyFirebase){
   const raw=String(req.headers['x-request-id']??'');res.locals.requestId=uuidPattern.test(raw)?raw:id();
   res.setHeader('X-Request-ID',res.locals.requestId);res.setHeader('Cache-Control','no-store');res.setHeader('X-Robots-Tag','noindex');next();
  });
+ mountStreams(app,verify);
  // Local-only authenticated inbox. Never mounted in staging/pilot.
  if(config.env==='local')app.get('/v1/dev/inbox',async(req,res,next)=>{
   try{const user=await authenticate(req,verify);const r=await pool.query('SELECT id,material_ciphertext,created_at FROM fake_messages WHERE expires_at>now() ORDER BY created_at DESC LIMIT 100');
@@ -289,7 +315,7 @@ export function createApp(verify:VerifyToken=verifyFirebase){
    try{
     for(const [name,value] of Object.entries(req.params))if(name!=='provider')requireCondition(uuidPattern.test(String(value)),400,'VALIDATION_ERROR');
     if(op.input)requireCondition(validate(op.input,req.body),400,'VALIDATION_ERROR');
-    const user=op.auth==='bearer'?await authenticate(req,verify):{};
+    const user=op.auth==='bearer'&&!(op.method==='GET'&&op.path==='/evidence/{assetId}'&&req.headers['x-tracking-grant-id'])?await authenticate(req,verify,op.path==='/me/deletion/{jobId}'||(op.method==='DELETE'&&op.path==='/me')):{};
     if(op.path==='/health/live'){res.json({status:'OK'});return;}
     const b=req.body??{},isMutation=method!=='get';
     const key=String(req.headers['idempotency-key']??'');
@@ -302,7 +328,7 @@ export function createApp(verify:VerifyToken=verifyFirebase){
      // Tracking authorization runs inside dispatch and validates its selected cookie on every access.
      let principalId=String(user.id??'');
      if(op.auth==='tracking'){const g=await trackingSession(db,req);principalId=(await db.query('SELECT principal_id FROM emergency_contacts WHERE id=$1',[g.contact_id])).rows[0]?.principal_id??'';scopeUser={id:principalId};}
-     const cache=isMutation&&!exempt&&op.path!=='/sos';
+     const cache=isMutation&&!exempt&&op.path!=='/sos'&&op.path!=='/me';
      const digest=bodyHash(b),scope=operation+':'+req.path+(op.auth==='tracking'?':'+String(req.headers['x-tracking-grant-id']):'');
      if(cache){
       await lock(db,'idempotency:'+principalId+':'+scope+':'+key);
@@ -314,6 +340,7 @@ export function createApp(verify:VerifyToken=verifyFirebase){
      if(cache)await db.query('INSERT INTO idempotency_records(principal,operation,key,request_hash,result,expires_at) VALUES($1,$2,$3,$4,$5,$6)',[principalId,scope,key,digest,JSON.stringify(value??null),after(86400000)]);
      return value;
     },op.path==='/routes/evaluate'?routePool:pool);
+    if(op.path==='/me'&&method==='delete')await persistErasureLedger();
     if(res.statusCode===200&&!res.hasHeader('Idempotency-Replayed'))res.status(op.success);
     if(req.query.after_revision!==undefined&&(output as Row)?.revision===Number(req.query.after_revision)){res.setHeader('X-Server-Time',new Date().toISOString());res.status(204).end();}
     else if(res.statusCode===204)res.end();else res.json(output);

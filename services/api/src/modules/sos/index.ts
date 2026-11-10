@@ -3,6 +3,7 @@ import {lock} from '../../platform/db/index.ts';
 import {id,token,hash,bodyHash,encrypt,requireCondition,ApiError} from '../../platform/security.ts';
 import {config} from '../../platform/config.ts';
 import {iso,after,age,freshness,validateLocation,metadata,contextView} from '../common.ts';
+import {evidenceList} from '../evidence/index.ts';
 export const terminal=(event:Row)=>['RESOLVED','CANCELLED'].includes(event.status);
 export async function ownEvent(db:DB,eventId:string,userId:string,forUpdate=false):Promise<Row>{
  const r=await db.query('SELECT * FROM sos_events WHERE id=$1 AND user_id=$2'+(forUpdate?' FOR UPDATE':''),[eventId,userId]);
@@ -26,7 +27,7 @@ export async function enqueue(db:DB,eventId:string|null,recipientId:string|null,
  if(inserted.rowCount)await db.query('INSERT INTO notification_outbox(id,intent_id,material_ciphertext,deadline) VALUES($1,$2,$3,$4)',[outboxId,intentId,encrypt(material),iso(new Date(Math.min(Date.parse(expires),Date.now()+600000)))]);
 }
 export async function createSos(db:DB,user:Row,body:Row,serverGenerated=false):Promise<{event:Row,replayed:boolean}>{
- requireCondition(serverGenerated||body.trigger_type==='MANUAL',503,'FEATURE_DISABLED');
+ requireCondition(serverGenerated||['MANUAL','DURESS_PIN'].includes(body.trigger_type)||(config.env==='local'&&body.trigger_type==='VOLUME_CODE'),503,'FEATURE_DISABLED');
  validateLocation(body.location,true);
  const digest=bodyHash(body),key=body.client_request_id;
  await lock(db,'intent:'+user.id+':'+key);
@@ -70,7 +71,7 @@ export async function sosView(db:DB,event:Row,replayed=false,detail=true){
  warnings.push('PUSH_UNAVAILABLE');
  const basic={...metadata(event),event_id:event.id,status:event.status,dispatch_status:state,created_at:iso(event.created_at),initial_location_at:event.initial_location_at?iso(event.initial_location_at):null,eligible_recipient_count:rs.rowCount,expires_at:iso(event.expires_at),replayed,emergency_call_number:'112',warnings};
  if(!detail)return basic;
- return {...basic,trigger_type:event.trigger_type,resolution:event.resolution,position:event.position,location_age_s:age(event.position),context:contextView(event.context),recipients:rs.rows.map(r=>({id:r.id,contact_id:r.contact_id,priority_rank:r.priority_rank,role:r.role,acknowledgement:r.acknowledgement,acknowledged_at:r.acknowledged_at?iso(r.acknowledged_at):null,eta_minutes:r.eta_minutes,channels:['SMS','PUSH'].flatMap(channel=>{const c=channels.rows.filter(c=>c.recipient_id===r.id&&c.channel===channel).at(-1);return c?[{channel,status:c.status,last_attempt_at:c.last_attempt_at?iso(c.last_attempt_at):null}]:[];})})),evidence:[]};
+ return {...basic,trigger_type:event.trigger_type,resolution:event.resolution,position:event.position,location_age_s:age(event.position),context:contextView(event.context),recipients:rs.rows.map(r=>({id:r.id,contact_id:r.contact_id,priority_rank:r.priority_rank,role:r.role,acknowledgement:r.acknowledgement,acknowledged_at:r.acknowledged_at?iso(r.acknowledged_at):null,eta_minutes:r.eta_minutes,channels:['SMS','PUSH'].flatMap(channel=>{const c=channels.rows.filter(c=>c.recipient_id===r.id&&c.channel===channel).at(-1);return c?[{channel,status:c.status,last_attempt_at:c.last_attempt_at?iso(c.last_attempt_at):null}]:[];})})),evidence:await evidenceList(db,event.id)};
 }
 export async function resolveSos(db:DB,event:Row,resolution:string,cancel=false){
  if(terminal(event))return event;

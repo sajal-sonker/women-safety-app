@@ -20,7 +20,7 @@
     "contracts:check": "node scripts/generate-contracts.mjs --check",
     "db:migrate": "tsx services/api/src/platform/db/migrate.ts",
     "seed:demo": "tsx services/api/src/seed.ts",
-    "test": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/scoring.test.ts",
+    "test": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/scoring.test.ts tests/monitoring.test.ts tests/media.test.ts",
     "test:unit": "tsx --test tests/scoring.test.ts tests/contracts.test.ts",
     "test:contract": "tsx --test tests/contracts.test.ts",
     "test:integration": "node scripts/test-db.mjs tests/api.test.ts",
@@ -31,7 +31,14 @@
     "test:e2e": "playwright test",
     "verify:docs": "node scripts/verify-docs.mjs",
     "auth:emulator": "firebase emulators:start --only auth --project demo-surakshaai --config firebase.json",
-    "mobile:metro": "npm run start -w @surakshaai/mobile"
+    "mobile:metro": "npm run start -w @surakshaai/mobile",
+    "test:monitoring": "tsx --test tests/monitoring.test.ts",
+    "ml:evaluate": "tsx ml/evaluation/evaluate.ts",
+    "test:security": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/media.test.ts",
+    "backup:create": "tsx scripts/backup.ts create",
+    "restore:verify": "tsx scripts/backup.ts verify",
+    "test:load": "tsx scripts/test-load.ts",
+    "sbom": "npm sbom --sbom-format cyclonedx"
   },
   "dependencies": {
     "ajv": "8.20.0",
@@ -47,6 +54,7 @@
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "sharp": "0.35.5",
     "suncalc": "2.1.3",
     "yaml": "2.9.1"
   },

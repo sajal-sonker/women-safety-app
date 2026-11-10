@@ -1,3 +1,6 @@
+import {persistErasureLedger} from '../../api/src/modules/privacy/ledger.ts';
+import {processPrivacy,purgeEvents} from '../../api/src/modules/privacy/index.ts';
+import {processEvidence,purgeEvidence} from '../../api/src/modules/evidence/index.ts';
 import {pool,transaction,type DB,type Row} from '../../api/src/platform/db/index.ts';
 import {validateConfig} from '../../api/src/platform/config.ts';
 import {id,encrypt,decrypt} from '../../api/src/platform/security.ts';
@@ -127,27 +130,12 @@ export class Worker{
    await db.query("DELETE FROM incident_reports WHERE expires_at<now() OR (moderation_status='PENDING' AND created_at<now()-interval '30 days')");
    await db.query("DELETE FROM audit_events WHERE created_at<now()-interval '90 days'");
    const expiredEvents=(await db.query("SELECT id FROM sos_events WHERE ended_at IS NOT NULL AND created_at<now()-interval '30 days' FOR UPDATE")).rows.map(e=>e.id);
-   if(expiredEvents.length){
-    await db.query('DELETE FROM fake_messages WHERE outbox_id IN (SELECT o.id FROM notification_outbox o JOIN delivery_intents d ON d.id=o.intent_id WHERE d.event_id=ANY($1::uuid[]))',[expiredEvents]);
-    await db.query('DELETE FROM provider_receipts WHERE provider_message_ref IN (SELECT a.provider_message_ref FROM delivery_attempts a JOIN delivery_intents d ON d.id=a.intent_id WHERE d.event_id=ANY($1::uuid[]))',[expiredEvents]);
-    await db.query('DELETE FROM delivery_attempts WHERE intent_id IN (SELECT id FROM delivery_intents WHERE event_id=ANY($1::uuid[]))',[expiredEvents]);
-    await db.query('DELETE FROM notification_outbox WHERE intent_id IN (SELECT id FROM delivery_intents WHERE event_id=ANY($1::uuid[]))',[expiredEvents]);
-    await db.query('DELETE FROM delivery_intents WHERE event_id=ANY($1::uuid[])',[expiredEvents]);
-    await db.query('DELETE FROM recipient_acknowledgements WHERE recipient_id IN (SELECT id FROM sos_recipients WHERE sos_event_id=ANY($1::uuid[]))',[expiredEvents]);
-    await db.query('DELETE FROM browser_sessions WHERE grant_id IN (SELECT id FROM tracking_grants WHERE sos_event_id=ANY($1::uuid[]))',[expiredEvents]);
-    await db.query('DELETE FROM tracking_grants WHERE sos_event_id=ANY($1::uuid[])',[expiredEvents]);
-    await db.query('DELETE FROM sos_recipients WHERE sos_event_id=ANY($1::uuid[])',[expiredEvents]);
-    await db.query('DELETE FROM sos_locations WHERE sos_event_id=ANY($1::uuid[])',[expiredEvents]);
-    await db.query('UPDATE journeys SET linked_sos_id=NULL WHERE linked_sos_id=ANY($1::uuid[])',[expiredEvents]);
-    await db.query('DELETE FROM sos_intents WHERE event_id=ANY($1::uuid[])',[expiredEvents]);
-    await db.query('DELETE FROM domain_events WHERE aggregate_id=ANY($1::uuid[])',[expiredEvents]);
-    await db.query('DELETE FROM scheduled_jobs WHERE aggregate_id=ANY($1::uuid[])',[expiredEvents]);
-    await db.query('DELETE FROM sos_events WHERE id=ANY($1::uuid[])',[expiredEvents]);
-   }
+   await purgeEvents(db,expiredEvents);
    await db.query('DELETE FROM sos_intents WHERE event_id IS NULL AND expires_at<now()');
   });
  }
- async tick(){await this.jobs();await this.delivery();}
+ async advanced(){await transaction(async db=>{await purgeEvidence(db);await processPrivacy(db);});await persistErasureLedger();await transaction(processEvidence);}
+ async tick(){await this.jobs();await this.delivery();await this.advanced();}
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('services/worker/src/index.ts')){
  validateConfig();const worker=new Worker();let busy=false,lastRetention=0;

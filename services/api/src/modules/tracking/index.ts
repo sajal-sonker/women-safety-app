@@ -1,3 +1,4 @@
+import {evidenceList} from '../evidence/index.ts';
 import type {Request,Response} from 'express';
 import type {DB,Row} from '../../platform/db/index.ts';
 import {hash,id,token,encrypt,decrypt,requireCondition} from '../../platform/security.ts';
@@ -58,7 +59,7 @@ export async function trackingView(db:DB,g:Row){
  const event=r.rows[0];
  const own=(await db.query('SELECT * FROM sos_recipients WHERE id=$1',[g.recipient_id])).rows[0];
  const count=await db.query("SELECT count(*)::int AS n FROM sos_recipients WHERE sos_event_id=$1 AND acknowledgement='CAN_ASSIST'",[event.id]);
- return {...metadata(event),event_id:event.id,event_status:event.status,started_at:iso(event.created_at),trigger_class:event.trigger_type==='MANUAL'?'MANUAL':event.trigger_type==='JOURNEY_OVERDUE'?'JOURNEY_OVERDUE':'POTENTIAL_DISTRESS',shared_name:event.display_name,position:event.position,location_age_s:age(event.position),context:contextView(event.context),priority_role:own.role,own_acknowledgement:own.acknowledgement,assisting_count:count.rows[0].n,evidence:[],expires_at:iso(g.expires_at)};
+ return {...metadata(event),event_id:event.id,event_status:event.status,started_at:iso(event.created_at),trigger_class:event.trigger_type==='MANUAL'?'MANUAL':event.trigger_type==='JOURNEY_OVERDUE'?'JOURNEY_OVERDUE':'POTENTIAL_DISTRESS',shared_name:event.display_name,position:event.position,location_age_s:age(event.position),context:contextView(event.context),priority_role:own.role,own_acknowledgement:own.acknowledgement,assisting_count:count.rows[0].n,evidence:await evidenceList(db,event.id,g.recipient_id),expires_at:iso(g.expires_at)};
 }
 export async function acknowledge(db:DB,g:Row,body:Row){
  await db.query('SELECT id FROM sos_events WHERE id=$1 FOR UPDATE',[g.sos_event_id]);

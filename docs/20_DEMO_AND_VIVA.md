@@ -2,7 +2,7 @@
 
 ## Core project pitch (30 seconds)
 
-> SurakshaAI is an Android-first safety assistant integrating three functions: time-aware route condition indicators, rapid private SOS notification to preconfigured trusted contacts, and situational on-device detection of possible distress. It also helps users locate opted-in assistance shops and gives contacts a secure web view of live-location freshness and response status. It does not claim to guarantee safety or dispatch police automatically.
+> SurakshaAI is an Android-first safety assistant integrating three functions: time-aware route condition indicators, rapid private SOS notification to preconfigured trusted contacts, and optional discreet controls. Audio distress detection remains a gated research experiment. It also helps users locate opted-in assistance shops and gives contacts a secure web view of live-location freshness and response status. It does not claim to guarantee safety or dispatch police automatically.
 
 ## End-to-end demo (all accounts and places synthetic/consented)
 
@@ -12,7 +12,7 @@
 4. **Response:** tap manual SOS once; show worker queued vs accepted statuses, browser SMS link, dynamic position with last-update timestamp and contact acknowledgement. Show nearest *eligible* contact ranking then other-contact fallback.
 5. **Assistance:** show opted-in shop status/hours and direction, explaining the difference between scheduled and confirmed open; no invented real responder.
 6. **Discretion:** use fake call, then separately enter duress PIN on a disposable test account; the app shows decoy UI while a test SMS is generated. Demonstrate a known OS/background limitation in the volume-key prototype rather than concealing it.
-7. **AI:** turn on explicit monitoring; stage an approved simulated scream/jerk sample; show on-device model score and fusion, then show a hard-negative case and measured false-alarm metric. Never simulate or stage a real assault.
+7. **Experimental status:** show the foreground motion check-in and disabled audio AI. Run the dataset integrity checker; absent data/model returns BLOCKED_EXTERNAL. Do not present a fake model score, battery number or accuracy metric.
 8. **Security:** resolve event; recipient tracking link is revoked; prove unauthenticated ID guessing is rejected. Show log redaction and location deletion policy.
 
 ## Viva Q&A (short defensible answers)
@@ -53,3 +53,5 @@ A: Compare audio-only, motion-only, AND and fused decisions on held-out staged d
 ## Claims to avoid
 
 - 'Guaranteed safe route', 'Detects violence with certainty', 'Always works on a locked phone', 'Automatically alerts police', 'All nearby shops are safe', 'Works offline via SMS' unless directly validated with required privileges/connectivity. Use measured, scoped descriptions instead.
+
+For the current implemented demo and missing gates use [Phase3](validation/phase-3.md) and [Phase4](validation/phase-4.md). Demonstrate optional evidence quarantine/revocation and private export separately from the initial SOS. All places/accounts are synthetic; no official emergency call is made.

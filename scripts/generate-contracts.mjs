@@ -9,7 +9,8 @@ const outputs={'packages/contracts/src/generated/api.ts':output,'packages/contra
 outputs['packages/contracts/src/generated/schema.json']=JSON.stringify(api.components.schemas,null,2)+'\n';
 const ops=[];
 for(const [path,methods] of Object.entries(api.paths))for(const [method,o] of Object.entries(methods)){
- const success=Object.keys(o.responses).find(k=>k.startsWith('2'));
+ if(o['x-stream'])continue; // Binary handlers authenticate and authorize each request explicitly.
+const success=Object.keys(o.responses).find(k=>k.startsWith('2'));
  ops.push({method:method.toUpperCase(),path,input:o.requestBody?.content['application/json'].schema.$ref.split('/').at(-1)??null,output:o.responses[success].content?.['application/json'].schema.$ref.split('/').at(-1)??null,phase:o['x-phase'],auth:o.security.length?Object.keys(o.security[0])[0]==='TrackingCookie'?'tracking':'bearer':'public',success:Number(success),operationId:o.operationId});
 }
 outputs['packages/contracts/src/generated/operations.json']=JSON.stringify(ops,null,2)+'\n';

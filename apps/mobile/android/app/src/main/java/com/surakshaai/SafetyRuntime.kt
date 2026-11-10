@@ -52,7 +52,7 @@ object SafetyRuntime {
             FirebaseOptions.Builder().setApplicationId("1:1234567890:android:0000000000000000")
                 .setProjectId(BuildConfig.FIREBASE_PROJECT_ID).setApiKey(BuildConfig.FIREBASE_API_KEY).build())
         auth = FirebaseAuth.getInstance(app)
-        if (BuildConfig.DEBUG && BuildConfig.FIREBASE_PROJECT_ID.startsWith("demo-")) {
+        if (BuildConfig.CONTROLLED_DEMO && BuildConfig.FIREBASE_PROJECT_ID.startsWith("demo-")) {
             auth.useEmulator(URI(baseUrl).host, 9099)
             auth.firebaseAuthSettings.setAppVerificationDisabledForTesting(true)
         }
@@ -63,7 +63,7 @@ object SafetyRuntime {
         val requested = value.optString("api_base_url", baseUrl)
         val uri = URI(requested)
         val local = uri.host in listOf("127.0.0.1", "localhost", "10.0.2.2")
-        require((BuildConfig.DEBUG && local && uri.scheme == "http") || requested == BuildConfig.API_BASE_URL && uri.scheme == "https")
+        require((BuildConfig.CONTROLLED_DEMO && local && uri.scheme == "http") || requested == BuildConfig.API_BASE_URL && uri.scheme == "https")
         baseUrl = requested.trimEnd('/')
         recover()
         return state().toString()
@@ -113,7 +113,7 @@ object SafetyRuntime {
         if(location.hasAccuracy())location.accuracy.toDouble() else null,Instant.ofEpochMilli(location.time).toString(),"gps")
     fun locationJson(location: Location): JSONObject = JSONObject(gson.toJson(wire(location)))
     @Synchronized fun activate(trigger: String): JSONObject {
-        require(trigger=="MANUAL") { "FEATURE_DISABLED" }
+        require(trigger in listOf("MANUAL","DURESS_PIN","VOLUME_CODE")) { "FEATURE_DISABLED" }
         val user = auth.currentUser ?: throw HttpFailure(401,"UNAUTHENTICATED")
         val existing=store.read().optJSONObject("active")
         if(existing?.optString("state")=="RECONFIRM_REQUIRED")throw HttpFailure(409,"TERMINATE_PREVIOUS_INTENT")
@@ -236,8 +236,13 @@ object SafetyRuntime {
         SafetyLocationService.current?.removePurpose("$purpose:$resource")
     }
     fun state(): JSONObject = authState().apply {
+        put("monitoring",com.surakshaai.monitoring.MotionSession.state())
+        put("fake_call",store.read().optJSONObject("fake_call")?:JSONObject.NULL)
+        put("decoy",store.read().optBoolean("decoy")&&store.read().optJSONObject("pins")?.optString("uid")==auth.currentUser?.uid)
+        val pins=store.read().optJSONObject("pins")
+        put("pins_configured",pins!=null&&auth.currentUser!=null&&pins.optString("uid")==auth.currentUser?.uid)
         val value=store.read().optJSONObject("active")
-        put("intent",if(value?.optString("uid")==auth.currentUser?.uid)publicIntent(value) else JSONObject.NULL)
+        put("intent",if(value!=null&&auth.currentUser!=null&&value.optString("uid")==auth.currentUser?.uid)publicIntent(value) else JSONObject.NULL)
         put("location_status",SafetyLocationService.status)
         put("position",if(locationPurposes.isEmpty())JSONObject.NULL else latestLocation()?.let { locationJson(it) }?:JSONObject.NULL)
     }

@@ -568,3 +568,84 @@ data class ProviderReceipt(
     @SerializedName("provider_message_ref") val provider_message_ref: String,
     @SerializedName("status") val status: String
 )
+
+data class EvidencePresign(
+    @SerializedName("kind") val kind: String,
+    @SerializedName("mime") val mime: String,
+    @SerializedName("size_bytes") val size_bytes: Int,
+    @SerializedName("sha256") val sha256: String,
+    @SerializedName("duration_s") val duration_s: Double?,
+    @SerializedName("captured_at") val captured_at: String,
+    @SerializedName("consent_version") val consent_version: String,
+    @SerializedName("recipient_ids") val recipient_ids: List<String>
+)
+
+data class EvidenceUpload(
+    @SerializedName("asset_id") val asset_id: String,
+    @SerializedName("upload_url") val upload_url: String,
+    @SerializedName("expires_at") val expires_at: String,
+    @SerializedName("required_headers") val required_headers: JsonObject,
+    @SerializedName("storage_mode") val storage_mode: String
+)
+
+data class ContextResult(
+    @SerializedName("context") val context: ContextView,
+    @SerializedName("revision") val revision: Int
+)
+
+data class NavigationInput(
+    @SerializedName("origin") val origin: Point,
+    @SerializedName("consent") val consent: Boolean
+)
+
+data class Navigation(
+    @SerializedName("distance_m") val distance_m: Double?,
+    @SerializedName("eta_seconds") val eta_seconds: Int?,
+    @SerializedName("method") val method: String,
+    @SerializedName("warning") val warning: String
+)
+
+data class ExportAccepted(
+    @SerializedName("job_id") val job_id: String,
+    @SerializedName("status") val status: String
+)
+
+data class ExportJob(
+    @SerializedName("job_id") val job_id: String,
+    @SerializedName("status") val status: String,
+    @SerializedName("expires_at") val expires_at: String?
+)
+
+data class DeleteAccount(
+    @SerializedName("confirm_end_active_sharing") val confirm_end_active_sharing: Boolean
+)
+
+data class DeletionAccepted(
+    @SerializedName("deletion_job_id") val deletion_job_id: String,
+    @SerializedName("status") val status: String
+)
+
+data class DeletionJob(
+    @SerializedName("deletion_job_id") val deletion_job_id: String,
+    @SerializedName("status") val status: String
+)
+
+data class ShopAlertInput(
+    @SerializedName("shop_id") val shop_id: String,
+    @SerializedName("sharing_consent_version") val sharing_consent_version: String
+)
+
+data class ShopAlert(
+    @SerializedName("shop_alert_id") val shop_alert_id: String,
+    @SerializedName("status") val status: String,
+    @SerializedName("expires_at") val expires_at: String
+)
+
+data class ShopTracking(
+    @SerializedName("event_id") val event_id: String,
+    @SerializedName("status") val status: String,
+    @SerializedName("position") val position: Location?,
+    @SerializedName("location_age_s") val location_age_s: Double?,
+    @SerializedName("arrival_eta_s") val arrival_eta_s: Double?,
+    @SerializedName("expires_at") val expires_at: String
+)

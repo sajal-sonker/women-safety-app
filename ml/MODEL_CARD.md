@@ -1,0 +1,9 @@
+# Detector disposition — 10 November 2026
+
+**BLOCKED_EXTERNAL / automatic dispatch DISABLED.** No licensed participant recordings, consent register, private split manifest, trained LiteRT artifact, quantization parity or two-phone benchmark was supplied. No distress-model accuracy, inference timing or battery measurement is claimed. The application bundles no placeholder classifier. Microphone inference and audio-triggered SOS are unavailable; manual SOS remains independent.
+
+The Android motion check-in experiment is explicitly foreground-only, stops on pause/expiry and never dispatches an SOS. Its threshold is a check-in heuristic, not a violence detector. Focused volume keys are a separate default-off debug experiment; background/power-key interception is unsupported.
+
+`npm run ml:evaluate` without a private manifest exits **2**, reporting the blocker. With a manifest, it verifies checksums, rights, disjoint speakers/sessions/environments and minimum support. `DATA_READY_ONLY` means dataset prerequisites only; it never approves automatic dispatch. Required model training, frozen validation thresholds, event-level predictions, Wilson intervals, false-episode Poisson bounds, audio/motion/fusion comparison, float/quantized parity and M01–M08 independent acceptance remain open.
+
+Private recording rows contain id/path/sha256/consent_ref/license/speaker/session/environment/device/split/duration_s/negative/class. Paths resolve in the invoking environment; recordings/manifests with personal data stay outside Git. Staged recordings require voluntary consent and rights; no real assault recordings. Classes are SCREAM, BACHAO, HELP, NEGATIVE. Use the [graduation protocol](../docs/TESTING_AND_ACCEPTANCE_GATES.md) before collecting or evaluating. No synthetic results substitute for these measurements.

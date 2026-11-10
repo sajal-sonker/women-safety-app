@@ -10,6 +10,9 @@ react {
     reactNativeDir = file("../../../../node_modules/react-native")
     codegenDir = file("../../../../node_modules/@react-native/codegen")
     cliFile = file("../../../../node_modules/react-native/cli.js")
+    // RN0.88 ships the compiler in hermes-compiler rather than sdks/hermesc.
+    def hermesPlatform = org.gradle.internal.os.OperatingSystem.current().isWindows() ? "win64-bin/hermesc.exe" : (org.gradle.internal.os.OperatingSystem.current().isMacOsX() ? "osx-bin/hermesc" : "linux64-bin/hermesc")
+    hermesCommand = rootProject.file("../../../node_modules/hermes-compiler/hermesc/" + hermesPlatform).absolutePath
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
     // root = file("../../")
@@ -94,12 +97,23 @@ android {
     }
     buildTypes {
         debug {
+            buildConfigField "boolean", "CONTROLLED_DEMO", "true"
+            signingConfig signingConfigs.debug
+        }
+        demo {
+            initWith release
+            matchingFallbacks = ["release"]
+            applicationIdSuffix ".demo"
+            versionNameSuffix "-controlled-demo"
+            debuggable false
+            buildConfigField "boolean", "CONTROLLED_DEMO", "true"
+            manifestPlaceholders = [usesCleartextTraffic: "true"]
             signingConfig signingConfigs.debug
         }
         release {
+            buildConfigField "boolean", "CONTROLLED_DEMO", "false"
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
@@ -107,6 +121,7 @@ android {
 }
 
 dependencies {
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.code.gson:gson:2.13.2")

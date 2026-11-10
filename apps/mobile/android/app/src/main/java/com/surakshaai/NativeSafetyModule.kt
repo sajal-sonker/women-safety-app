@@ -12,6 +12,9 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(context){
+    private val evidence=com.surakshaai.evidence.EvidenceCapture(context)
+    override fun captureEvidence(eventId:String,kind:String,recipientIds:String,promise:Promise){evidence.capture(eventId,kind,recipientIds,promise)}
+    override fun stopEvidenceCapture(promise:Promise){com.surakshaai.evidence.EvidenceCapture.recording=false;promise.resolve("{}")}
     companion object {const val NAME="NativeSafety"}
     init {
         SafetyRuntime.setup(context)
@@ -34,8 +37,22 @@ class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(conte
     override fun startLocation(purpose:String,resourceId:String,expiresAt:String,promise:Promise)=async(promise){SafetyRuntime.startLocation(purpose,resourceId,expiresAt).toString()}
     override fun stopLocation(purpose:String,resourceId:String,promise:Promise)=async(promise){SafetyRuntime.stopLocation(purpose,resourceId);"{}"}
     override fun getSafetyState(promise:Promise)=async(promise){SafetyRuntime.state().toString()}
-    override fun startMonitoring(config:String,promise:Promise){promise.reject("FEATURE_DISABLED","Monitoring is planned for phase3.")}
-    override fun stopMonitoring(promise:Promise){promise.resolve("{}")}
+    override fun startMonitoring(config:String,promise:Promise)=async(promise){com.surakshaai.monitoring.MotionSession.start(JSONObject(config)).toString()}
+    override fun stopMonitoring(promise:Promise)=async(promise){com.surakshaai.monitoring.MotionSession.stop();"{}"}
+    override fun configurePins(normal:String,duress:String,promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.setup(normal,duress).toString()}
+    override fun enterPin(pin:String,practice:Boolean,promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.unlock(pin,practice).toString()}
+    override fun resetPins(promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.reset().toString()}
+    override fun scheduleFakeCall(label:String,delaySeconds:Double,promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.schedule(label,delaySeconds.toInt()).toString()}
+    override fun dismissFakeCall(promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.cancel();"{}"}
+    override fun setFocusedKeys(enabled:Boolean,promise:Promise)=async(promise){require(!enabled||BuildConfig.CONTROLLED_DEMO);com.surakshaai.triggers.DiscreetControls.focusedKeys=enabled;"{}"}
+    override fun finishAccountDeletion(jobId:String,promise:Promise)=async(promise){
+        var complete=false
+        repeat(15){if(!complete){val job=JSONObject(SafetyRuntime.request("/me/deletion/$jobId","GET"));if(job.optString("status")=="COMPLETED")complete=true else Thread.sleep(1000)}}
+        if(!complete)throw HttpFailure(409,"DELETION_PENDING_RETRY")
+        com.surakshaai.monitoring.MotionSession.stop();com.surakshaai.triggers.DiscreetControls.cancel()
+        SafetyRuntime.locationPurposes.keys.toList().forEach{SafetyRuntime.stopLocation(it.substringBefore(':'),it.substringAfter(':'))}
+        SafetyRuntime.store.write(JSONObject());SafetyRuntime.auth.signOut();"{}"
+    }
     override fun clearAccount(promise:Promise)=async(promise){
         val current=SafetyRuntime.state().optJSONObject("intent")
         if(current!=null&&current.optString("state")!="TERMINATED")throw HttpFailure(409,"RESOLVE_ACTIVE_SOS_FIRST")

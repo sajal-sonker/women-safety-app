@@ -53,3 +53,8 @@ A change to ADR-003, ADR-004, ADR-005, event enums, tracking grant scopes or aut
 - 'Nearby shop' data is a navigation aid, not certified support.
 - Real sensor inference can be less accurate in motion, crowds, noise, transport and different phones. Device support cannot be assumed universal.
 - A phone-number-only identity does not establish the true identity of a person or their relationship to the user.
+## 10 November 2026 — authorized continuation
+
+The user requested implementation of Phases 3/4, a black/purple palette, and application commits pushed to `main`. Agent instructions, ownership, prompts, execution ledger and PC transfer context remain exclusively on `handoff/agent-context` (and ignored local copies). This is authorization for controlled-demo implementation, not independent acceptance or permission to invent provider, model, survey or physical-device results. Existing partial G0–G2 and later G3/G4 remain explicit. One executor works backend then mobile sequentially; no delegated review is claimed.
+
+CR-003 adds phase 3/4 wire operations and additive migrations 010/011. Local evidence uses authenticated single-object uploads and encrypted database storage as a fake storage adapter; HTTPS private object storage, malware scanner and MP4 sanitization remain external gates. Only validated, sanitized supported formats can be served in local mode. Initial SOS never invokes storage, capture, geocoding or a model. Shop delivery and ML automatic dispatch remain disabled without their required agreements/evaluation. Device behavior must be reported separately from component tests/builds.

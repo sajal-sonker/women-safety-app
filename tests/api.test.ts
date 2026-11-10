@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test,before,after} from 'node:test';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import type {Server} from 'node:http';
 import {createApp} from '../services/api/src/app.ts';
 import {pool,routePool} from '../services/api/src/platform/db/index.ts';
@@ -9,6 +9,8 @@ import {config} from '../services/api/src/platform/config.ts';
 import {seed,demoUsers,fixtureId} from '../services/api/src/seed.ts';
 import {decrypt} from '../services/api/src/platform/security.ts';
 import {Worker} from '../services/worker/src/index.ts';
+import {reconcileErasure} from '../services/api/src/modules/privacy/index.ts';
+import {transaction} from '../services/api/src/platform/db/index.ts';
 let server:Server,base:string;
 const identities=new Map(demoUsers.map(u=>[u.uid,u.phone]));
 const worker=new Worker();
@@ -18,7 +20,7 @@ before(async()=>{
  const tables=(await pool.query("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename NOT IN ('schema_migrations','spatial_ref_sys')")).rows.map(r=>'"'+r.tablename+'"');
  await pool.query('TRUNCATE '+tables.join(',')+' CASCADE');
  await seed();
- server=createApp(async raw=>{const phone=identities.get(raw);if(!phone)throw Error('invalid');return {uid:raw,phone_number:phone,auth_time:Date.now()/1000};}).listen(0,'127.0.0.1');
+ server=createApp(async raw=>{const uid=raw.replace(/:stale$/,'');const phone=identities.get(uid);if(!phone)throw Error('invalid');return {uid,phone_number:phone,auth_time:Date.now()/1000-(raw.endsWith(':stale')?600:0)};}).listen(0,'127.0.0.1');
  await new Promise<void>(r=>server.once('listening',()=>r()));
  base='http://127.0.0.1:'+(server.address() as {port:number}).port;
 });
@@ -139,4 +141,78 @@ test('shop status requires verification; confirmation cannot override an explici
  assert.equal(confirm.status,409);
  const shops=await call('/safe-shops?lat=26.85&lon=80.946&radius_m=1000');
  assert.ok(shops.body.items.every((s:any)=>s.status==='ACTIVE'&&!('owner_user_id'in s)));
+});
+test('context is independent, timestamp ordered and shop/unevaluated detector sending fails closed',async()=>{
+ identities.set('advanced-demo','+16505550176');
+ const key=randomUUID(),created=await call('/sos',{uid:'advanced-demo',method:'POST',key,body:{...sosBody(key),trigger_type:'DURESS_PIN'}});assert.equal(created.status,201);
+ const path='/sos/'+created.body.event_id+'/context',now=new Date().toISOString();
+ const patched=await call(path,{uid:'advanced-demo',method:'PATCH',body:{battery_pct:40,observed_at:now}});assert.equal(patched.status,200);assert.equal(patched.body.context.battery_pct,40);
+ const old=await call(path,{uid:'advanced-demo',method:'PATCH',body:{battery_pct:10,observed_at:new Date(Date.now()-60000).toISOString()}});assert.equal(old.body.context.battery_pct,40);
+ assert.equal((await call(path,{uid:'second-demo',method:'PATCH',body:{battery_pct:50,observed_at:now}})).status,404);
+ assert.equal((await call('/sos/'+created.body.event_id+'/shop-alerts',{uid:'advanced-demo',method:'POST',body:{shop_id:fixtureId('shop-0'),sharing_consent_version:'consent-v1'}})).status,503);
+ const ml=randomUUID();assert.equal((await call('/sos',{uid:'advanced-demo',method:'POST',key:ml,body:{...sosBody(ml),trigger_type:'ML_FUSION'}})).status,503);
+ await call('/sos/'+created.body.event_id+'/resolve',{uid:'advanced-demo',method:'POST',body:{resolution:'SAFE'}});
+ assert.equal((await call(path,{uid:'advanced-demo',method:'PATCH',body:{battery_pct:1,observed_at:now}})).status,409);
+});
+function wav(){const h=Buffer.alloc(44);h.write('RIFF');h.writeUInt32LE(32036,4);h.write('WAVEfmt ',8);h.writeUInt32LE(16,16);h.writeUInt16LE(1,20);h.writeUInt16LE(1,22);h.writeUInt32LE(16000,24);h.writeUInt32LE(32000,28);h.writeUInt16LE(2,32);h.writeUInt16LE(16,34);h.write('data',36);h.writeUInt32LE(32000,40);return Buffer.concat([h,Buffer.alloc(32000)]);}
+test('evidence stays private through quarantine, selected-recipient reads and terminal revocation',async()=>{
+ const key=randomUUID(),created=await call('/sos',{method:'POST',key,body:sosBody(key)});assert.equal(created.status,201);
+ const event=created.body.event_id,detail=await call('/sos/'+event),recipient=detail.body.recipients[0].id;
+ const bytes=wav(),sha=createHash('sha256').update(bytes).digest('hex');
+ const input={kind:'AUDIO',mime:'audio/wav',size_bytes:bytes.length,sha256:sha,duration_s:1,captured_at:new Date().toISOString(),consent_version:'consent-v1',recipient_ids:[recipient]};
+ const start='/sos/'+event+'/evidence/presign';assert.equal((await call(start,{method:'POST',body:input})).status,403);
+ await call('/me/consents',{method:'PATCH',body:{version:'consent-v1',evidence:true}});
+ assert.equal((await call(start,{method:'POST',body:{...input,recipient_ids:[]}})).status,400);
+ const upload=await call(start,{method:'POST',body:input});assert.equal(upload.status,201);
+ const asset=upload.body.asset_id,content='/evidence/'+asset+'/content';
+ assert.equal((await call('/evidence/'+asset,{uid:'second-demo'})).status,404);
+ const bad=await fetch(base+upload.body.upload_url,{method:'PUT',headers:{Authorization:'Bearer owner-demo','Content-Type':'audio/wav','x-amz-checksum-sha256':'0'.repeat(64)},body:bytes});assert.equal(bad.status,400);
+ const put=await fetch(base+upload.body.upload_url,{method:'PUT',headers:{Authorization:'Bearer owner-demo',...upload.body.required_headers},body:bytes});assert.equal(put.status,200);
+ assert.equal((await call(content)).status,409);
+ const complete=await call('/sos/'+event+'/evidence/'+asset+'/complete',{method:'POST',body:{}});assert.equal(complete.status,202);assert.equal(complete.body.status,'UPLOADING');
+ await worker.advanced();assert.equal((await call('/evidence/'+asset)).body.status,'AVAILABLE');
+ const download=await fetch(base+'/v1'+content,{headers:{Authorization:'Bearer owner-demo'}});assert.equal(download.status,200);assert.deepEqual(Buffer.from(await download.arrayBuffer()),bytes);assert.equal(download.headers.get('cache-control'),'no-store');
+ assert.equal((await fetch(base+'/v1'+content)).status,401);
+ await worker.delivery();const msg=(await pool.query('SELECT m.material_ciphertext FROM fake_messages m JOIN notification_outbox o ON o.id=m.outbox_id JOIN delivery_intents d ON d.id=o.intent_id WHERE d.event_id=$1 AND d.recipient_id=$2',[event,recipient])).rows[0];
+ const raw=decrypt<any>(msg.material_ciphertext).url.split('#token=')[1];const ex=await call('/tracking/exchange',{method:'POST',body:{token:raw,exchange_id:randomUUID()}});const headers={'X-Tracking-Grant-ID':ex.body.grant_id,Cookie:ex.headers.get('set-cookie')!.split(';')[0]};
+ const allowed=await fetch(base+'/v1'+content,{headers});assert.equal(allowed.status,200);await allowed.arrayBuffer();
+ const view=await call('/tracking/event',{headers});assert.equal(view.body.evidence.length,1);
+ await call('/me/consents',{method:'PATCH',body:{version:'consent-v1',evidence:false}});
+ assert.equal((await fetch(base+'/v1'+content,{headers})).status,410);
+ await worker.advanced();const stored=(await pool.query('SELECT * FROM evidence_assets WHERE id=$1',[asset])).rows[0];assert.equal(stored.sanitized_ciphertext,null);assert.equal(stored.material_ciphertext,null);
+ await call('/sos/'+event+'/resolve',{method:'POST',body:{resolution:'SAFE'}});
+});
+test('recent-auth export excludes contact GPS; deletion revokes, purges and survives restore reconciliation',async()=>{
+ identities.set('privacy-demo','+16505550177');const uid='privacy-demo';
+ assert.equal((await call('/me/export',{uid:uid+':stale',method:'POST',body:{}})).status,401);
+ const key=randomUUID(),sos=await call('/sos',{uid,method:'POST',key,body:{...sosBody(key),location:{lat:26.85,lon:80.946,accuracy_m:20,captured_at:new Date().toISOString(),source:'gps'},location_status:'CURRENT'}});assert.equal(sos.status,201);
+ const owner=(await pool.query('SELECT * FROM app_users WHERE auth_uid=$1',[uid])).rows[0];
+ const job=await call('/me/export',{uid,method:'POST',body:{}});assert.equal(job.status,202);
+ assert.equal((await call('/me/export/'+job.body.job_id,{uid:'owner-demo'})).status,404);
+ await worker.advanced();assert.equal((await call('/me/export/'+job.body.job_id,{uid})).body.status,'COMPLETED');
+ const exported=await call('/me/export/'+job.body.job_id+'/content',{uid});assert.equal(exported.status,200);assert.ok(!JSON.stringify(exported.body).includes('contact_location'));assert.ok(!JSON.stringify(exported.body).includes('auth_uid'));
+ assert.equal((await call('/me',{uid,method:'DELETE',body:{confirm_end_active_sharing:false}})).status,409);
+ const deletion=await call('/me',{uid,method:'DELETE',body:{confirm_end_active_sharing:true}});assert.equal(deletion.status,202);
+ assert.equal((await call('/me',{uid})).status,401);
+ await worker.advanced();const result=await call('/me/deletion/'+deletion.body.deletion_job_id,{uid});assert.equal(result.body.status,'COMPLETED',JSON.stringify(result.body));
+ const remains=(await pool.query('SELECT * FROM app_users WHERE id=$1',[owner.id])).rows[0];assert.equal(remains.phone_e164,'+10000000000');assert.equal((await pool.query('SELECT * FROM sos_events WHERE user_id=$1',[owner.id])).rowCount,0);
+ assert.equal((await pool.query("SELECT artifact_ciphertext FROM privacy_jobs WHERE id=$1",[job.body.job_id])).rows[0].artifact_ciphertext,null);
+ // Simulate restoring the old profile beside the newer externally preserved erasure ledger.
+ await pool.query('UPDATE app_users SET auth_uid=$2,phone_e164=$3,deleted_at=NULL,disabled=false WHERE id=$1',[owner.id,owner.auth_uid,owner.phone_e164]);await transaction(reconcileErasure);
+ assert.equal((await call('/me',{uid})).status,401);assert.equal((await pool.query('SELECT phone_e164 FROM app_users WHERE id=$1',[owner.id])).rows[0].phone_e164,'+10000000000');
+});
+test('expired leases recover with two workers without duplicating logical deliveries',async()=>{
+ await worker.delivery();const key=randomUUID(),created=await call('/sos',{method:'POST',key,body:sosBody(key)});assert.equal(created.status,201);const event=created.body.event_id;
+ await pool.query("UPDATE notification_outbox SET status='LEASED',lease_owner=$2,lease_expires_at=now()-interval '1 second' WHERE intent_id IN (SELECT id FROM delivery_intents WHERE event_id=$1)",[event,randomUUID()]);
+ await Promise.all([new Worker().delivery(),new Worker().delivery()]);
+ const counts=(await pool.query('SELECT (SELECT count(*)::int FROM delivery_intents WHERE event_id=$1) AS logical,(SELECT count(*)::int FROM fake_messages m JOIN notification_outbox o ON o.id=m.outbox_id JOIN delivery_intents d ON d.id=o.intent_id WHERE d.event_id=$1) AS messages,(SELECT count(*)::int FROM delivery_attempts a JOIN delivery_intents d ON d.id=a.intent_id WHERE d.event_id=$1) AS attempts',[event])).rows[0];
+ assert.equal(counts.logical,5);assert.equal(counts.messages,5);assert.equal(counts.attempts,5);
+ await call('/sos/'+event+'/resolve',{method:'POST',body:{resolution:'SAFE'}});
+});
+test('unknown provider outcome remains unknown and termination prevents its queued retry',async()=>{
+ await worker.delivery();const key=randomUUID(),created=await call('/sos',{method:'POST',key,body:sosBody(key)});assert.equal(created.status,201);const event=created.body.event_id;let calls=0;
+ const fault=new Worker({name:'fault-test',capabilities:{idempotency:false,receipts:false,reconciliation:false},async send(){calls++;return {outcome:'UNKNOWN'};}});
+ await fault.delivery();assert.equal(calls,5);const detail=await call('/sos/'+event);assert.ok(detail.body.recipients.every((r:any)=>r.channels[0].status==='UNKNOWN'));
+ await call('/sos/'+event+'/resolve',{method:'POST',body:{resolution:'SAFE'}});await pool.query("UPDATE notification_outbox SET next_attempt_at=now()-interval '1 second' WHERE intent_id IN (SELECT id FROM delivery_intents WHERE event_id=$1)",[event]);await fault.delivery();assert.equal(calls,5);
+ assert.equal((await pool.query("SELECT count(*)::int AS n FROM notification_outbox o JOIN delivery_intents d ON d.id=o.intent_id WHERE d.event_id=$1 AND o.status IN ('PENDING','RETRY','LEASED')",[event])).rows[0].n,0);
 });

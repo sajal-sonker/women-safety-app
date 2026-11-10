@@ -91,3 +91,7 @@ Mobile session registry/journal is device-only storage, not another server schem
 ## Implemented Phase 1/2 migration note
 
 The demo's only migration stream is [services/api/migrations](../services/api/migrations). Batches001–009 implement identity/consent/SOS/delivery/jobs/grants/journeys/routing/reports/shops;009a adds `safe_shops.hours_reviewed_at` to distinguish stale schedules from live confirmation. Journey escalation records `completed_at` without resolving its independent SOS. Terminal origin/destination are erased after24h; retained output explicitly allows a null destination. Later-phase entities below remain specifications. Applied files are checksum-locked; add migrations instead of editing them.
+
+## Implemented additive advanced/privacy batches
+
+010 persists encrypted local quarantine/sanitized evidence, per-asset recipient scopes, access audit and reserved shop-alert records.011 adds verified browser auth_time, privacy jobs with encrypted expiring artifacts and a minimized hashed-UID deletion ledger. Account deletion terminalizes sharing before purge; the protected newer ledger is merged before a restored DB serves traffic. The local adapter is not a production bucket/scanner and managed backup retention remains external. See [operations](../infra/OPERATIONS.md).

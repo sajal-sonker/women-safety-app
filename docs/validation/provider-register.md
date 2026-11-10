@@ -10,3 +10,6 @@
 | Hosting/storage | LOCAL_ONLY | API/worker/PostGIS/web run locally. No production host, TLS domain, evidence object storage or signed deployment is provisioned |
 
 Secrets are environment-injected and encrypted message/session material uses a separate data key. Ordinary automated tests cannot select a live provider: startup rejects non-fake delivery configuration. Fake provider acceptance remains distinct from DELIVERED and human acknowledgement. No costs or delivery guarantees are invented. Future provider implementation must include bounded timeout, idempotency capability, unknown-outcome policy, signed callbacks, replay protection, quotas and redacted real-provider evidence before status changes to REAL_VALIDATED.
+# Phase 3/4 continuation — 10 November 2026
+
+Local media: LOCAL_ENCRYPTED_FAKE (PostgreSQL ciphertext), strict WAV/image format validation and image metadata stripping. Production private object host, malware scanner, MP4 processor and geocoder: BLOCKED_EXTERNAL/unconfigured. Shop emergency delivery: FEATURE_DISABLED, no operational agreement. Audio detector: DISABLED, no licensed dataset/model/device evidence. Fake auth/delivery remains the only configured test path. Nothing in the new implementation authorizes live sending or production provider claims.

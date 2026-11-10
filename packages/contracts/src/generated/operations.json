@@ -40,6 +40,16 @@
     "operationId": "patch_me"
   },
   {
+    "method": "DELETE",
+    "path": "/me",
+    "input": "DeleteAccount",
+    "output": "DeletionAccepted",
+    "phase": 4,
+    "auth": "bearer",
+    "success": 202,
+    "operationId": "delete__me"
+  },
+  {
     "method": "PATCH",
     "path": "/me/consents",
     "input": "ConsentPatch",
@@ -638,5 +648,125 @@
     "auth": "bearer",
     "success": 200,
     "operationId": "post_admin_shops__id__verify"
+  },
+  {
+    "method": "PATCH",
+    "path": "/sos/{id}/context",
+    "input": "ContextPatch",
+    "output": "ContextResult",
+    "phase": 3,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "patch__sos__id__context"
+  },
+  {
+    "method": "POST",
+    "path": "/sos/{id}/evidence/presign",
+    "input": "EvidencePresign",
+    "output": "EvidenceUpload",
+    "phase": 3,
+    "auth": "bearer",
+    "success": 201,
+    "operationId": "post__sos__id__evidence_presign"
+  },
+  {
+    "method": "POST",
+    "path": "/sos/{id}/evidence/{assetId}/complete",
+    "input": "Empty",
+    "output": "EvidenceMetadata",
+    "phase": 3,
+    "auth": "bearer",
+    "success": 202,
+    "operationId": "post__sos__id__evidence__assetId__complete"
+  },
+  {
+    "method": "GET",
+    "path": "/evidence/{assetId}",
+    "input": null,
+    "output": "EvidenceMetadata",
+    "phase": 3,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get__evidence__assetId_"
+  },
+  {
+    "method": "DELETE",
+    "path": "/evidence/{assetId}",
+    "input": null,
+    "output": null,
+    "phase": 3,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "delete__evidence__assetId_"
+  },
+  {
+    "method": "POST",
+    "path": "/tracking/navigation",
+    "input": "NavigationInput",
+    "output": "Navigation",
+    "phase": 3,
+    "auth": "tracking",
+    "success": 200,
+    "operationId": "post__tracking_navigation"
+  },
+  {
+    "method": "POST",
+    "path": "/sos/{id}/shop-alerts",
+    "input": "ShopAlertInput",
+    "output": "ShopAlert",
+    "phase": 3,
+    "auth": "bearer",
+    "success": 201,
+    "operationId": "post__sos__id__shop_alerts"
+  },
+  {
+    "method": "GET",
+    "path": "/tracking/shop-alert",
+    "input": null,
+    "output": "ShopTracking",
+    "phase": 3,
+    "auth": "tracking",
+    "success": 200,
+    "operationId": "get__tracking_shop_alert"
+  },
+  {
+    "method": "POST",
+    "path": "/tracking/shop-alert/acknowledge",
+    "input": "Acknowledge",
+    "output": "Acknowledged",
+    "phase": 3,
+    "auth": "tracking",
+    "success": 200,
+    "operationId": "post__tracking_shop_alert_acknowledge"
+  },
+  {
+    "method": "POST",
+    "path": "/me/export",
+    "input": "Empty",
+    "output": "ExportAccepted",
+    "phase": 4,
+    "auth": "bearer",
+    "success": 202,
+    "operationId": "post__me_export"
+  },
+  {
+    "method": "GET",
+    "path": "/me/export/{jobId}",
+    "input": null,
+    "output": "ExportJob",
+    "phase": 4,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get__me_export__jobId_"
+  },
+  {
+    "method": "GET",
+    "path": "/me/deletion/{jobId}",
+    "input": null,
+    "output": "DeletionJob",
+    "phase": 4,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get__me_deletion__jobId_"
   }
 ]

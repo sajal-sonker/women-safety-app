@@ -3607,5 +3607,432 @@
       "status"
     ],
     "additionalProperties": false
+  },
+  "EvidencePresign": {
+    "type": "object",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "enum": [
+          "AUDIO",
+          "PHOTO",
+          "VIDEO"
+        ]
+      },
+      "mime": {
+        "type": "string",
+        "enum": [
+          "audio/wav",
+          "audio/mp4",
+          "image/jpeg",
+          "image/png",
+          "video/mp4"
+        ]
+      },
+      "size_bytes": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10485760
+      },
+      "sha256": {
+        "type": "string",
+        "maxLength": 64,
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "duration_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "captured_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      },
+      "recipient_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "maxItems": 5,
+        "uniqueItems": true
+      }
+    },
+    "required": [
+      "kind",
+      "mime",
+      "size_bytes",
+      "sha256",
+      "duration_s",
+      "captured_at",
+      "consent_version",
+      "recipient_ids"
+    ],
+    "additionalProperties": false
+  },
+  "EvidenceUpload": {
+    "type": "object",
+    "properties": {
+      "asset_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "upload_url": {
+        "type": "string",
+        "maxLength": 2048
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "required_headers": {
+        "type": "object",
+        "properties": {
+          "Content-Type": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "x-amz-checksum-sha256": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "Content-Type",
+          "x-amz-checksum-sha256"
+        ],
+        "additionalProperties": false
+      },
+      "storage_mode": {
+        "type": "string",
+        "enum": [
+          "LOCAL_ENCRYPTED_FAKE"
+        ]
+      }
+    },
+    "required": [
+      "asset_id",
+      "upload_url",
+      "expires_at",
+      "required_headers",
+      "storage_mode"
+    ],
+    "additionalProperties": false
+  },
+  "ContextResult": {
+    "type": "object",
+    "properties": {
+      "context": {
+        "$ref": "#/components/schemas/ContextView"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000000
+      }
+    },
+    "required": [
+      "context",
+      "revision"
+    ],
+    "additionalProperties": false
+  },
+  "NavigationInput": {
+    "type": "object",
+    "properties": {
+      "origin": {
+        "$ref": "#/components/schemas/Point"
+      },
+      "consent": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "origin",
+      "consent"
+    ],
+    "additionalProperties": false
+  },
+  "Navigation": {
+    "type": "object",
+    "properties": {
+      "distance_m": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 50000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "eta_seconds": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "method": {
+        "type": "string",
+        "enum": [
+          "STRAIGHT_LINE_ESTIMATE",
+          "UNAVAILABLE"
+        ]
+      },
+      "warning": {
+        "type": "string",
+        "maxLength": 200
+      }
+    },
+    "required": [
+      "distance_m",
+      "eta_seconds",
+      "method",
+      "warning"
+    ],
+    "additionalProperties": false
+  },
+  "ExportAccepted": {
+    "type": "object",
+    "properties": {
+      "job_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING"
+        ]
+      }
+    },
+    "required": [
+      "job_id",
+      "status"
+    ],
+    "additionalProperties": false
+  },
+  "ExportJob": {
+    "type": "object",
+    "properties": {
+      "job_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "PROCESSING",
+          "COMPLETED",
+          "FAILED",
+          "EXPIRED"
+        ]
+      },
+      "expires_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "job_id",
+      "status",
+      "expires_at"
+    ],
+    "additionalProperties": false
+  },
+  "DeleteAccount": {
+    "type": "object",
+    "properties": {
+      "confirm_end_active_sharing": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "confirm_end_active_sharing"
+    ],
+    "additionalProperties": false
+  },
+  "DeletionAccepted": {
+    "type": "object",
+    "properties": {
+      "deletion_job_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING"
+        ]
+      }
+    },
+    "required": [
+      "deletion_job_id",
+      "status"
+    ],
+    "additionalProperties": false
+  },
+  "DeletionJob": {
+    "type": "object",
+    "properties": {
+      "deletion_job_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "PROCESSING",
+          "COMPLETED",
+          "FAILED",
+          "EXPIRED"
+        ]
+      }
+    },
+    "required": [
+      "deletion_job_id",
+      "status"
+    ],
+    "additionalProperties": false
+  },
+  "ShopAlertInput": {
+    "type": "object",
+    "properties": {
+      "shop_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "sharing_consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      }
+    },
+    "required": [
+      "shop_id",
+      "sharing_consent_version"
+    ],
+    "additionalProperties": false
+  },
+  "ShopAlert": {
+    "type": "object",
+    "properties": {
+      "shop_alert_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "QUEUED"
+        ]
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "shop_alert_id",
+      "status",
+      "expires_at"
+    ],
+    "additionalProperties": false
+  },
+  "ShopTracking": {
+    "type": "object",
+    "properties": {
+      "event_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "status": {
+        "type": "string",
+        "maxLength": 40
+      },
+      "position": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Location"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "location_age_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "arrival_eta_s": {
+        "anyOf": [
+          {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "event_id",
+      "status",
+      "position",
+      "location_age_s",
+      "arrival_eta_s",
+      "expires_at"
+    ],
+    "additionalProperties": false
   }
 }
