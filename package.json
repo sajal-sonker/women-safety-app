@@ -38,7 +38,11 @@
     "backup:create": "tsx scripts/backup.ts create",
     "restore:verify": "tsx scripts/backup.ts verify",
     "test:load": "tsx scripts/test-load.ts",
-    "sbom": "npm sbom --sbom-format cyclonedx"
+    "sbom": "npm sbom --sbom-format cyclonedx",
+    "ml:verify": "node scripts/verify-model.mjs",
+    "ml:smoke": "node scripts/ml-python.mjs ml/runtime/smoke.py",
+    "ml:train": "node scripts/ml-python.mjs ml/training/train.py",
+    "ml:training-smoke": "node scripts/ml-python.mjs ml/training/smoke.py"
   },
   "dependencies": {
     "ajv": "8.20.0",

@@ -22,7 +22,7 @@ import {mountStreams} from './modules/streams.ts';
 import {persistErasureLedger} from './modules/privacy/ledger.ts';
 type Context={db:DB,req:Request,res:Response,user:Row,b:Row,verify:VerifyToken};
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const profile=(u:Row)=>({...metadata(u),id:u.id,display_name:u.display_name,locale:u.locale,phone_e164:u.phone_e164,consents:u.consents,capabilities:{push_live:false,monitoring:false,duress:true,key_trigger:false,shop_alerts:false,evidence:config.env==='local'}});
+const profile=(u:Row)=>({...metadata(u),id:u.id,display_name:u.display_name,locale:u.locale,phone_e164:u.phone_e164,consents:u.consents,capabilities:{push_live:false,monitoring:config.env==='local',duress:true,key_trigger:false,shop_alerts:false,evidence:config.env==='local'}});
 const reportView=(r:Row)=>({...metadata(r),id:r.id,category:r.category,location:r.location,happened_at:iso(r.happened_at),description:r.description,status:r.moderation_status,created_at:iso(r.created_at),expires_at:iso(r.expires_at),moderation_reason:r.moderation_reason});
 async function limit(db:DB,key:string,cap:number,seconds:number){
  const bucket=Math.floor(Date.now()/1000/seconds);

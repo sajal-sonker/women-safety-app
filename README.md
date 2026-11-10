@@ -2,9 +2,11 @@
 
 **Working name:** SurakshaAI (changeable; do not hard-code product branding).
 **Product:** Android-first, India-focused women's safety mobile app with emergency alerting, explainable time-aware route risk indicators, verified/registered safe-shop discovery, situational on-device distress detection, and discreet safety controls.
-**Documentation baseline:** review-1.2, 10 November 2026. **Implementation status:** the controlled local demo now includes Phase 3 discreet controls, private evidence/context, and Phase 4 export/deletion/recovery tooling, with a black/purple interface. Authentication, delivery and storage are local/emulated; Lucknow routes/shops are fictional. Phases 3/4 remain **PARTIAL**: trained audio AI, physical-device evaluation, live providers/storage/scanning, hosted operations and independent acceptance are blocked. See [Phase 3 evidence](docs/validation/phase-3.md) and [Phase 4 evidence](docs/validation/phase-4.md). No production emergency release is claimed.
+**Documentation baseline:** review-1.2, 10 November 2026. **Implementation status:** the controlled local demo now includes Phase 3 discreet controls, private evidence/context, and Phase 4 export/deletion/recovery tooling, with a black/purple interface. Authentication, delivery and storage are local/emulated; Lucknow routes/shops are fictional. Phases 3/4 remain **PARTIAL**: a validated Hindi/English phrase model, physical-device evaluation, live providers/storage/scanning, hosted operations and independent acceptance are blocked. See [Phase 3 evidence](docs/validation/phase-3.md) and [Phase 4 evidence](docs/validation/phase-4.md). No production emergency release is claimed.
 
 ## Run the demo
+
+The latest phone-test build includes bundled offline YAMNet sound classification and opt-in audio/motion check-ins. It is confirmation-only; no automatic sensor SOS and no Help/Bachao word recognition. See [phone setup](docs/PHONE_TEST.md), [ML tools](ml/README.md) and [continuation evidence](docs/validation/ml-continuation.md). The user will supply physical-device observations; trained phrase/real-provider/independent gates remain open.
 
 See [RUNNING.md](RUNNING.md) for clean setup, test accounts, Android instructions and troubleshooting. See the [Phase 1 evidence](docs/validation/phase-1.md) and [Phase 2 evidence](docs/validation/phase-2.md) for implemented scope and remaining acceptance work. This is not a production emergency deployment.
 

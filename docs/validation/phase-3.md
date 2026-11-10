@@ -1,5 +1,7 @@
 # Phase 3 — advanced controlled-demo implementation
 
+**CR-004 continuation:** the model/runtime block below is historical. A real licensed pretrained YAMNet model, native microphone foreground service, audio/motion confirmation reducer, model-integrity checks, dataset/training/export and event-level evaluation tools are now implemented. See [ML continuation evidence](ml-continuation.md) and [phone test](../PHONE_TEST.md). Automatic dispatch and Hindi/English phrase validation remain blocked; a generic audio-event baseline does not satisfy phrase recognition or independent G3 acceptance.
+
 Date:10 November2026. Baseline:6237a1e plus CR-003. **Overall PARTIAL; independent G3 NOT_ACCEPTED.** User authorized continuing Phases3/4 within the existing fake-provider application. No previous partial gate is upgraded by executor assertion.
 
 | Task / requirement | Result / evidence boundary |

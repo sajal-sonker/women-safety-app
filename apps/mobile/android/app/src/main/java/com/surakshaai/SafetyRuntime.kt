@@ -236,7 +236,9 @@ object SafetyRuntime {
         SafetyLocationService.current?.removePurpose("$purpose:$resource")
     }
     fun state(): JSONObject = authState().apply {
-        put("monitoring",com.surakshaai.monitoring.MotionSession.state())
+        val audio=com.surakshaai.monitoring.AudioMonitoringService.state()
+        val motion=com.surakshaai.monitoring.MotionSession.state()
+        put("monitoring",if(com.surakshaai.monitoring.AudioMonitoringService.isActive()||audio.optString("status")!="STOPPED"||motion.optString("status")=="STOPPED")audio else motion)
         put("fake_call",store.read().optJSONObject("fake_call")?:JSONObject.NULL)
         put("decoy",store.read().optBoolean("decoy")&&store.read().optJSONObject("pins")?.optString("uid")==auth.currentUser?.uid)
         val pins=store.read().optJSONObject("pins")

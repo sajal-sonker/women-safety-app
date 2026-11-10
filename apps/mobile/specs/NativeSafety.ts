@@ -15,6 +15,7 @@ export interface Spec extends TurboModule {
   getSafetyState():Promise<string>;
   startMonitoring(config:string):Promise<string>;
   stopMonitoring():Promise<string>;
+  dismissMonitoringCheckIn():Promise<string>;
   configurePins(normal:string,duress:string):Promise<string>;
   enterPin(pin:string,practice:boolean):Promise<string>;
   resetPins():Promise<string>;

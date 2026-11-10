@@ -11,6 +11,6 @@
     "jsx": "react-jsx",
     "noEmit": true
   },
-  "include": ["services/**/*.ts", "packages/**/*.ts", "tests/**/*.ts"],
+  "include": ["services/**/*.ts", "packages/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts", "ml/**/*.ts"],
   "exclude": ["node_modules", "**/src/generated/kotlin", "**/build"]
 }

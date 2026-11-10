@@ -30,6 +30,7 @@ object MotionSession:SensorEventListener {
     }
     private val tick=object:Runnable {override fun run(){if(!DiscreetControls.visible||SystemClock.elapsedRealtime()>=until||uid!=SafetyRuntime.auth.currentUser?.uid){stop();return};handler.postDelayed(this,500)}}
     fun stop(){manager?.unregisterListener(this);manager=null;handler.removeCallbacks(tick);status="STOPPED";until=0;spikes=0;checkInUntil=0;uid=null}
+    fun dismissCheckIn(){checkInUntil=0}
     override fun onSensorChanged(event:SensorEvent){
         if(status=="STOPPED")return
         val now=SystemClock.elapsedRealtime();val g=sqrt(event.values.sumOf{(it*it).toDouble()})/9.80665

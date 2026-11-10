@@ -27,7 +27,12 @@ class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(conte
         }
     }
     override fun getName()=NAME
-    private fun async(p:Promise,work:()->String){SafetyRuntime.io.execute{try{p.resolve(work())}catch(e:Exception){p.reject(if(e is HttpFailure)e.code else "ACTION_FAILED","Action could not complete. Check permissions and connection.")}}}
+    private fun async(p:Promise,work:()->String){SafetyRuntime.io.execute{try{p.resolve(work())}catch(e:Exception){
+        val allowed=setOf("RECENT_AUTH_REQUIRED","MICROPHONE_BUSY","PERMISSION_UNAVAILABLE","FOREGROUND_REQUIRED","CONSENT_REQUIRED","AUTO_DISPATCH_DISABLED","TRY_LATER","SETUP_REQUIRED")
+        val code=if(e is HttpFailure)e.code else e.message?.takeIf{it in allowed}?:"ACTION_FAILED"
+        val message=when(code){"RECENT_AUTH_REQUIRED"->"Sign in again before changing PINs or requesting private account actions.";"MICROPHONE_BUSY"->"Stop the current microphone session before starting another capture.";"AUTO_DISPATCH_DISABLED"->"Automatic sensor dispatch is disabled. Use confirmation-only monitoring or manual SOS.";"TRY_LATER"->"Wait before trying the app PIN again.";"PERMISSION_UNAVAILABLE"->"Microphone and notification permissions are required for audio monitoring.";else->"Action could not complete. Check permissions and connection."}
+        p.reject(code,message)
+    }}}
     override fun initialize(config:String,promise:Promise)=async(promise){SafetyRuntime.initialize(config)}
     override fun getAuthState(promise:Promise)=async(promise){SafetyRuntime.authState().toString()}
     override fun apiRequest(path:String,method:String,body:String,key:String,headers:String,promise:Promise)=async(promise){SafetyRuntime.request(path,method,body,key,JSONObject(headers))}
@@ -37,8 +42,9 @@ class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(conte
     override fun startLocation(purpose:String,resourceId:String,expiresAt:String,promise:Promise)=async(promise){SafetyRuntime.startLocation(purpose,resourceId,expiresAt).toString()}
     override fun stopLocation(purpose:String,resourceId:String,promise:Promise)=async(promise){SafetyRuntime.stopLocation(purpose,resourceId);"{}"}
     override fun getSafetyState(promise:Promise)=async(promise){SafetyRuntime.state().toString()}
-    override fun startMonitoring(config:String,promise:Promise)=async(promise){com.surakshaai.monitoring.MotionSession.start(JSONObject(config)).toString()}
-    override fun stopMonitoring(promise:Promise)=async(promise){com.surakshaai.monitoring.MotionSession.stop();"{}"}
+    override fun startMonitoring(config:String,promise:Promise)=async(promise){val value=JSONObject(config);if(value.optString("mode")=="MOTION_ONLY_CONFIRMATION"){require(!com.surakshaai.monitoring.AudioMonitoringService.isActive());com.surakshaai.monitoring.MotionSession.start(value).toString()}else com.surakshaai.monitoring.AudioMonitoringService.start(value).toString()}
+    override fun stopMonitoring(promise:Promise)=async(promise){com.surakshaai.monitoring.AudioMonitoringService.stop();com.surakshaai.monitoring.MotionSession.stop();"{}"}
+    override fun dismissMonitoringCheckIn(promise:Promise)=async(promise){com.surakshaai.monitoring.AudioMonitoringService.dismissCheckIn();com.surakshaai.monitoring.MotionSession.dismissCheckIn();"{}"}
     override fun configurePins(normal:String,duress:String,promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.setup(normal,duress).toString()}
     override fun enterPin(pin:String,practice:Boolean,promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.unlock(pin,practice).toString()}
     override fun resetPins(promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.reset().toString()}
@@ -46,19 +52,23 @@ class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(conte
     override fun dismissFakeCall(promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.cancel();"{}"}
     override fun setFocusedKeys(enabled:Boolean,promise:Promise)=async(promise){require(!enabled||BuildConfig.CONTROLLED_DEMO);com.surakshaai.triggers.DiscreetControls.focusedKeys=enabled;"{}"}
     override fun finishAccountDeletion(jobId:String,promise:Promise)=async(promise){
+        com.surakshaai.monitoring.AudioMonitoringService.stop("ACCOUNT_CHANGED");com.surakshaai.monitoring.MotionSession.stop()
+        SafetyRuntime.locationPurposes.keys.toList().forEach{SafetyRuntime.stopLocation(it.substringBefore(':'),it.substringAfter(':'))}
         var complete=false
         repeat(15){if(!complete){val job=JSONObject(SafetyRuntime.request("/me/deletion/$jobId","GET"));if(job.optString("status")=="COMPLETED")complete=true else Thread.sleep(1000)}}
         if(!complete)throw HttpFailure(409,"DELETION_PENDING_RETRY")
-        com.surakshaai.monitoring.MotionSession.stop();com.surakshaai.triggers.DiscreetControls.cancel()
+        com.surakshaai.monitoring.AudioMonitoringService.stop("ACCOUNT_CHANGED");com.surakshaai.monitoring.MotionSession.stop();com.surakshaai.triggers.DiscreetControls.cancel()
         SafetyRuntime.locationPurposes.keys.toList().forEach{SafetyRuntime.stopLocation(it.substringBefore(':'),it.substringAfter(':'))}
         SafetyRuntime.store.write(JSONObject());SafetyRuntime.auth.signOut();"{}"
     }
     override fun clearAccount(promise:Promise)=async(promise){
+        com.surakshaai.monitoring.AudioMonitoringService.stop("ACCOUNT_CHANGED");com.surakshaai.monitoring.MotionSession.stop()
         val current=SafetyRuntime.state().optJSONObject("intent")
         if(current!=null&&current.optString("state")!="TERMINATED")throw HttpFailure(409,"RESOLVE_ACTIVE_SOS_FIRST")
         val journeys=JSONObject(SafetyRuntime.request("/journeys?status=ACTIVE&status=OVERDUE","GET"))
         if(journeys.getJSONArray("items").length()>0)throw HttpFailure(409,"FINISH_ACTIVE_JOURNEY_FIRST")
         SafetyRuntime.locationPurposes.keys.toList().forEach {val p=it.substringBefore(':');val r=it.substringAfter(':');SafetyRuntime.stopLocation(p,r)}
+        com.surakshaai.monitoring.AudioMonitoringService.stop("ACCOUNT_CHANGED");com.surakshaai.monitoring.MotionSession.stop()
         SafetyRuntime.store.update {it.remove("active");it.remove("verification_id")}
         SafetyRuntime.auth.signOut();"{}"
     }

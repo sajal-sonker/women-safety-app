@@ -43,8 +43,9 @@ class EvidenceCapture(private val context:ReactApplicationContext):BaseActivityE
     }
     private fun audio(){
         require(DiscreetControls.visible&&ContextCompat.checkSelfPermission(context,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED)
+        if(!com.surakshaai.monitoring.MicrophoneLease.acquire("EVIDENCE")){pending?.reject("MICROPHONE_BUSY","Stop microphone monitoring before starting a separate evidence recording.");pending=null;return}
         val size=maxOf(4096,AudioRecord.getMinBufferSize(16000,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT))
-        val source=AudioRecord(MediaRecorder.AudioSource.MIC,16000,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT,size)
+        val source=try{AudioRecord(MediaRecorder.AudioSource.MIC,16000,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT,size)}catch(e:Exception){com.surakshaai.monitoring.MicrophoneLease.release("EVIDENCE");throw e}
         val out=ByteArrayOutputStream();val buffer=ByteArray(size);recording=true
         try{
             require(source.state==AudioRecord.STATE_INITIALIZED);source.startRecording();val started=android.os.SystemClock.elapsedRealtime()
@@ -53,7 +54,7 @@ class EvidenceCapture(private val context:ReactApplicationContext):BaseActivityE
             require(recording&&DiscreetControls.visible&&out.size()>0);val pcm=out.toByteArray();val header=ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
             header.put("RIFF".toByteArray()).putInt(36+pcm.size).put("WAVEfmt ".toByteArray()).putInt(16).putShort(1).putShort(1).putInt(16000).putInt(32000).putShort(2).putShort(16).put("data".toByteArray()).putInt(pcm.size)
             source.stop();source.release();recording=false;upload(header.array()+pcm,"AUDIO","audio/wav",pcm.size/32000.0)
-        }catch(_:Exception){runCatching{source.stop()};source.release();recording=false;fail()}finally{buffer.fill(0);out.reset()}
+        }catch(_:Exception){runCatching{source.stop()};source.release();recording=false;fail()}finally{buffer.fill(0);out.reset();com.surakshaai.monitoring.MicrophoneLease.release("EVIDENCE")}
     }
     @Suppress("DEPRECATION") override fun onActivityResult(activity:Activity,requestCode:Int,resultCode:Int,data:Intent?){
         if(requestCode!=714)return

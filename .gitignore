@@ -62,3 +62,6 @@ next-env.d.ts
 /ml/data/private/
 /ml/data/recordings/
 /ml/data/manifests/private*
+__pycache__/
+*.pyc
+.venv/

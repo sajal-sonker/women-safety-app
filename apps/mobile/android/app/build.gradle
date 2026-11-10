@@ -80,6 +80,8 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
     sourceSets.main.java.srcDirs += rootProject.file("../../../packages/contracts/src/generated/kotlin")
+    sourceSets.main.assets.srcDirs += layout.buildDirectory.dir("generated/model-assets")
+    androidResources { noCompress += ["tflite"] }
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
@@ -120,7 +122,19 @@ android {
     }
 }
 
+tasks.register("copyMonitoringModel", Sync) {
+    from(rootProject.file("../../../ml/models")) {
+        include "yamnet.tflite", "manifest.json", "yamnet_label_list.txt", "LICENSE-YAMNET.txt", "NOTICE.md"
+        into "models"
+    }
+    into layout.buildDirectory.dir("generated/model-assets")
+}
+tasks.named("preBuild").configure { dependsOn("copyMonitoringModel") }
+
 dependencies {
+    // Maintained Interpreter line compatible with the RN template's Kotlin2.2.
+    implementation("com.google.ai.edge.litert:litert:1.4.2")
+    testImplementation("junit:junit:4.13.2")
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-auth")

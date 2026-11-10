@@ -5,6 +5,7 @@ import {existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import pg from 'pg';
+import {pruneLocalBackups} from './backup-retention.ts';
 const source=new URL(process.env.DATABASE_URL!);if(!['127.0.0.1','localhost'].includes(source.hostname))throw Error('Local recovery script refuses remote databases');
 const mode=process.argv[2]??'create';if(!['create','verify'].includes(mode))throw Error('Use create or verify');
 const pgBin=process.env.PG_BIN??(existsSync('.tools/pg17/bin')?resolve('.tools/pg17/bin'):''),exe=(name:string)=>join(pgBin,name+(process.platform==='win32'?'.exe':''));
@@ -16,7 +17,8 @@ const {pool:sourcePool}=await import('../services/api/src/platform/db/index.ts')
 if(mode==='create'){
  await persistErasureLedger();const result=spawnSync(exe('pg_dump'),[...args(source.pathname.slice(1)),'-Fc'],{env,maxBuffer:512*1024*1024});if(result.status!==0)throw Error('pg_dump failed (details withheld)');
  const bytes=result.stdout,checksum=createHash('sha256').update(bytes).digest('hex'),folder=resolve('.local/backups');await mkdir(folder,{recursive:true});const file=join(folder,new Date().toISOString().replace(/[:.]/g,'-')+'.dump.enc');await writeFile(file,encrypt({schema_version:1,sha256:checksum,base64:bytes.toString('base64')}),{mode:0o600});
- console.log(JSON.stringify({status:'ENCRYPTED_LOCAL_BACKUP_CREATED',artifact:file,sha256:checksum,ledger:ledgerPath,live_rpo:'NOT_VALIDATED'}));await sourcePool.end();
+ const expired_archives_removed=await pruneLocalBackups(folder);
+ console.log(JSON.stringify({status:'ENCRYPTED_LOCAL_BACKUP_CREATED',artifact:file,sha256:checksum,ledger:ledgerPath,expired_archives_removed,live_rpo:'NOT_VALIDATED'}));await sourcePool.end();
 }else{
  const file=process.argv[3];if(!file)throw Error('Supply an encrypted backup path; only suraksha_restore_test will be replaced');
  const backup=decrypt<{base64:string;sha256:string}>(await readFile(file,'utf8')),bytes=Buffer.from(backup.base64,'base64');if(createHash('sha256').update(bytes).digest('hex')!==backup.sha256)throw Error('Backup checksum mismatch');

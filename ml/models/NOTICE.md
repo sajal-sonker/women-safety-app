@@ -1,0 +1,5 @@
+# Bundled model attribution
+
+Google YAMNet/classification TFLite version1, pretrained on AudioSet, distributed under Apache License2.0. The original unmodified model is bundled; the accompanying LICENSE-YAMNET.txt reproduces its upstream license. Model source/card: https://www.kaggle.com/models/google/yamnet/tfLite/classification-tflite/1 and https://github.com/tensorflow/models/tree/master/research/audioset/yamnet . Raw waveform input and 521 sound-event outputs are specified by upstream; the included label list is extracted from the model's associated files. Hash/tensors/source are locked in manifest.json.
+
+SurakshaAI's integration/fusion/UI are separate application code. A model score is not a probability of violence or personal danger. This pretrained artifact has no Help/Bachao word recognizer. Confirmation thresholds are conservative engineering defaults pending validation, not measured calibration. Model/dataset/device graduation is separate from successful interpreter smoke inference.
