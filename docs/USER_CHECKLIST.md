@@ -1,6 +1,6 @@
-# Your next steps
+# Working prototype: demo checklist
 
-The controlled local app is ready for phone testing. The black/purple theme, manual SOS, journeys, discreet controls, private evidence, export/deletion and offline sound check-ins are implemented. Real emergency delivery, validated Help/Bachao recognition and production launch still need the resources and evidence below.
+The user confirmed on11 November2026 that the goal is a working demo prototype. The black/purple theme, manual SOS, journeys, discreet controls, private evidence, export/deletion and offline sound check-ins are implemented. Use the existing local backend, Auth emulator, simulated delivery and fictional route/shop fixtures. Production accounts, hosting, release signing and independent release approval are not prerequisites for this demo.
 
 ## Do now: connect your Android phone
 
@@ -9,28 +9,25 @@ The controlled local app is ready for phone testing. The black/purple theme, man
 3. Enable USB debugging on an arm64 Android10+ phone, connect USB and accept the authorization prompt.
 4. Run `powershell -ExecutionPolicy Bypass -File scripts/phone-test.ps1 -Install`. The local bundled demo APK needs no Metro server.
 5. Follow [PHONE_TEST](PHONE_TEST.md). Use the seeded emulated owner `+16505550101`; read the OTP locally from the Auth emulator. Test simulated SOS/inbox/acknowledgement, journeys, permission denial, fake call, PIN rehearsal, evidence and audio Stop/offline behavior.
-6. Record phone model, Android version, permission state and actual failures. Two phones and measured battery/lifecycle runs are needed for support claims; one phone is enough to start testing.
+6. Record phone model, Android version, permission state and actual failures. One phone is enough for this prototype rehearsal; use a separate PC browser profile as the recipient. Broader device/battery certification is outside the demo target.
 
-The phone cannot be authorized from this PC without accepting its USB prompt. No phone is currently attached. Notifications, OEM power management, real incoming-call behavior, TalkBack and microphone indicators require physical observation. Share the observations and errors; do not share OTPs, personal recordings or credentials.
+The phone cannot be authorized from this PC without accepting its USB prompt. Notifications, OEM power management, real incoming-call behavior, TalkBack and microphone indicators require physical observation. Share the observations and errors; do not share OTPs, personal recordings or credentials.
 
-## To complete phrase recognition
+## Rehearse the working flow
 
-The bundled model recognizes general sounds and can ask for confirmation. It does not recognize the words Help/Bachao and never sends an automatic ML SOS.
+1. Sign in on the phone as the emulated owner `+16505550101`. In a separate PC browser profile at `http://localhost:3000`, sign in as contact1 `+16505550501`.
+2. Send a simulated SOS from the phone. In the recipient browser, open Test inbox, follow the private tracking link and acknowledge. Resolve from the owner and check tracking revokes.
+3. Compare the fictional Lucknow routes; start a journey and mark arrival. Explain that this is sample route data.
+4. Rehearse fake call and PIN practice. Demonstrate duress sending only if you deliberately intend another simulated SOS.
+5. Enable sound monitoring visibly, grant permissions and show the active notification/window counter. Stop it and verify the microphone closes. An audio check-in asks for manual confirmation; it does not automatically send an SOS.
+6. If included in your presentation, demonstrate selected-recipient evidence and consent withdrawal, then private export. Test account deletion last because it disables that account.
 
-Provide access to consented/licensed recordings with pseudonymous speaker/session/environment IDs and real onset labels. The [ML guide](../ml/README.md) now includes CSV preparation, training/export, actual inference, validation-only calibration, a separate frozen threshold and held-out scoring. You do not need to build JSON files manually. Keep recordings and catalogs in ignored `.local/private-ml/` or outside this repository.
+For a reliable presentation, show the actual sound-monitoring state and only demonstrate prompts you have observed on your phone. Detection may miss a sound or prompt on ordinary noise. Do not present a generated fixture, UI simulation or training-tool smoke test as measured distress recognition.
 
-The documented graduation protocol needs40 independent speakers split24/6/10, at least150 held-out events for each positive class,30hours of held-out negatives and two-device exposure. Generated smoke-test sounds do not count. A reviewed, measured candidate still needs mobile integration and device evaluation before replacing the sound baseline or enabling any automatic feature. Dataset rights and participant consent cannot be supplied by the coding agent.
+## What to explain in the demo
 
-## Before a live release
+The bundled model recognizes general sounds and can ask for confirmation. It does not recognize the words Help/Bachao and never sends an automatic ML SOS. The training/export/calibration/evaluation tools are implemented, but a specialized phrase model is future work requiring consented/licensed recordings. The larger research graduation protocol is not a prerequisite for demonstrating this baseline. See the [ML guide](../ml/README.md) if you choose that extension later.
 
-These are separate from testing the local APK:
+OTP and recipient messages are simulated locally. Shops/routes are fictional. Present the end-to-end prototype behavior without claiming real emergency delivery, police dispatch, validated safety predictions or production readiness.
 
-| You/your team provide or decide | Follow-up engineering/validation |
-|---|---|
-| Firebase project and phone-auth configuration; production signing ownership | Configure real auth, signing fingerprints, release build and auth/device tests |
-| Approved SMS provider, sender/templates, permitted delivery path and budget | Implement/review the selected adapter, webhooks, retry/unknown-outcome handling and test numbers; current adapters remain fake |
-| Hosting/domain/region, restricted database, private object storage and scanner accounts | HTTPS deployment, real storage/scanning integration, backup/key rotation/restore/monitoring and retention drills |
-| Pilot city, validated street/lighting data, shop-owner agreements | Import and assess sources; verify actual shop participation before enabling alerts |
-| Physical devices and an independent technical/privacy reviewer | Run the remaining device/security/provider/acceptance gates and record their decisions |
-
-Keep keys in a private environment or secret manager, never chat or Git. The app cannot promise police dispatch, guaranteed delivery or safety. [Phase3](validation/phase-3.md), [Phase4](validation/phase-4.md) and the latest [local completion report](validation/final-local-work.md) separate implemented software from these open gates.
+Production/live-service work is deferred by the user's scope decision. Historical [Phase3](validation/phase-3.md), [Phase4](validation/phase-4.md) and [local evidence](validation/final-local-work.md) preserve the original acceptance boundaries; missing production gates do not block this prototype. The remaining demo task is to run the phone rehearsal and fix any observed failures.
