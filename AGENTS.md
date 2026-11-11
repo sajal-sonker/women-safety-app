@@ -1,3 +1,5 @@
+<!-- User scope11 November2026: working local prototype only. Production deployment/resources/independent release gates are deferred; see newest EXECUTION_STATE. Main ad61a1275342773f5f17b4ead78c3b22a7d43434. -->
+
 <!-- Current execution checkpoint: application main 83bc3034ebd85c2ff13f171c41cce0eb9611e7e0; controlled Phase3/4 software implemented, external/independent gates still partial. Read newest EXECUTION_STATE before historical transfer text below. -->
 
 # AGENTS.md — execution instructions for coding agents
