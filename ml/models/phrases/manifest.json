@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "id": "vosk-help-bachao-v1",
+  "sample_rate_hz": 16000,
+  "minimum_word_confidence": 0.75,
+  "keywords": {
+    "en": {
+      "help": "HELP"
+    },
+    "hi": {
+      "बचाओ": "BACHAO"
+    }
+  },
+  "automatic_dispatch": false,
+  "source": "https://alphacephei.com/vosk/models",
+  "models": [
+    {
+      "id": "vosk-model-small-en-us-0.15",
+      "language": "en",
+      "archive": "vosk-model-small-en-us-0.15.zip",
+      "url": "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip",
+      "sha256": "30f26242c4eb449f948e42cb302dd7a686cb29a3423a8367f99ff41780942498",
+      "size_bytes": 41205931,
+      "files": [
+        {
+          "path": "am/final.mdl",
+          "size_bytes": 15962575,
+          "sha256": "75370a0137f9daf8f469dedd7daa4513ae7a621f03240c6e512e2b50b656a7b6"
+        },
+        {
+          "path": "graph/disambig_tid.int",
+          "size_bytes": 102,
+          "sha256": "9ad87cc166d0998f08f758f47a6223a120dfffcbee805c4849c3aa5e6bb3c0fc"
+        },
+        {
+          "path": "graph/HCLr.fst",
+          "size_bytes": 22416994,
+          "sha256": "5caafba3081e1646545ac6bff0dd7a318e53dcbdc86f237909ce1d2ac1293d34"
+        },
+        {
+          "path": "graph/Gr.fst",
+          "size_bytes": 24013795,
+          "sha256": "023c8b7e30704a9e37765c635c252e608a02f361235bf94abdcf2a5225d85b20"
+        },
+        {
+          "path": "graph/phones/word_boundary.int",
+          "size_bytes": 1761,
+          "sha256": "da199d9c991e0e84681ddbb34627b915b26302d50a8fdaa23c51e2bc3a50b5c3"
+        },
+        {
+          "path": "conf/model.conf",
+          "size_bytes": 290,
+          "sha256": "8f14cb1eeb07c762c371db648c6be688d347236155ca0f64fb13b6567a8ce81f"
+        },
+        {
+          "path": "conf/mfcc.conf",
+          "size_bytes": 131,
+          "sha256": "1e2228006d01d805ad1c267fee9f79709ca87ac51bd82b0e3f5c69ba543f0fc4"
+        },
+        {
+          "path": "ivector/splice.conf",
+          "size_bytes": 35,
+          "sha256": "9f0c5f7c82d18eaf25d8bce470efa9f7741f88411fe428774bc0a9bb69a24756"
+        },
+        {
+          "path": "ivector/final.dubm",
+          "size_bytes": 168048,
+          "sha256": "8c5d7dd69d2122313baaf19f61f35dd3fa18b70c62ac0687e311e1c46e6daca7"
+        },
+        {
+          "path": "ivector/global_cmvn.stats",
+          "size_bytes": 1080,
+          "sha256": "33be09afcc80059847a275c3d043b51f1ab954c7c2438ddbbf4745e8ba144ff9"
+        },
+        {
+          "path": "ivector/final.ie",
+          "size_bytes": 8288887,
+          "sha256": "3f37faf90c375b9e4740b569398b5829ed9cc07d19be6d441f72c3b71d7efcc6"
+        },
+        {
+          "path": "ivector/online_cmvn.conf",
+          "size_bytes": 95,
+          "sha256": "a2f3571754b64297cb7efb2e7ca3df61995c5a45fcbb97188f90613552bb2dfe"
+        },
+        {
+          "path": "ivector/final.mat",
+          "size_bytes": 44975,
+          "sha256": "ddd83586dc5f928cda8738b922c85ffe38fc789cb5f9151a712ca12f37265382"
+        },
+        {
+          "path": "README",
+          "size_bytes": 199,
+          "sha256": "c0cf286e4f7783306c5f6469b37db69228fb16803b03cae661edb2d7bba64ebb"
+        }
+      ],
+      "grammar": [
+        "help",
+        "help me",
+        "please help",
+        "hello",
+        "helper",
+        "helpful",
+        "helping",
+        "healthy",
+        "shelf",
+        "stop",
+        "no",
+        "[unk]"
+      ]
+    },
+    {
+      "id": "vosk-model-small-hi-0.22",
+      "language": "hi",
+      "archive": "vosk-model-small-hi-0.22.zip",
+      "url": "https://alphacephei.com/vosk/models/vosk-model-small-hi-0.22.zip",
+      "sha256": "7c50a10866889f0ac21d912c20537a055a597ed09fc1d3e5bcd798f9f0017e48",
+      "size_bytes": 44458845,
+      "files": [
+        {
+          "path": "graph/phones/word_boundary.int",
+          "size_bytes": 2481,
+          "sha256": "b8f981d84d8765fb15003ac54ec0f9599efa65a00d6d4d60086e5969ad45ff01"
+        },
+        {
+          "path": "graph/Gr.fst",
+          "size_bytes": 30692365,
+          "sha256": "9b219e22fc7d3033ba1b175757a700d8f02139d75d7f57cc12bc318d53038ccf"
+        },
+        {
+          "path": "graph/HCLr.fst",
+          "size_bytes": 25289514,
+          "sha256": "4f36aad2566853473603abc66fac3985eff0860229c465540b348c22fcbbb4f5"
+        },
+        {
+          "path": "graph/disambig_tid.int",
+          "size_bytes": 66,
+          "sha256": "3f87fd5a92742b3827d2da31dae0874c4077e9f0011e507423b6f876d743e37b"
+        },
+        {
+          "path": "am/final.mdl",
+          "size_bytes": 15957444,
+          "sha256": "c5d7ea51a074bc64430137a74fc8a0a06097df485a3d356cf37d2d78ef6bd712"
+        },
+        {
+          "path": "README",
+          "size_bytes": 460,
+          "sha256": "9ffae7d857a7671a0a53b9f6f432e7c312459fde02ca1f139d808fffc3d2644a"
+        },
+        {
+          "path": "conf/model.conf",
+          "size_bytes": 289,
+          "sha256": "d8d91d310a9659fed2d89f8ea4996af6163a43c3ab008cd278e4264120551712"
+        },
+        {
+          "path": "conf/mfcc.conf",
+          "size_bytes": 128,
+          "sha256": "31dab8bb1dea9b33e039988ac079dfe5d50ebaa4a94826b9f9adc8fe84b147c6"
+        },
+        {
+          "path": "ivector/final.dubm",
+          "size_bytes": 168048,
+          "sha256": "e495541a7e99e78a42cd098adfd94a72b6118a8c0d3c5ea8fe17436b578c55d4"
+        },
+        {
+          "path": "ivector/global_cmvn.stats",
+          "size_bytes": 1074,
+          "sha256": "a056b7592116d4a5e5fc6f872f8398190878bb6690bf486827fa79dabaf33f97"
+        },
+        {
+          "path": "ivector/final.ie",
+          "size_bytes": 9927287,
+          "sha256": "89d91ca6e99e7e4f067b3ef8ac1faa9ba73276c225d927aaa296492a03a639b7"
+        },
+        {
+          "path": "ivector/final.mat",
+          "size_bytes": 44975,
+          "sha256": "3009aea21b59ad36f86c89d68dd152264aa3a784260dbdace823d991f3ff71b4"
+        },
+        {
+          "path": "ivector/splice.conf",
+          "size_bytes": 35,
+          "sha256": "9f0c5f7c82d18eaf25d8bce470efa9f7741f88411fe428774bc0a9bb69a24756"
+        },
+        {
+          "path": "ivector/online_cmvn.conf",
+          "size_bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "grammar": [
+        "बचाओ",
+        "मुझे बचाओ",
+        "बचाओ बचाओ",
+        "बताओ",
+        "बनाओ",
+        "चलो",
+        "हेल्प",
+        "नमस्ते",
+        "मदद करो",
+        "आज मौसम अच्छा है",
+        "[unk]"
+      ]
+    }
+  ]
+}

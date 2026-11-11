@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "GENERATED_ESPEAK_NG_1.52.0_TOOLCHAIN_ONLY",
+  "generator": "eSpeak NG1.52.0; voices en/hi;145words/min; PCM resampled16kHz;2s trailing silence; source phrases in ml/runtime/phrases_smoke.py. No human voices/participants.",
+  "fixtures": [
+    {
+      "file": "generated-0.wav",
+      "sha256": "a39034409bd7badcc3b50bb27b2e1391c05b6c838b2085c785645d19556edbf2",
+      "expected": "HELP"
+    },
+    {
+      "file": "generated-1.wav",
+      "sha256": "22a41caca332caf4a795ce31bb009ab4a7633d54824a89d808e6313ebaddd600",
+      "expected": "HELP"
+    },
+    {
+      "file": "generated-2.wav",
+      "sha256": "adf0253280112d645b88ae549693a85dd52df0f3137ad2ec62def4671ea70834",
+      "expected": "BACHAO"
+    },
+    {
+      "file": "generated-3.wav",
+      "sha256": "78cce2aaf62b05d58e88a72d2ea5b917db8dd7aa8cb7c9bc47c0fa0fe9f965a9",
+      "expected": "BACHAO"
+    },
+    {
+      "file": "generated-4.wav",
+      "sha256": "2d1be4abbe0fc6361df2a253f432f97b51e1e2de4a46bfe459bba56da1a4ea5d",
+      "expected": null
+    },
+    {
+      "file": "generated-5.wav",
+      "sha256": "1a941dee3f01a9ecf2d5a2ad480fde61d38c5e5a9d6ed305e2aa0958ef2e1258",
+      "expected": null
+    },
+    {
+      "file": "generated-6.wav",
+      "sha256": "4beffc3f8e433ae38c2f4c4b17a22c44ff0f332097a127e9a1e274e1daff3405",
+      "expected": null
+    },
+    {
+      "file": "generated-7.wav",
+      "sha256": "85c37633604465e8ab245e00d60f7a74e501ba71da314751d139ab137703e9e0",
+      "expected": null
+    },
+    {
+      "file": "generated-silence.wav",
+      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+      "expected": null
+    },
+    {
+      "file": "generated-noise.wav",
+      "sha256": "58ae90744ac22fbea86dd43e1be5fc3adf4fc7a98fa73e5a6d92d53155f724a7",
+      "expected": null
+    }
+  ]
+}

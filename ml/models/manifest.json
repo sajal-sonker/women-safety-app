@@ -7,10 +7,37 @@
   "license": "Apache-2.0",
   "source": "https://www.kaggle.com/models/google/yamnet/tfLite/classification-tflite/1",
   "download": "https://www.kaggle.com/api/v1/models/google/yamnet/tfLite/classification-tflite/1/download",
-  "input": {"shape": [15600], "dtype": "float32", "sample_rate_hz": 16000, "channels": 1, "normalization": "PCM16 / 32768", "preprocessing": "Raw waveform; log-mel preprocessing is inside the model"},
-  "output": {"shape": [1, 521], "dtype": "float32", "labels": "yamnet_label_list.txt", "screaming_index": 11},
-  "fusion": {"version": "confirmation-v1", "audio_high": 0.65, "audio_supported": 0.35, "motion_window_ms": 3000, "confirmation_cooldown_ms": 120000},
+  "input": {
+    "shape": [
+      15600
+    ],
+    "dtype": "float32",
+    "sample_rate_hz": 16000,
+    "channels": 1,
+    "normalization": "PCM16 / 32768",
+    "preprocessing": "Raw waveform; log-mel preprocessing is inside the model"
+  },
+  "output": {
+    "shape": [
+      1,
+      521
+    ],
+    "dtype": "float32",
+    "labels": "yamnet_label_list.txt",
+    "screaming_index": 11
+  },
+  "fusion": {
+    "version": "confirmation-v1",
+    "audio_high": 0.65,
+    "audio_supported": 0.35,
+    "motion_window_ms": 3000,
+    "confirmation_cooldown_ms": 120000
+  },
   "disposition": "CONFIRMATION_ONLY_UNVALIDATED",
   "automatic_dispatch": false,
-  "phrase_classes": {"HELP": "NOT_TRAINED", "BACHAO": "NOT_TRAINED"}
+  "phrase_classes": {
+    "HELP": "SEPARATE_PRETRAINED_VOSK_ENGLISH",
+    "BACHAO": "SEPARATE_PRETRAINED_VOSK_HINDI"
+  },
+  "phrase_models_manifest": "../phrases/manifest.json"
 }

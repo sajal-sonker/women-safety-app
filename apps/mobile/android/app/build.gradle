@@ -127,11 +127,36 @@ tasks.register("copyMonitoringModel", Sync) {
         include "yamnet.tflite", "manifest.json", "yamnet_label_list.txt", "LICENSE-YAMNET.txt", "NOTICE.md"
         into "models"
     }
+    from(rootProject.file("../../../ml/models/phrases")) {
+        include "manifest.json", "LICENSE-VOSK.txt", "NOTICE.md"
+        into "phrases"
+    }
+    def phraseRoot=rootProject.file("../../../ml/models/phrases")
+    def phraseManifest=new groovy.json.JsonSlurper().parse(new File(phraseRoot,"manifest.json"))
+    phraseManifest.models.each { model ->
+        from(zipTree(new File(phraseRoot,model.archive))) {
+            include "${model.id}/**"
+            into "phrases"
+        }
+    }
+    doFirst {
+        phraseManifest.models.each { model ->
+            def archive=new File(phraseRoot,model.archive)
+            def digest=java.security.MessageDigest.getInstance("SHA-256")
+            archive.withInputStream { input ->
+                byte[] buffer=new byte[65536];int count
+                while((count=input.read(buffer))!=-1)digest.update(buffer,0,count)
+            }
+            if(archive.length()!=model.size_bytes||digest.digest().encodeHex().toString()!=model.sha256)throw new GradleException("Phrase model archive integrity failed: ${model.id}")
+        }
+    }
     into layout.buildDirectory.dir("generated/model-assets")
 }
 tasks.named("preBuild").configure { dependsOn("copyMonitoringModel") }
 
 dependencies {
+    implementation("com.alphacephei:vosk-android:0.3.75@aar")
+    implementation("net.java.dev.jna:jna:5.18.1@aar")
     // Maintained Interpreter line compatible with the RN template's Kotlin2.2.
     implementation("com.google.ai.edge.litert:litert:1.4.2")
     testImplementation("junit:junit:4.13.2")

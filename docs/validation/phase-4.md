@@ -1,5 +1,7 @@
 # Phase 4 — controlled-demo hardening and delivery evidence
 
+**11 November2026 CR-005:** the phone build now bundles English/Hindi offline Help/Bachao recognition. See [current APK and regression evidence](help-bachao.md); older artifact hashes and phrase-blocked statements below are historical. Production deployment is deferred by user scope and does not block the prototype.
+
 **CR-004 continuation:** additional ML/runtime/software checks and the phone-specific APK supersede the older artifact below; see [continuation evidence](ml-continuation.md). The user will run the physical matrix. Backup creation now prunes only generated encrypted archive filenames older than30days, with path bounds and boundary tests; protected off-site backup policy remains external. Overall independent/live acceptance remains PARTIAL.
 
 Date:10 November2026. Application baseline6237a1e, additive migrations010/011 and CR-003. **Overall PARTIAL; G4 NOT_ACCEPTED. No PASS_PILOT or independent PASS_CONTROLLED_DEMO is claimed.** Application work targets main; agent context stays excluded from main.

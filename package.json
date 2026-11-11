@@ -47,7 +47,8 @@
     "ml:predict": "node scripts/ml-python.mjs ml/runtime/predict.py",
     "ml:calibrate": "tsx ml/evaluation/calibrate.ts",
     "ml:workflow-smoke": "node scripts/ml-workflow-smoke.mjs",
-    "doctor": "node scripts/doctor.mjs"
+    "doctor": "node scripts/doctor.mjs",
+    "ml:phrases-smoke": "node scripts/ml-python.mjs ml/runtime/phrases_smoke.py"
   },
   "dependencies": {
     "ajv": "8.20.0",

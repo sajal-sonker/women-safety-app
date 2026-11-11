@@ -50,12 +50,13 @@ class AudioMonitoringService:Service(),SensorEventListener {
         fun dismissCheckIn(){current?.let{it.checkInUntil=0L;it.getSystemService(NotificationManager::class.java).cancel(4203)}}
     }
     private val running=AtomicBoolean(false)
+    private val finishing=AtomicBoolean(false)
     private val leaseOwner="MONITORING:"+java.util.UUID.randomUUID().toString()
     @Volatile private var inferenceScheduled=false
     private val executor=Executors.newSingleThreadExecutor()
     private val handler=Handler(Looper.getMainLooper())
     private var sensorManager:SensorManager?=null
-    private var recorder:AudioRecord?=null
+    @Volatile private var recorder:AudioRecord?=null
     private var expires=0L
     private var uid=""
     @Volatile private var motionAt:Long?=null
@@ -66,9 +67,14 @@ class AudioMonitoringService:Service(),SensorEventListener {
     private val consentPolling=AtomicBoolean(false)
     private var consentPollAt=0L
     @Volatile private var remoteConsent="CONFIRMED_AT_START"
-    private var audioScore=0.0
-    private var decision="NORMAL"
-    private var windows=0
+    @Volatile private var audioScore=0.0
+    @Volatile private var decision="NORMAL"
+    @Volatile private var windows=0
+    private var phraseEnabled=false
+    @Volatile private var phraseStatus="DISABLED"
+    @Volatile private var lastPhrase:String?=null
+    @Volatile private var phraseConfidence:Double?=null
+    @Volatile private var promptDecision="NORMAL"
     private var audioManager:AudioManager?=null
     private var focus:AudioFocusRequest?=null
     private val guard=object:Runnable {override fun run(){
@@ -98,6 +104,7 @@ class AudioMonitoringService:Service(),SensorEventListener {
         val config=synchronized(AudioMonitoringService::class.java){val value=pending;pending=null;if(value!=null){current=this;running.set(true)};value}
         if(config==null){stopSelf();return START_NOT_STICKY}
         uid=config.getString("uid");expires=config.getLong("expires_elapsed")
+        phraseEnabled=config.optBoolean("phrase_consent");phraseStatus=if(phraseEnabled)"LOADING" else "DISABLED"
         if(uid!=SafetyRuntime.auth.currentUser?.uid||SystemClock.elapsedRealtime()>=expires){finish("EXPIRED");return START_NOT_STICKY}
         try{
             require(MicrophoneLease.acquire(leaseOwner)){"MICROPHONE_BUSY"}
@@ -122,60 +129,86 @@ class AudioMonitoringService:Service(),SensorEventListener {
     }
     private fun infer(){
         val pcm=ShortArray(15600)
+        val chunk=ShortArray(1600)
         var model:YamnetClassifier?=null
+        var phrases:OfflinePhraseRecognizer?=null
+        var recordingCallback:AudioManager.AudioRecordingCallback?=null
         try{
             model=YamnetClassifier(this)
             val fusion= model.manifest.getJSONObject("fusion")
             val reducer=FusionDecision(fusion.getDouble("audio_high"),fusion.getDouble("audio_supported"),fusion.getLong("motion_window_ms"),fusion.getLong("confirmation_cooldown_ms"))
+            if(phraseEnabled){
+                try {phrases=OfflinePhraseRecognizer(this){running.get()};phraseStatus="ACTIVE"}
+                catch(e:Exception){phraseStatus="UNAVAILABLE";if(running.get())finish("PHRASE_MODEL_UNAVAILABLE");throw e}
+            }
             val size=maxOf(62400,2*AudioRecord.getMinBufferSize(16000,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT))
             require(running.get())
             val source=AudioRecord(MediaRecorder.AudioSource.MIC,16000,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT,size);recorder=source
             require(source.state==AudioRecord.STATE_INITIALIZED)
             val callback=object:AudioManager.AudioRecordingCallback(){override fun onRecordingConfigChanged(configs:MutableList<AudioRecordingConfiguration>){if(configs.any{it.clientAudioSessionId==source.audioSessionId&&it.isClientSilenced})finish("MICROPHONE_SILENCED")}}
             source.registerAudioRecordingCallback(mainExecutor,callback)
+            recordingCallback=callback
             require(running.get())
             source.startRecording()
             var filled=0
             while(running.get()){
-                val n=source.read(pcm,filled,pcm.size-filled,AudioRecord.READ_NON_BLOCKING)
+                val n=source.read(chunk,0,chunk.size,AudioRecord.READ_NON_BLOCKING)
                 if(n<0)throw IllegalStateException("AUDIO_READ_FAILED")
-                if(n==0){Thread.sleep(20);continue};filled+=n
-                if(filled==pcm.size){
+                if(n==0){Thread.sleep(20);continue}
+                val phrase=phrases?.accept(chunk,n)
+                if(phrase!=null&&running.get()){
+                    lastPhrase=phrase.label;phraseConfidence=phrase.confidence
+                    val next=reducer.update(0.0,null,SystemClock.elapsedRealtime(),phrase.label)
+                    if(next!="NORMAL")prompt(next)
+                }
+                var offset=0
+                while(offset<n&&running.get()){
+                    val count=minOf(n-offset,pcm.size-filled);chunk.copyInto(pcm,filled,offset,offset+count);offset+=count;filled+=count
+                    if(filled==pcm.size){
                     val start=SystemClock.elapsedRealtimeNanos();val score=model.score(pcm);val elapsed=(SystemClock.elapsedRealtimeNanos()-start)/1e6
                     synchronized(latency){latency.add(elapsed);if(latency.size>120)latency.removeFirst()}
                     audioScore=score;windows++;decision=reducer.update(score,motionAt,SystemClock.elapsedRealtime())
-                    if(decision!="NORMAL"){checkInUntil=SystemClock.elapsedRealtime()+15000;showCheckIn()}
+                    if(decision!="NORMAL")prompt(decision)
                     // 50% overlap. Only this bounded in-memory window exists; no persistence/upload.
                     pcm.copyInto(pcm,0,7800,15600);pcm.fill(0,7800,15600);filled=7800;publish()
+                    }
                 }
+                chunk.fill(0)
             }
-            source.unregisterAudioRecordingCallback(callback)
         }catch(_:Exception){if(running.get())finish("MODEL_OR_AUDIO_UNAVAILABLE")}
+        catch(_:LinkageError){phraseStatus="UNAVAILABLE";if(running.get())finish("PHRASE_RUNTIME_UNAVAILABLE")}
+        catch(_:OutOfMemoryError){phraseStatus="UNAVAILABLE";if(running.get())finish("MODEL_MEMORY_UNAVAILABLE")}
         finally{
-            pcm.fill(0);runCatching{recorder?.stop()};runCatching{recorder?.release()};recorder=null;model?.close();MicrophoneLease.release(leaseOwner)
+            pcm.fill(0);chunk.fill(0);runCatching{recordingCallback?.let{recorder?.unregisterAudioRecordingCallback(it)}};runCatching{recorder?.stop()};runCatching{recorder?.release()};recorder=null;runCatching{phrases?.close()};runCatching{model?.close()};MicrophoneLease.release(leaseOwner)
         }
     }
     private fun publish(){
         if(!running.get())return
         val measurements=synchronized(latency){latency.toList().sorted()}
         last=JSONObject().put("status",if(windows==0)"STARTING" else "ACTIVE_CONFIRMATION_ONLY").put("microphone",recorder?.recordingState==AudioRecord.RECORDSTATE_RECORDING).put("auto_dispatch",false)
-            .put("remaining_seconds",((expires-SystemClock.elapsedRealtime())/1000).coerceAtLeast(0)).put("check_in",SystemClock.elapsedRealtime()<checkInUntil).put("decision",decision)
-            .put("audio_score",audioScore).put("windows",windows).put("model_id","yamnet-classification-tflite-1").put("phrase_recognition",false).put("motion_available",sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!=null)
+            .put("remaining_seconds",((expires-SystemClock.elapsedRealtime())/1000).coerceAtLeast(0)).put("check_in",SystemClock.elapsedRealtime()<checkInUntil).put("decision",if(SystemClock.elapsedRealtime()<checkInUntil)promptDecision else decision)
+            .put("audio_score",audioScore).put("windows",windows).put("model_id","yamnet-classification-tflite-1").put("phrase_recognition",phraseStatus=="ACTIVE").put("phrase_status",phraseStatus)
+            .put("last_phrase",lastPhrase?:JSONObject.NULL).put("phrase_confidence",phraseConfidence?:JSONObject.NULL).put("phrase_model_id",if(phraseEnabled)"vosk-help-bachao-v1" else JSONObject.NULL).put("motion_available",sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!=null)
             .put("remote_consent",remoteConsent)
             .put("inference_p95_ms",if(measurements.isEmpty())JSONObject.NULL else measurements[((measurements.size-1)*.95).toInt()]).put("native_pss_kb",Debug.getPss())
+    }
+    private fun prompt(value:String){
+        if(!running.get())return
+        promptDecision=value;checkInUntil=SystemClock.elapsedRealtime()+15000;showCheckIn();publish()
     }
     private fun showCheckIn(){
         val open=PendingIntent.getActivity(this,4203,Intent(this,MainActivity::class.java),PendingIntent.FLAG_IMMUTABLE)
         getSystemService(NotificationManager::class.java).notify(4203,NotificationCompat.Builder(this,"audio_monitoring").setSmallIcon(android.R.drawable.ic_dialog_info).setContentTitle("Check in when you can")
-            .setContentText("A sound pattern prompted a check-in. No SOS was sent.").setContentIntent(open).setAutoCancel(true).setVisibility(NotificationCompat.VISIBILITY_PRIVATE).build())
+            .setContentText("A local sound or phrase prompted a check-in. No SOS was sent.").setContentIntent(open).setAutoCancel(true).setVisibility(NotificationCompat.VISIBILITY_PRIVATE).build())
     }
     private fun finish(reason:String){
+        if(!finishing.compareAndSet(false,true))return
         running.set(false);handler.removeCallbacks(guard);sensorManager?.unregisterListener(this);sensorManager=null;runCatching{recorder?.stop()}
         if(!inferenceScheduled)MicrophoneLease.release(leaseOwner)
         focus?.let{audioManager?.abandonAudioFocusRequest(it)};focus=null;checkInUntil=0
         last=JSONObject(last.toString()).put("status",if(reason in listOf("USER_STOP","NOTIFICATION_STOP","EXPIRED","ACCOUNT_CHANGED"))"STOPPED" else "DEGRADED").put("reason",reason).put("microphone",false).put("auto_dispatch",false).put("check_in",false).put("remaining_seconds",0)
+            .put("phrase_recognition",false).put("phrase_status",if(phraseStatus=="UNAVAILABLE")"UNAVAILABLE" else "STOPPED").put("last_phrase",JSONObject.NULL).put("phrase_confidence",JSONObject.NULL)
         getSystemService(NotificationManager::class.java).cancel(4203)
-        if(current===this)current=null
         stopForeground(STOP_FOREGROUND_REMOVE);stopSelf()
     }
     override fun onSensorChanged(event:SensorEvent){
@@ -184,5 +217,5 @@ class AudioMonitoringService:Service(),SensorEventListener {
     }
     override fun onAccuracyChanged(sensor:Sensor?,accuracy:Int){}
     override fun onBind(intent:Intent?)=null
-    override fun onDestroy(){if(running.get())finish("SERVICE_STOPPED");executor.shutdown();super.onDestroy()}
+    override fun onDestroy(){if(running.get())finish("SERVICE_STOPPED");if(current===this)current=null;executor.shutdown();super.onDestroy()}
 }

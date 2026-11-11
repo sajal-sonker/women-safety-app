@@ -1,5 +1,6 @@
 import {EvidenceControls} from './EvidenceControls';
 import {AdvancedControls,NotesScreen} from './AdvancedControls';
+import {checkInMessage,type MonitoringState} from './monitoring';
 import React,{useCallback,useEffect,useState} from 'react';
 import {Alert,Linking,PermissionsAndroid,Platform,Pressable,ScrollView,Switch,Text,View} from 'react-native';
 import {SafeAreaProvider,SafeAreaView} from 'react-native-safe-area-context';
@@ -12,7 +13,7 @@ import {strings} from './localization/strings';
 import {RoutePreview} from './RoutePreview';
 import {CONTRACT_SHA256} from '../../../packages/contracts/src/generated/hash';
 type Intent={client_request_id:string,state:string,event_id:string|null,error:string|null};
-type SafetyState={uid:string|null,phone:string|null,intent:Intent|null,location_status:string,position:Model<'Location'>|null;decoy?:boolean;fake_call?:{label:string;ringing:boolean};monitoring?:{status:string;remaining_seconds:number;check_in:boolean};pins_configured?:boolean};
+type SafetyState={uid:string|null,phone:string|null,intent:Intent|null,location_status:string,position:Model<'Location'>|null;decoy?:boolean;fake_call?:{label:string;ringing:boolean};monitoring?:MonitoringState;pins_configured?:boolean};
 const Tabs=createBottomTabNavigator();
 const display=(v:string)=>v.replaceAll('_',' ');
 
@@ -29,7 +30,7 @@ function Feedback(){const {error,notice}=useApp();return <>{error?<Text accessib
  function Home(){
  const {t,safety,profile,contacts,busy,active,run,refreshSafety,refresh,permit,call,setActive}=useApp();
   const intent=safety?.intent,open=intent&&intent.state!=='TERMINATED';
-  return <ScrollView contentContainerStyle={s.content}><Feedback/>{safety?.monitoring?.check_in&&<Card title="Safety check-in"><Text style={s.notice}>A sensor pattern prompted a check-in. No SOS was sent.</Text><Button title="I am okay - dismiss check-in" secondary onPress={()=>run(async()=>{await NativeSafety.dismissMonitoringCheckIn();await refreshSafety();})}/></Card>}<Text style={s.title}>{t.title}</Text><Text style={s.body}>{profile?.display_name||safety?.phone}</Text>
+  return <ScrollView contentContainerStyle={s.content}><Feedback/>{safety?.monitoring?.check_in&&<Card title="Safety check-in"><Text style={s.notice}>{checkInMessage(safety.monitoring.decision)}</Text><Button title="I am okay - dismiss check-in" secondary onPress={()=>run(async()=>{await NativeSafety.dismissMonitoringCheckIn();await refreshSafety();})}/></Card>}<Text style={s.title}>{t.title}</Text><Text style={s.body}>{profile?.display_name||safety?.phone}</Text>
    <Card><Text style={s.h2}>{t.send}</Text><Text style={s.body}>Only your verified trusted contacts receive alerts. This local demo sends simulated messages.</Text><Pressable accessibilityRole="button" accessibilityLabel={t.send} disabled={!!open||busy} onPress={()=>run(async()=>{await NativeSafety.activateSos('MANUAL');await refreshSafety();})} style={[s.sos,open&&{opacity:.5}]}><Text style={s.sosText}>{t.sos}</Text></Pressable><Text style={s.small}>{contacts.filter(c=>c.invite_status==='VERIFIED').length} verified contacts · no media or route computation delays SOS.</Text>{!safety?.position&&<Text style={s.small}>{t.noGps}</Text>}</Card>
    {open&&<Card title="SOS status"><Text style={s.pill}>{display(intent.state)}</Text><Text style={s.body}>{intent.state==='SERVER_ACCEPTED'?t.queued:intent.state==='STOP_REQUESTED'?'Capture stopped locally. Server termination is unconfirmed.':t.offline}</Text>{intent.error&&<Text style={s.error}>{display(intent.error)}</Text>}{active&&<><Text style={s.small}>{active.status} · {active.dispatch_status}</Text><Text style={s.small}>{active.position?'Last location: '+new Date(active.position.captured_at).toLocaleTimeString()+' · '+Math.round(active.location_age_s??0)+'s old':t.noGps}</Text>{active.recipients.map(r=><View key={r.id} style={s.row}><Text style={s.body}>Contact {r.priority_rank} · {r.role}</Text><Text style={s.small}>{r.channels.map(c=>c.channel+': '+display(c.status)).join(', ')} · {display(r.acknowledgement)}</Text></View>)}</>}
     <Button title={t.safe} secondary onPress={()=>Alert.alert(t.safe,'This stops local sharing and requests server resolution. Already sent messages cannot be recalled.',[{text:'Keep active',style:'cancel'},{text:'Resolve',onPress:()=>run(async()=>{await NativeSafety.terminateIntent(intent.client_request_id,'SAFE');setActive(null);await refresh();})}])}/>

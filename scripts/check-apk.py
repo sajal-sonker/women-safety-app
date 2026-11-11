@@ -13,6 +13,13 @@ with zipfile.ZipFile(apk) as archive:
     model = archive.read("assets/models/yamnet.tflite")
     assert hashlib.sha256(model).hexdigest() == manifest["sha256"], "Bundled model mismatch"
     assert archive.read("assets/models/LICENSE-YAMNET.txt"), "Missing model license"
+    phrase_manifest = json.loads(pathlib.Path("ml/models/phrases/manifest.json").read_text(encoding="utf-8"))
+    assert json.loads(archive.read("assets/phrases/manifest.json")) == phrase_manifest, "Phrase manifest mismatch"
+    assert archive.read("assets/phrases/LICENSE-VOSK.txt"), "Missing speech model license"
+    for item in phrase_manifest["models"]:
+        for spec in item["files"]:
+            data = archive.read("assets/phrases/"+item["id"]+"/"+spec["path"])
+            assert len(data) == spec["size_bytes"] and hashlib.sha256(data).hexdigest() == spec["sha256"], "Phrase model asset mismatch"
     assert not any("/private/" in name or "training-smoke" in name for name in archive.namelist()), "Private ML data in APK"
     unsupported = []
     for name in archive.namelist():
@@ -33,6 +40,7 @@ with zipfile.ZipFile(apk) as archive:
 result = {"status": "PASS_STATIC_CHECKS" if not unsupported else "NATIVE_ALIGNMENT_FAILURE",
           "apk_sha256": hashlib.sha256(apk.read_bytes()).hexdigest(), "bundled_model_verified": True,
           "embedded_javascript": True, "unverified_16kb_libraries": unsupported,
+          "phrase_models_verified": [item["id"] for item in phrase_manifest["models"]],
           "physical_runtime": "NOT_TESTED"}
 print(json.dumps(result, indent=2))
 sys.exit(1 if unsupported else 0)

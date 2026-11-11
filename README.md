@@ -8,7 +8,7 @@
 
 Start with [your demo checklist](docs/USER_CHECKLIST.md): run `npm run doctor`, connect/authorize a USB phone, install the bundled demo APK and rehearse the phone/browser flow. No production service accounts or deployment are needed.
 
-The latest phone-test build includes bundled offline YAMNet sound classification and opt-in audio/motion check-ins. It is confirmation-only; no automatic sensor SOS and no Help/Bachao word recognition. See [phone setup](docs/PHONE_TEST.md), [ML tools](ml/README.md) and [continuation evidence](docs/validation/ml-continuation.md). Test actual phone behavior before presenting it. Specialized phrase training is optional future work beyond the current sound-classification demo.
+The latest phone-test build includes offline English **Help** and Hindi **Bachao / बचाओ** recognition using bundled Vosk speech models, alongside YAMNet sound classification and motion check-ins. A recognized word asks for confirmation; it does not send an automatic SOS. Audio/transcripts stay local and are not saved/uploaded. See [phone setup](docs/PHONE_TEST.md), [phrase implementation evidence](docs/validation/help-bachao.md) and [ML tools](ml/README.md). Test actual phone behavior before presenting it; pretrained speech recognition is implemented, while human distress accuracy remains unmeasured.
 
 See [RUNNING.md](RUNNING.md) for clean setup, test accounts, Android instructions and troubleshooting. See the [Phase 1 evidence](docs/validation/phase-1.md) and [Phase 2 evidence](docs/validation/phase-2.md) for implemented scope and remaining acceptance work. This is not a production emergency deployment.
 

@@ -2,7 +2,7 @@ import React from 'react';
 import {Pressable,Text,View,TextInput,StyleSheet,type TextInputProps} from 'react-native';
 export const colors={ink:'#f3efff',muted:'#b7accb',green:'#b794f6',paper:'#0d0a14',line:'#342a45',rose:'#f08ca7'};
 export function Button({title,onPress,secondary=false,disabled=false}:{title:string,onPress:()=>void,secondary?:boolean,disabled?:boolean}){
- return <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={disabled} onPress={onPress} style={[s.button,secondary&&s.secondary,disabled&&{opacity:.45}]}><Text style={[s.buttonText,secondary&&{color:colors.green}]}>{title}</Text></Pressable>;
+ return <Pressable accessibilityRole="button" accessibilityLabel={title} accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={[s.button,secondary&&s.secondary,disabled&&{opacity:.45}]}><Text style={[s.buttonText,secondary&&{color:colors.green}]}>{title}</Text></Pressable>;
 }
 export function Card({title,children}:{title?:string,children:React.ReactNode}){return <View style={s.card}>{title&&<Text accessibilityRole="header" style={s.h2}>{title}</Text>}{children}</View>;}
 export function Field({label,...props}:TextInputProps&{label:string}){return <View style={{marginBottom:12}}><Text style={s.label}>{label}</Text><TextInput accessibilityLabel={label} placeholderTextColor="#a89aba" style={s.input} {...props}/></View>;}

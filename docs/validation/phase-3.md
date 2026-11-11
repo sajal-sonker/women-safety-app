@@ -1,5 +1,7 @@
 # Phase 3 — advanced controlled-demo implementation
 
+**11 November2026 CR-005:** offline pretrained Help/Bachao recognition is now implemented alongside YAMNet. Earlier missing-word/model statements below are historical. See [current implementation/tests](help-bachao.md) and [phone instructions](../PHONE_TEST.md). Research accuracy and physical behavior are not fabricated; deployment remains outside the prototype target.
+
 **CR-004 continuation:** the model/runtime block below is historical. A real licensed pretrained YAMNet model, native microphone foreground service, audio/motion confirmation reducer, model-integrity checks, dataset/training/export and event-level evaluation tools are now implemented. See [ML continuation evidence](ml-continuation.md) and [phone test](../PHONE_TEST.md). Automatic dispatch and Hindi/English phrase validation remain blocked; a generic audio-event baseline does not satisfy phrase recognition or independent G3 acceptance.
 
 Date:10 November2026. Baseline:6237a1e plus CR-003. **Overall PARTIAL; independent G3 NOT_ACCEPTED.** User authorized continuing Phases3/4 within the existing fake-provider application. No previous partial gate is upgraded by executor assertion.

@@ -1,5 +1,7 @@
 # Final dependency-ready continuation — 10 November 2026
 
+**Superseded phrase scope,11 November2026:** Help/Bachao recognition is now implemented with separate pretrained offline Vosk models; see the [current report](help-bachao.md). This report retains the earlier checkpoint evidence, not the latest APK hash or feature inventory.
+
 Phase:3/4. Completed software is ready for controlled phone testing. **Physical, phrase-model, independent and live-release gates remain open.** This report supersedes earlier local tooling/parity observations where stated; it does not upgrade independent acceptance.
 
 Completed:

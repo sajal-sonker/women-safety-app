@@ -19,14 +19,14 @@ The phone cannot be authorized from this PC without accepting its USB prompt. No
 2. Send a simulated SOS from the phone. In the recipient browser, open Test inbox, follow the private tracking link and acknowledge. Resolve from the owner and check tracking revokes.
 3. Compare the fictional Lucknow routes; start a journey and mark arrival. Explain that this is sample route data.
 4. Rehearse fake call and PIN practice. Demonstrate duress sending only if you deliberately intend another simulated SOS.
-5. Enable sound monitoring visibly, grant permissions and show the active notification/window counter. Stop it and verify the microphone closes. An audio check-in asks for manual confirmation; it does not automatically send an SOS.
+5. Enable audio/motion/phrase monitoring visibly and grant permissions. Wait for phrase recognition **ACTIVE** and the microphone/window counter. Say **Help**, pause, and verify the recognized target/check-in. Restart the session or wait120s for the shared cooldown, then say **Bachao / बचाओ** and pause. Stop and verify the microphone closes. A recognized word asks for manual confirmation; it does not automatically send an SOS.
 6. If included in your presentation, demonstrate selected-recipient evidence and consent withdrawal, then private export. Test account deletion last because it disables that account.
 
 For a reliable presentation, show the actual sound-monitoring state and only demonstrate prompts you have observed on your phone. Detection may miss a sound or prompt on ordinary noise. Do not present a generated fixture, UI simulation or training-tool smoke test as measured distress recognition.
 
 ## What to explain in the demo
 
-The bundled model recognizes general sounds and can ask for confirmation. It does not recognize the words Help/Bachao and never sends an automatic ML SOS. The training/export/calibration/evaluation tools are implemented, but a specialized phrase model is future work requiring consented/licensed recordings. The larger research graduation protocol is not a prerequisite for demonstrating this baseline. See the [ML guide](../ml/README.md) if you choose that extension later.
+The app bundles pretrained English/Hindi Vosk models to recognize **Help** and **बचाओ**, plus YAMNet for general sounds. These are separate on-device recognizers sharing the same microphone buffer. Only finalized exact words with sufficient ASR confidence qualify; nearby words and partial transcripts do not qualify. Real voices, accents and noise may still be missed or produce a false prompt. No automatic ML SOS is enabled. The larger research graduation protocol is not a prerequisite for demonstrating this prototype. Custom four-class training remains an optional extension; see the [ML guide](../ml/README.md).
 
 OTP and recipient messages are simulated locally. Shops/routes are fictional. Present the end-to-end prototype behavior without claiming real emergency delivery, police dispatch, validated safety predictions or production readiness.
 
