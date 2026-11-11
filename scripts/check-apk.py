@@ -21,6 +21,7 @@ with zipfile.ZipFile(apk) as archive:
             data = archive.read("assets/phrases/"+item["id"]+"/"+spec["path"])
             assert len(data) == spec["size_bytes"] and hashlib.sha256(data).hexdigest() == spec["sha256"], "Phrase model asset mismatch"
     assert not any("/private/" in name or "training-smoke" in name for name in archive.namelist()), "Private ML data in APK"
+    assert not any("test-fixtures" in name or (name.rsplit("/", 1)[-1].startswith("generated-") and name.endswith(".wav")) for name in archive.namelist()), "Generated test speech must not enter app APK"
     unsupported = []
     for name in archive.namelist():
         if not name.startswith("lib/") or not name.endswith(".so"):

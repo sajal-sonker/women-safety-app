@@ -8,6 +8,8 @@ The prototype now bundles Vosk small English0.15 and Hindi0.22 pretrained speech
 
 The custom four-class CNN below is an optional research extension, not a prerequisite for the implemented pretrained word recognizer.
 
+Actual Android execution is also covered by the separate `PhraseSmokeInstrumentation` test APK:10 generated cases passed on API36/x86_64, with both Vosk and LiteRT in the same process and no microphone opened. [Report and reproduction commands](../docs/validation/help-bachao.md). Generated audio belongs only to the test APK, not the demo app.
+
 The app bundles Google's Apache-2.0 YAMNet/classification TFLite v1 (4.13MB) with verified SHA256,521 labels and native CPU inference. See [manifest](models/manifest.json), [attribution](models/NOTICE.md), and [model card](MODEL_CARD.md). Input is raw mono16kHz PCM normalized to float; preprocessing is inside the graph. Android requests50Hz accelerometer samples, uses a3s support window, prompts rather than dispatching, and applies120s prompt cooldown. Strong audio does not require motion. Raw vigorous motion never dispatches. Thresholds are engineering defaults, not calibrated safety probabilities.
 
 `npm run ml:verify` checks the bundled artifact/header/labels. For real desktop interpreter smoke inference, create a Python3.12 virtual environment, install `ml/runtime/requirements.txt`, set `ML_PYTHON` to its Python executable, and run `npm run ml:smoke`. Fixtures are generated silence/tone/noise and establish model execution only. Private results go to ignored `.local/reports`.
