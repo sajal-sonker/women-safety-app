@@ -25,7 +25,7 @@ object MotionSession:SensorEventListener {
         manager=SafetyRuntime.context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val sensor=manager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?:throw HttpFailure(422,"SENSOR_UNAVAILABLE")
         until=SystemClock.elapsedRealtime()+minutes*60000L;uid=SafetyRuntime.auth.currentUser!!.uid;status="MOTION_ONLY_FOREGROUND"
-        require(manager!!.registerListener(this,sensor,20000,handler)){"SENSOR_UNAVAILABLE"}
+        if(!manager!!.registerListener(this,sensor,20000,handler)){stop();throw HttpFailure(422,"SENSOR_UNAVAILABLE")}
         handler.post(tick);return state()
     }
     private val tick=object:Runnable {override fun run(){if(!DiscreetControls.visible||SystemClock.elapsedRealtime()>=until||uid!=SafetyRuntime.auth.currentUser?.uid){stop();return};handler.postDelayed(this,500)}}
