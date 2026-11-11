@@ -1,6 +1,6 @@
 # Application on main; portable context on this branch
 
-Updated10 November2026. Current application commit: **ad61a1275342773f5f17b4ead78c3b22a7d43434** on main. This branch is for instructions/checkpoint documents and retains the historical Phase1/2 application snapshot. Do not run its old code as the latest application and do not merge its agent-file exceptions into main.
+Updated10 November2026. Current application commit: **e647b73b3589e892ff469cd2c56c5961d5def1dd** on main. This branch is for instructions/checkpoint documents and retains the historical Phase1/2 application snapshot. Do not run its old code as the latest application and do not merge its agent-file exceptions into main.
 
 Clone main for the app, fetch handoff/agent-context for context, and read EXECUTION_STATE.md from that branch. If copying the seven context files into a main checkout, keep them ignored/local: AGENTS.md, EXECUTION_STATE.md, docs/AGENT_OWNERSHIP.md, docs/EXECUTOR_HANDOFF_PROMPT.md, docs/EXECUTION_STATE_TEMPLATE.md, docs/22_CODEX_REVIEWER_HANDOFF.md and apps/responder-web/AGENTS.md. Main's repository guard must still report no tracked context/credential files. Do not copy PC_TRANSFER.md onto main as an application artifact.
 
@@ -13,3 +13,5 @@ ML/phone-test update: main now bundles a real licensed YAMNet confirmation-only 
 Final dependency-ready update: read the newest EXECUTION_STATE section and main docs/validation/final-local-work.md. Old synthetic export/parity evidence is withdrawn and replaced by an explicitly frozen, finite-output, end-to-end tested workflow. Main docs/USER_CHECKLIST.md separates user phone testing now from real-data/provider/independent release gates. npm run doctor checks PC and USB readiness.
 
 11 November2026 scope: working local demo only; production deployment and model graduation are deferred, not prototype blockers. Read the newest EXECUTION_STATE section and main docs/USER_CHECKLIST.md.
+
+Latest11 November2026: Help/Bachao is implemented now with bundled pretrained offline English/Hindi models, not deferred. Follow newest EXECUTION_STATE and main docs/validation/help-bachao.md; physical phone testing is pending. Deployment remains outside the prototype.
