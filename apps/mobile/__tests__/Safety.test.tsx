@@ -8,6 +8,9 @@ const mockApi=jest.fn(async(path:string)=>{
 });
 jest.mock('../specs/NativeSafety',()=>({__esModule:true,default:{
  initialize:jest.fn(async()=>JSON.stringify(mockState)),getSafetyState:jest.fn(async()=>JSON.stringify(mockState)),
+ startPhone:jest.fn(async()=>'{"status":"CODE_SENT"}'),
+ confirmPhone:jest.fn(async()=>{mockState={...mockState,uid:'owner-demo',phone:'+16505550101'};return '{}';}),
+ clearAccount:jest.fn(async()=>{mockState={...mockState,uid:null,phone:null};return '{}';}),
  onSafetyChange:jest.fn(()=>({remove:jest.fn()})),apiRequest:(...args:unknown[])=>mockApi(args[0] as string),
  activateSos:jest.fn(async()=>{mockState={...mockState,intent:{client_request_id:'f970b49d-a4a5-4d26-a410-939687629090',state:'LOCAL_PENDING',event_id:null,error:null}};return JSON.stringify(mockState.intent);})
 }}));
@@ -19,6 +22,22 @@ test('phone sign-in and emergency dialer remain available before authentication'
  const buttons=tree!.root.findAll(n=>n.props.accessibilityRole==='button');
  expect(buttons.some(n=>n.props.accessibilityLabel==='Open dialer · 112')).toBe(true);
  expect(tree!.root.findAll(n=>n.props.accessibilityLabel==='Phone number').length).toBeGreaterThan(0);
+ await act(async()=>tree!.unmount());
+});
+test('expired-code retry and sign-out return to a fresh phone verification form',async()=>{
+ let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<App/>);});
+ const button=(label:string)=>tree!.root.findAll(n=>n.props.accessibilityRole==='button'&&n.props.accessibilityLabel===label)[0];
+ await act(async()=>{button('Send verification code').props.onPress();});
+ expect(button('Verify and continue')).toBeDefined();
+ await act(async()=>{button('Change number or resend').props.onPress();});
+ expect(button('Send verification code')).toBeDefined();
+ await act(async()=>{button('Send verification code').props.onPress();});
+ await act(async()=>{button('Verify and continue').props.onPress();});
+ expect(button('Alert trusted contacts')).toBeDefined();
+ const more=tree!.root.findAll(n=>n.props.accessibilityLabel==='More, tab, 4 of 4'&&typeof n.props.onPress==='function')[0];
+ await act(async()=>{more.props.onPress();});
+ await act(async()=>{button('Sign out').props.onPress();});
+ expect(button('Send verification code')).toBeDefined();expect(button('Verify and continue')).toBeUndefined();
  await act(async()=>tree!.unmount());
 });
 test('manual activation shows local pending truthfully rather than claiming delivery',async()=>{
