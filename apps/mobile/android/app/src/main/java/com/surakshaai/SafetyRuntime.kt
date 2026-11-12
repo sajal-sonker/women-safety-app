@@ -240,7 +240,7 @@ object SafetyRuntime {
         val motion=com.surakshaai.monitoring.MotionSession.state()
         // A previous audio error must not mask a newly active motion fallback.
         put("monitoring",if(com.surakshaai.monitoring.AudioMonitoringService.isActive()||motion.optString("status")=="STOPPED")audio else motion)
-        put("fake_call",store.read().optJSONObject("fake_call")?:JSONObject.NULL)
+        put("fake_call",store.read().optJSONObject("fake_call")?.takeIf{it.optString("uid")==auth.currentUser?.uid}?:JSONObject.NULL)
         put("decoy",store.read().optBoolean("decoy")&&store.read().optJSONObject("pins")?.optString("uid")==auth.currentUser?.uid)
         val pins=store.read().optJSONObject("pins")
         put("pins_configured",pins!=null&&auth.currentUser!=null&&pins.optString("uid")==auth.currentUser?.uid)

@@ -15,6 +15,7 @@ import java.util.concurrent.Executors
 
 class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(context){
     private val controls=Executors.newSingleThreadExecutor()
+    private val places=PlaceSearch(context)
     private val evidence=com.surakshaai.evidence.EvidenceCapture(context)
     override fun captureEvidence(eventId:String,kind:String,recipientIds:String,promise:Promise){evidence.capture(eventId,kind,recipientIds,promise)}
     override fun stopEvidenceCapture(promise:Promise){com.surakshaai.evidence.EvidenceCapture.recording=false;promise.resolve("{}")}
@@ -30,11 +31,13 @@ class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(conte
         }
     }
     override fun getName()=NAME
-    override fun invalidate(){controls.shutdown();super.invalidate()}
+    override fun invalidate(){places.close();controls.shutdown();super.invalidate()}
+    override fun searchPlaces(query:String,promise:Promise){places.search(query,promise)}
+    override fun answerFakeCall(promise:Promise)=async(promise,controls){com.surakshaai.triggers.DiscreetControls.answer().toString()}
     private fun async(p:Promise,executor:Executor=SafetyRuntime.io,work:()->String){executor.execute{try{p.resolve(work())}catch(e:Exception){
-        val allowed=setOf("RECENT_AUTH_REQUIRED","MICROPHONE_BUSY","PERMISSION_UNAVAILABLE","FOREGROUND_REQUIRED","CONSENT_REQUIRED","AUTO_DISPATCH_DISABLED","TRY_LATER","SETUP_REQUIRED")
+        val allowed=setOf("ALERT_NOTIFICATIONS_REQUIRED","RECENT_AUTH_REQUIRED","MICROPHONE_BUSY","PERMISSION_UNAVAILABLE","FOREGROUND_REQUIRED","CONSENT_REQUIRED","AUTO_DISPATCH_DISABLED","TRY_LATER","SETUP_REQUIRED")
         val code=if(e is HttpFailure)e.code else e.message?.takeIf{it in allowed}?:"ACTION_FAILED"
-        val message=when(code){"RECENT_AUTH_REQUIRED"->"Sign in again before changing PINs or requesting private account actions.";"MICROPHONE_BUSY"->"Stop the current microphone session before starting another capture.";"AUTO_DISPATCH_DISABLED"->"Automatic sensor dispatch is disabled. Use confirmation-only monitoring or manual SOS.";"TRY_LATER"->"Wait before trying the app PIN again.";"PERMISSION_UNAVAILABLE"->"Microphone and notification permissions are required for audio monitoring.";else->"Action could not complete. Check permissions and connection."}
+        val message=when(code){"ALERT_NOTIFICATIONS_REQUIRED"->"Turn on pop-up notifications for Voice check-in alerts in your phone settings before enabling repeated-word SOS.";"RECENT_AUTH_REQUIRED"->"Sign in again before changing PINs or requesting private account actions.";"MICROPHONE_BUSY"->"Stop the current microphone session before starting another capture.";"AUTO_DISPATCH_DISABLED"->"Automatic sensor dispatch is disabled. Use confirmation-only monitoring or manual SOS.";"TRY_LATER"->"Wait before trying the app PIN again.";"PERMISSION_UNAVAILABLE"->"Microphone and notification permissions are required for audio monitoring.";else->"Action could not complete. Check permissions and connection."}
         p.reject(code,message)
     }}}
     override fun initialize(config:String,promise:Promise)=async(promise){SafetyRuntime.initialize(config)}
@@ -66,6 +69,7 @@ class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(conte
         SafetyRuntime.store.write(JSONObject());SafetyRuntime.auth.signOut();"{}"
     }
     override fun clearAccount(promise:Promise)=async(promise){
+        com.surakshaai.triggers.DiscreetControls.cancel()
         com.surakshaai.monitoring.AudioMonitoringService.stop("ACCOUNT_CHANGED");com.surakshaai.monitoring.MotionSession.stop()
         val current=SafetyRuntime.state().optJSONObject("intent")
         if(current!=null&&current.optString("state")!="TERMINATED")throw HttpFailure(409,"RESOLVE_ACTIVE_SOS_FIRST")

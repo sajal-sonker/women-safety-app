@@ -40,6 +40,10 @@ class PhraseSmokeInstrumentation:Instrumentation() {
                 for(word in listOf("Help","Bachao / बचाओ")){label.text="Heard $word";require(label.accessibilityLiveRegion==View.ACCESSIBILITY_LIVE_REGION_POLITE)}
             }
             val module=NativeSafetyModule(BridgeReactContext(targetContext))
+            CheckInAlerts.channel(targetContext)
+            require(CheckInAlerts.canInterrupt(targetContext))
+            val headsUp=CheckInAlerts.notification(targetContext,"test-only",10)
+            require(headsUp.channelId==CheckInAlerts.CHANNEL&&headsUp.actions.size==2&&headsUp.fullScreenIntent==null)
             val held=CountDownLatch(3)
             val release=CountDownLatch(1)
             val controlsDone=CountDownLatch(2)
@@ -54,6 +58,22 @@ class PhraseSmokeInstrumentation:Instrumentation() {
             val catalog=JSONObject(context.assets.open("manifest.json").bufferedReader().use{it.readText()})
             require(catalog.getString("kind")=="GENERATED_ESPEAK_NG_1.52.0_TOOLCHAIN_ONLY")
             val fixtures=catalog.getJSONArray("fixtures")
+            // Replay generated Help five times through actual Vosk. No recorder
+            // or service/transport is started. Exercise the real word→policy seam.
+            val repeatBytes=context.assets.open("generated-0.wav").use{it.readBytes()}
+            val repeatWords=ByteBuffer.wrap(repeatBytes,44,repeatBytes.size-44).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+            val one=ShortArray(repeatWords.remaining()).also{repeatWords.get(it)}
+            val five=ShortArray(one.size*5);repeat(5){one.copyInto(five,it*one.size)}
+            val gate=RepeatedWordGate(true)
+            OfflinePhraseRecognizer(targetContext){true}.use{recognizer->
+                var cursor=0
+                while(cursor<five.size){val n=minOf(1600,five.size-cursor);val pcm=five.copyOfRange(cursor,cursor+n);cursor+=n;val streamMs=cursor/16L
+                    recognizer.acceptWords(pcm,n).forEach{gate.add(it,streamMs+1000,streamMs)};pcm.fill(0)
+                }
+            }
+            require(gate.deadline>0&&gate.count(five.size/16L+1000)==5){"Five distinct generated Help words did not arm countdown"}
+            require(!gate.takeDispatch(gate.deadline-1)&&gate.takeDispatch(gate.deadline)&&!gate.takeDispatch(Long.MAX_VALUE))
+            one.fill(0);five.fill(0)
             val rows=JSONArray()
             require(fixtures.length()==10)
             for(i in 0 until fixtures.length()){
@@ -82,7 +102,7 @@ class PhraseSmokeInstrumentation:Instrumentation() {
                 rows.put(JSONObject().put("fixture",item.getString("file")).put("passed",labels==expected).put("labels",JSONArray(labels.toList())))
                 require(labels==expected){"Generated fixture mismatch: "+item.getString("file")}
             }
-            result.putString("result",JSONObject().put("status","PASS_ANDROID_GENERATED_SPEECH_ONLY").put("recognition_label_crash_reproduced_and_fixed",true).put("local_controls_responsive_with_network_queue_blocked",true).put("cases",rows).put("microphone_opened",false).put("automatic_dispatch",false).toString())
+            result.putString("result",JSONObject().put("status","PASS_ANDROID_GENERATED_SPEECH_ONLY").put("recognition_label_crash_reproduced_and_fixed",true).put("local_controls_responsive_with_network_queue_blocked",true).put("repeated_words_counted",5).put("repeated_word_countdown_verified",true).put("high_priority_channel_and_actions_verified",true).put("cases",rows).put("microphone_opened",false).put("automatic_dispatch",false).toString())
             finish(Activity.RESULT_OK,result)
         }catch(error:Throwable){
             result.putString("result",JSONObject().put("status","FAIL").put("error_class",error.javaClass.simpleName).put("detail",error.message?:"Android runtime failure").put("microphone_opened",false).toString())

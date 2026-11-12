@@ -14,7 +14,7 @@ import java.util.concurrent.CancellationException
 // Both recognizers consume the SAME fresh PCM once. This class never owns an
 // AudioRecord, network client, transcript log, recording file or SOS transport.
 class OfflinePhraseRecognizer(private val context:Context,private val active:()->Boolean):AutoCloseable {
-    private data class Engine(val language:String,val model:Model,val recognizer:Recognizer,var samples:Int=0)
+    private data class Engine(val language:String,val model:Model,val recognizer:Recognizer,var samples:Int=0,var baseSamples:Long=0)
     private val engines=mutableListOf<Engine>()
     private val manifest=JSONObject(context.assets.open("phrases/manifest.json").bufferedReader().use{it.readText()})
     private val minimum=manifest.getDouble("minimum_word_confidence")
@@ -65,19 +65,22 @@ class OfflinePhraseRecognizer(private val context:Context,private val active:()-
         return root
     }
     fun accept(samples:ShortArray,count:Int):PhraseHit? {
+        return acceptWords(samples,count).maxByOrNull{it.confidence}
+    }
+    fun acceptWords(samples:ShortArray,count:Int):List<PhraseHit> {
         require(count in 1..samples.size)
-        var hit:PhraseHit?=null
+        val hits=mutableListOf<PhraseHit>()
         for(engine in engines){
             checkActive();engine.samples+=count
             val ended=engine.recognizer.acceptWaveForm(samples,count)
             val result=when {ended->engine.recognizer.result;engine.samples>=16000*15->engine.recognizer.finalResult;else->null}
             // Keep transcripts local to this stack and immediately discard them.
-            if(result!=null){val candidate=PhrasePolicy.finalized(engine.language,result,minimum);if(candidate!=null&&(hit==null||candidate.confidence>hit.confidence))hit=candidate
+            if(result!=null){hits.addAll(PhrasePolicy.finalizedWords(engine.language,result,minimum).map{it.copy(startMs=it.startMs+engine.baseSamples/16,endMs=it.endMs+engine.baseSamples/16)})
                 // Bound decoder history even during continuous speech/noise.
-                if(engine.samples>=16000*15){engine.recognizer.reset();engine.samples=0}
+                if(engine.samples>=16000*15){engine.recognizer.reset();engine.baseSamples+=engine.samples;engine.samples=0}
             }
         }
-        return hit
+        return hits.sortedBy{it.endMs}
     }
     override fun close(){for(engine in engines.asReversed()){runCatching{engine.recognizer.close()};runCatching{engine.model.close()}};engines.clear()}
 }

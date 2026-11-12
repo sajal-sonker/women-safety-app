@@ -21,6 +21,8 @@ export interface Spec extends TurboModule {
   resetPins():Promise<string>;
   scheduleFakeCall(label:string,delaySeconds:number):Promise<string>;
   dismissFakeCall():Promise<string>;
+  answerFakeCall():Promise<string>;
+  searchPlaces(query:string):Promise<string>;
   setFocusedKeys(enabled:boolean):Promise<string>;
   finishAccountDeletion(jobId:string):Promise<string>;
   captureEvidence(eventId:string,kind:string,recipientIds:string):Promise<string>;

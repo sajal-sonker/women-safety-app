@@ -45,6 +45,15 @@ test('five concurrent SOS replays persist one event and one intent per recipient
  assert.equal((await call('/sos',{method:'POST',body:{...body,triggered_at:new Date(Date.now()-1000).toISOString()},key})).status,409);
  assert.equal((await call('/sos/'+eventId,{uid:'second-demo'})).status,404);
 });
+test('opted-in repeated-word SOS uses existing ML_FUSION intent idempotency and resolution',async()=>{
+ const key=randomUUID(),body={...sosBody(key),trigger_type:'ML_FUSION'};
+ assert.equal((await call('/sos',{uid:'second-demo',method:'POST',body,key})).status,503);
+ await call('/me/consents',{uid:'second-demo',method:'PATCH',body:{version:'consent-v1',monitoring:true}});
+ const first=await call('/sos',{uid:'second-demo',method:'POST',body,key});assert.equal(first.status,201);assert.equal((await call('/sos/'+first.body.event_id,{uid:'second-demo'})).body.trigger_type,'ML_FUSION');
+ const replay=await call('/sos',{uid:'second-demo',method:'POST',body,key});assert.equal(replay.status,200);assert.equal(replay.body.event_id,first.body.event_id);
+ assert.equal((await call('/sos/'+first.body.event_id+'/resolve',{uid:'second-demo',method:'POST',body:{resolution:'SAFE'}})).status,200);
+ await call('/me/consents',{uid:'second-demo',method:'PATCH',body:{version:'consent-v1',monitoring:false}});
+});
 test('terminal tombstone wins against a late create; absence of event is not cancellation proof',async()=>{
  const key=randomUUID();
  assert.equal((await call('/sos/intents/'+key+'/terminate',{method:'POST',body:{reason:'SAFE'}})).status,200);

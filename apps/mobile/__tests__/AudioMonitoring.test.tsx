@@ -22,6 +22,18 @@ test('phrase monitoring requires explicit consent and requests local phrase anal
  expect(JSON.parse((NativeSafety.startMonitoring as jest.Mock).mock.calls[0][0])).toMatchObject({phrase_consent:true,audio_consent:true,mode:'CONFIRMATION_ONLY'});
  expect(NativeSafety.activateSos).not.toHaveBeenCalled();await act(async()=>tree!.unmount());
 });
+test('repeated-word SOS is default off and included only with its separate opt-in',async()=>{
+ jest.spyOn(PermissionsAndroid,'requestMultiple').mockResolvedValue({[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]:PermissionsAndroid.RESULTS.GRANTED} as never);
+ for(const enabled of [false,true]){
+  let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<AudioMonitoringControls busy={false} run={run} setNotice={jest.fn()}/>);});
+  const toggle=(name:string)=>tree!.root.findAll(n=>n.props.accessibilityLabel===name&&n.props.onValueChange)[0];
+  expect(toggle('Enable repeated-word automatic SOS').props.value).toBe(false);
+  await act(async()=>{toggle('Consent to audio, motion and phrase monitoring').props.onValueChange(true);if(enabled)toggle('Enable repeated-word automatic SOS').props.onValueChange(true);});
+  const start=tree!.root.findAll(n=>n.props.accessibilityRole==='button'&&n.props.accessibilityLabel==='Start listening')[0];await act(async()=>{await start.props.onPress();});
+  expect(JSON.parse((NativeSafety.startMonitoring as jest.Mock).mock.calls.at(-1)[0]).auto_sos_consent).toBe(enabled);
+  expect(NativeSafety.activateSos).not.toHaveBeenCalled();await act(async()=>tree!.unmount());
+ }
+});
 test('Help and Bachao prompts identify the word and never dispatch without a press',async()=>{
  for(const [phrase,decision]of[['HELP','HELP_CHECK_IN'],['BACHAO','BACHAO_CHECK_IN']]as const){
   let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<AudioMonitoringControls busy={false} run={run} setNotice={jest.fn()} monitoring={{status:'ACTIVE_CONFIRMATION_ONLY',remaining_seconds:100,check_in:true,decision,phrase_status:'ACTIVE',phrase_recognition:true,last_phrase:phrase}}/>);});
@@ -31,7 +43,7 @@ test('Help and Bachao prompts identify the word and never dispatch without a pre
 });
 test('unavailable phrase model remains visibly unavailable',async()=>{
  let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<AudioMonitoringControls busy={false} run={run} setNotice={jest.fn()} monitoring={{status:'DEGRADED',remaining_seconds:0,check_in:false,phrase_status:'UNAVAILABLE',reason:'PHRASE_MODEL_UNAVAILABLE'}}/>);});
- expect(JSON.stringify(tree!.toJSON())).toContain('Listening stopped');expect(JSON.stringify(tree!.toJSON())).not.toContain('PHRASE_MODEL_UNAVAILABLE');const details=tree!.root.findAll(n=>n.props.accessibilityRole==='button'&&n.props.accessibilityLabel==='Session details')[0];await act(async()=>{details.props.onPress();});expect(JSON.stringify(tree!.toJSON())).toContain('PHRASE_MODEL_UNAVAILABLE');expect(NativeSafety.activateSos).not.toHaveBeenCalled();await act(async()=>tree!.unmount());
+ expect(JSON.stringify(tree!.toJSON())).toContain('Listening stopped');expect(JSON.stringify(tree!.toJSON())).not.toContain('PHRASE_MODEL_UNAVAILABLE');expect(tree!.root.findAll(n=>n.props.accessibilityLabel==='Session details')).toHaveLength(0);expect(NativeSafety.activateSos).not.toHaveBeenCalled();await act(async()=>tree!.unmount());
 });
 test('microphone denial prevents starting and preserves manual SOS path',async()=>{
  jest.spyOn(PermissionsAndroid,'requestMultiple').mockResolvedValue({[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]:PermissionsAndroid.RESULTS.DENIED} as never);
@@ -70,7 +82,7 @@ test('recognized labels use Android-safe live announcements and hide diagnostics
   expect(tree!.root.findAll(n=>n.props.accessibilityRole==='status')).toHaveLength(0);
   expect(tree!.root.findAll(n=>n.props.accessibilityLiveRegion==='polite').length).toBeGreaterThan(0);
   const text=JSON.stringify(tree!.toJSON());expect(text).toContain('Heard ');expect(text).not.toContain('123456');expect(text).not.toContain('ACTIVE_CONFIRMATION_ONLY');
-  const details=tree!.root.findAll(n=>n.props.accessibilityRole==='button'&&n.props.accessibilityLabel==='Session details')[0];await act(async()=>{details.props.onPress();});expect(JSON.stringify(tree!.toJSON())).toContain('123456');
+  expect(tree!.root.findAll(n=>n.props.accessibilityLabel==='Session details')).toHaveLength(0);
   await act(async()=>tree!.unmount());
  }
 });

@@ -6,7 +6,10 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 class MainActivity : ReactActivity() {
-  override fun onResume(){super.onResume();com.surakshaai.triggers.DiscreetControls.visible=true}
+  override fun onResume(){
+    super.onResume();com.surakshaai.triggers.DiscreetControls.visible=true
+    SafetyRuntime.io.execute{runCatching{SafetyRuntime.setup(applicationContext);if(com.surakshaai.triggers.DiscreetControls.visible)com.surakshaai.triggers.DiscreetControls.ring()}}
+  }
   override fun onPause(){com.surakshaai.triggers.DiscreetControls.visible=false;com.surakshaai.triggers.DiscreetControls.stopSound();com.surakshaai.monitoring.MotionSession.stop();com.surakshaai.evidence.EvidenceCapture.recording=false;super.onPause()}
   override fun dispatchKeyEvent(event:android.view.KeyEvent):Boolean {
     if(event.action==android.view.KeyEvent.ACTION_DOWN)com.surakshaai.triggers.DiscreetControls.onKey(event.keyCode,event.repeatCount)

@@ -65,10 +65,17 @@ test('navigation has four tabs and optional tools open one at a time',async()=>{
  expect(button('Start fake call')).toBeDefined();expect(button('Start listening')).toBeUndefined();
  await act(async()=>tree!.unmount());
 });
+test('journey uses named places and exposes no coordinate form',async()=>{
+ mockState={...mockState,uid:'owner-demo',phone:'+16505550101'};
+ let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<App/>);});
+ const tab=tree!.root.findAll(n=>n.props.accessibilityLabel==='Journey, tab, 2 of 4'&&typeof n.props.onPress==='function')[0];await act(async()=>tab.props.onPress());
+ const text=JSON.stringify(tree!.toJSON());expect(text).toContain('Community centre');expect(text).toContain('Riverside café');expect(text).not.toContain('Origin latitude');expect(text).not.toContain('Destination latitude');expect(text).not.toContain('Depart in hours');
+ await act(async()=>tree!.unmount());
+});
 test('decoy screen omits safety contacts, emergency status and delivery claims',async()=>{
  mockState={...mockState,uid:'owner-demo',decoy:true,intent:{client_request_id:'f970b49d-a4a5-4d26-a410-939687629090',state:'OUTCOME_UNKNOWN',event_id:null,error:null}};
  let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<App/>);});const text=JSON.stringify(tree!.toJSON());expect(text).toContain('Notes');expect(text).not.toContain('OUTCOME UNKNOWN');expect(text).not.toContain('Alert trusted contacts');expect(text).not.toContain('SOS status');await act(async()=>tree!.unmount());
 });
 test('simulated call view is dismissible and does not show SOS controls',async()=>{
- mockState={...mockState,uid:'owner-demo',fake_call:{label:'Practice friend',ringing:true}};let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<App/>);});const text=JSON.stringify(tree!.toJSON());expect(text).toContain('In-app call simulation');expect(text).toContain('Dismiss simulation');expect(text).not.toContain('Alert trusted contacts');await act(async()=>tree!.unmount());
+ mockState={...mockState,uid:'owner-demo',fake_call:{label:'Practice friend',ringing:true}};let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<App/>);});const text=JSON.stringify(tree!.toJSON());expect(text).toContain('In-app call simulation');expect(text).toContain('Decline call');expect(text).not.toContain('Alert trusted contacts');await act(async()=>tree!.unmount());
 });
