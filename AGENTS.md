@@ -1,3 +1,5 @@
+<!-- Latest12 November2026: main 642daa9e8a7b4fd3397e0f0fd784f41033c26bf6 adds user-authorized local opt-in repeated-word SOS (5/30s,10s cancel), visible check-ins, place-name search/Maps, caller-style simulation. User confirms words work on Moto Android16; new flow physical testing pending. Read newest EXECUTION_STATE and main docs/validation/friendly-phone.md. Older blanket auto-SOS prohibition superseded only for this explicit local session option; no live deployment. -->
+
 <!-- Latest12 November2026 phone-feedback fixes complete on main 1971e439d9a687ae8f9b1d2c58f9ec0903f713df: recognized-word crash, main-thread PSS/blocked local controls, four-tab UI, live receiver. Reported Moto Android16 ANR physical retest pending. Read newest EXECUTION_STATE and main docs/validation/phone-feedback-fixes.md first. -->
 
 <!-- Latest user requirement11 November2026: implement Help/Bachao now, deployment future. CR-005 bundled offline word recognition is complete on main e647b73b3589e892ff469cd2c56c5961d5def1dd. Read newest EXECUTION_STATE and main help-bachao report before historical text. -->

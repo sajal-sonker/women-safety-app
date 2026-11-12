@@ -1,3 +1,7 @@
+# Latest12 November2026 — friendly phone update
+
+Current application main **642daa9e8a7b4fd3397e0f0fd784f41033c26bf6**. Read newest EXECUTION_STATE and main docs/validation/friendly-phone.md first. Local repeated-word SOS is separately opted-in (5words/30s,10s cancel); words themselves user-confirmed on Android16, new flow phone pass pending. New standalone APK hash cdb869a04b1672afd8bdb5343258f5678dbfc535b1507076cf8adb7e863d81e4. Do not run this context branch’s historical application or merge its exceptions to main.
+
 # Latest12 November2026
 
 Application main **1971e439d9a687ae8f9b1d2c58f9ec0903f713df** includes the phone-feedback corrections and new standalone APK. Use newest EXECUTION_STATE and main docs/validation/phone-feedback-fixes.md; older code/APK/status below is historical. Moto Android16 physical retest pending; no zero-bug claim. Deployment remains outside prototype.
