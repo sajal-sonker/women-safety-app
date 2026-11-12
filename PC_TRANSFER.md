@@ -1,3 +1,7 @@
+# Latest12 November2026
+
+Application main **1971e439d9a687ae8f9b1d2c58f9ec0903f713df** includes the phone-feedback corrections and new standalone APK. Use newest EXECUTION_STATE and main docs/validation/phone-feedback-fixes.md; older code/APK/status below is historical. Moto Android16 physical retest pending; no zero-bug claim. Deployment remains outside prototype.
+
 # Application on main; portable context on this branch
 
 Updated10 November2026. Current application commit: **e647b73b3589e892ff469cd2c56c5961d5def1dd** on main. This branch is for instructions/checkpoint documents and retains the historical Phase1/2 application snapshot. Do not run its old code as the latest application and do not merge its agent-file exceptions into main.

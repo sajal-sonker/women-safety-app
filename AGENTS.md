@@ -1,3 +1,5 @@
+<!-- Latest12 November2026 phone-feedback fixes complete on main 1971e439d9a687ae8f9b1d2c58f9ec0903f713df: recognized-word crash, main-thread PSS/blocked local controls, four-tab UI, live receiver. Reported Moto Android16 ANR physical retest pending. Read newest EXECUTION_STATE and main docs/validation/phone-feedback-fixes.md first. -->
+
 <!-- Latest user requirement11 November2026: implement Help/Bachao now, deployment future. CR-005 bundled offline word recognition is complete on main e647b73b3589e892ff469cd2c56c5961d5def1dd. Read newest EXECUTION_STATE and main help-bachao report before historical text. -->
 
 <!-- User scope11 November2026: working local prototype only. Production deployment/resources/independent release gates are deferred; see newest EXECUTION_STATE. Main ad61a1275342773f5f17b4ead78c3b22a7d43434. -->
