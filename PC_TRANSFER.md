@@ -1,3 +1,7 @@
+# Latest12 November2026 — motion/profile update
+
+Application main **f2bf6a56ab3cad23a525f733b26010a0e710c456**. Read newest EXECUTION_STATE and main docs/validation/motion-profile.md. Voice bottom tab, hamburger Settings/name, filtered foreground Motion and PIN guidance. APK SHA2560c390f17229aa2d63fefedd07ef5fc34f4c75ce3782ad57e582d50741617f7c4. PC services restarted/left running; no device connected. Physical Moto motion retest pending. Use main to run, not this historical context-branch application.
+
 # Latest12 November2026 — friendly phone update
 
 Current application main **642daa9e8a7b4fd3397e0f0fd784f41033c26bf6**. Read newest EXECUTION_STATE and main docs/validation/friendly-phone.md first. Local repeated-word SOS is separately opted-in (5words/30s,10s cancel); words themselves user-confirmed on Android16, new flow phone pass pending. New standalone APK hash cdb869a04b1672afd8bdb5343258f5678dbfc535b1507076cf8adb7e863d81e4. Do not run this context branch’s historical application or merge its exceptions to main.
