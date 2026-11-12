@@ -54,6 +54,14 @@ test('opted-in repeated-word SOS uses existing ML_FUSION intent idempotency and 
  assert.equal((await call('/sos/'+first.body.event_id+'/resolve',{uid:'second-demo',method:'POST',body:{resolution:'SAFE'}})).status,200);
  await call('/me/consents',{uid:'second-demo',method:'PATCH',body:{version:'consent-v1',monitoring:false}});
 });
+test('personal display name remains scoped to its owner and rejects oversized names',async()=>{
+ const original=(await call('/me',{uid:'second-demo'})).body.display_name;
+ const other=(await call('/me')).body.display_name;
+ assert.equal((await call('/me',{uid:'second-demo',method:'PATCH',body:{display_name:'Demo Person'}})).status,200);
+ assert.equal((await call('/me',{uid:'second-demo'})).body.display_name,'Demo Person');assert.equal((await call('/me')).body.display_name,other);
+ assert.equal((await call('/me',{uid:'second-demo',method:'PATCH',body:{display_name:'x'.repeat(81)}})).status,400);
+ await call('/me',{uid:'second-demo',method:'PATCH',body:{display_name:original}});
+});
 test('terminal tombstone wins against a late create; absence of event is not cancellation proof',async()=>{
  const key=randomUUID();
  assert.equal((await call('/sos/intents/'+key+'/terminate',{method:'POST',body:{reason:'SAFE'}})).status,200);

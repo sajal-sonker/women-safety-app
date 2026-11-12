@@ -13,7 +13,7 @@ The phone build uses `http://127.0.0.1:4001` through USB reverse. An emulator bu
 
 ## Audio/motion test
 
-Install the rebuilt APK with `scripts/phone-test.ps1 -Install` before retesting. Open **Home → Manage voice check-in** or **More → Voice check-in**. Read and enable voice/motion consent, grant microphone and notification permissions, then tap **Start listening**. Wait for **Listening**. Technical model/session diagnostics are no longer displayed in the app. The visible Listening state and Android microphone indicator show the session. During **Preparing**, **Cancel start** remains available. Use **Stop listening** to end the session. Public model weights are cached locally; microphone buffers/transcripts never go to the server or into saved evidence. A persistent microphone notification has a Stop action. Stop, expiry, account change, permission loss, call/audio-focus conflict and process termination end/degrade monitoring; it never silently restarts. An unavailable/corrupt language model stops/degrades the session visibly.
+Install the rebuilt APK with `scripts/phone-test.ps1 -Install` before retesting. Open **Home → Manage voice check-in** or **Voice tab**. Read and enable voice/motion consent, grant microphone and notification permissions, then tap **Start listening**. Wait for **Listening**. Technical model/session diagnostics are no longer displayed in the app. The visible Listening state and Android microphone indicator show the session. During **Preparing**, **Cancel start** remains available. Use **Stop listening** to end the session. Public model weights are cached locally; microphone buffers/transcripts never go to the server or into saved evidence. A persistent microphone notification has a Stop action. Stop, expiry, account change, permission loss, call/audio-focus conflict and process termination end/degrade monitoring; it never silently restarts. An unavailable/corrupt language model stops/degrades the session visibly.
 
 Say **Help**, **please help me**, **बचाओ** or **मुझे बचाओ**, then pause so the speech recognizer can finalize the word. Voice check-in shows the last recognized target and the corresponding check-in. English/Hindi engines run together; there is no language switch. A shared120s cooldown limits repeat sound/phrase prompts. For a quick separate-word demonstration, Stop and explicitly start a fresh consented session between Help and Bachao. Say ordinary phrases/nearby words too, including hello, helper, बताओ and बनाओ; record any false prompts rather than discarding them.
 
@@ -41,7 +41,7 @@ Use two phones before claiming the documented support/energy gates. Record failu
 
 The 12 November update fixes a reproduced Android rendering exception after word recognition and removes frequent process-memory scans from the UI thread. See [verification](validation/phone-feedback-fixes.md). The reported Moto Android16 ANR has not been physically reproduced without the phone/logs. Test Help and Bachao separately, leave the session running briefly, then verify Stop responds and the microphone indicator closes. If Android still says “not responding,” record the exact time, whether a recognized-word label appeared, and whether it happens during loading or listening.
 
-Navigation is now **Home / Journey / Contacts / More**. Fake call, App PIN & duress, Demo help points, Alert history and Privacy & data each have their own page under More. Back returns to the More menu. Optional diagnostics and explanations are expandable.
+Navigation is now **Home / Voice / Journey / Contacts / More**. Fake call, App PIN & duress, Demo help points, Alert history and Privacy & data each have their own page under More. Back returns to the More menu. Optional diagnostics and explanations are expandable.
 
 In the contact browser open **Received alerts** before sending a simulated SOS. Keep it visible and online: the inbox and tracking status refresh automatically about every1.5seconds after each completed request batch. A connection failure retries automatically; returning to the tab or reconnecting wakes polling. You should not need to reload the page. Offline/background tabs pause; this prototype has no closed-browser push delivery.
 
@@ -49,7 +49,7 @@ In the contact browser open **Received alerts** before sending a simulated SOS. 
 
 The user reported Help/Bachao working on their Moto Android16 phone before this update; the new repetition/notification/Maps/fake-call flows need another phone pass. Install the latest rebuilt APK.
 
-1. Under More → Voice check-in, explicitly enable both listening consent and Send SOS after repeated help words, then Start listening. Wait for Listening.
+1. Under Voice tab, explicitly enable both listening consent and Send SOS after repeated help words, then Start listening. Wait for Listening.
 2. Say five Help/Bachao words within30seconds; you may mix them. Pause briefly for finalized recognition. Do not dismiss the first check-in while testing accumulation: I’m okay cancels the episode. Check the visible word counter and10second SOS countdown.
 3. First test Cancel SOS during the countdown. Verify no new owner/recipient alert, and that counts are cleared. Counting pauses30seconds after cancellation; restart listening to rehearse a fresh session immediately.
 4. Then repeat five words and allow the countdown to finish. Keep contact +16505550501’s Received alerts open in a separate PC browser profile. Confirm exactly one new simulated alert, tracking/ACK and owner resolution. Network failure must remain queued/unknown, never falsely delivered.
@@ -59,3 +59,5 @@ The user reported Help/Bachao working on their Moto Android16 phone before this 
 8. More → Fake call: start, Answer, check the elapsed timer and silent ringtone, End; repeat with Decline. Scheduled calls open via notification when backgrounded. No real telephony call is placed.
 
 The count threshold is not calibrated distress recognition. See [implementation/verification](validation/friendly-phone.md). No production deployment is required.
+
+Latest navigation/motion/name/PIN guide: [accounts and PINs](DEMO_ACCOUNTS_AND_PIN.md). Voice is now a bottom tab; Settings is the top-right menu. Before testing motion-only, stop Voice, then More → Motion check-in → consent → Start → wait Ready for shakes. Three short back-and-forth shakes within2seconds should prompt a check-in; More responsive sensitivity is available after stopping. Backgrounding stops motion-only, and motion never sends SOS automatically.

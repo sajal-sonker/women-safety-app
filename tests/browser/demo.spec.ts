@@ -39,6 +39,11 @@ test('emulator phone login → SOS → simulated recipient message → acknowled
 test('temporal route comparison and journey arrival work with fictional Lucknow data',async({page,request})=>{
  await login(page,request,'+16505550101');
  await page.getByRole('button',{name:'Plan a journey',exact:true}).click();
+ const stale=await page.evaluate(()=>{const d=new Date(Date.now()-120000);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);});
+ await page.getByLabel('Departure',{exact:true}).fill(stale);
+ await page.getByRole('button',{name:'Compare walking routes ↗',exact:true}).click();
+ await expect(page.getByRole('alert').filter({hasText:'Choose a future departure'})).toBeVisible();
+ await page.getByRole('button',{name:'Leave now',exact:true}).click();
  await page.getByRole('button',{name:'Compare walking routes ↗',exact:true}).click();
  await expect(page.getByText(/DEMO: fictional network/)).toBeVisible();
  await expect(page.getByRole('img',{name:'Fictional walking route comparison near Lucknow'})).toBeVisible();

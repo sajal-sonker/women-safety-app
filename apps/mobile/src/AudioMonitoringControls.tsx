@@ -39,7 +39,8 @@ export function AudioMonitoringControls({monitoring,busy,run,setNotice}:{monitor
  }
  const active=['STARTING','ACTIVE_CONFIRMATION_ONLY'].includes(monitoring?.status??''),pending=starting||requested||monitoring?.phrase_status==='LOADING';
  const listening=monitoring?.phrase_recognition&&monitoring?.microphone;
- const label=pending?'Preparing…':listening?'Listening':monitoring?.status==='DEGRADED'?'Unavailable':'Off';
+ const motionOnly=monitoring?.decision==='MOTION_CHECK_IN';
+ const label=pending?'Preparing…':listening?'Listening':monitoring?.status==='DEGRADED'&&!motionOnly?'Unavailable':'Off';
  return <Card title="Voice check-in">
   <Text style={s.body}>Say “Help” or “Bachao / बचाओ” to receive a check-in prompt.</Text>
   <Text style={s.pill}>{label}{listening?' · '+Math.ceil((monitoring?.remaining_seconds??0)/60)+' min left':''}</Text>
@@ -51,7 +52,7 @@ export function AudioMonitoringControls({monitoring,busy,run,setNotice}:{monitor
   {pending&&<Text style={s.small}>Getting ready… You can cancel at any time.</Text>}
   {monitoring?.last_phrase&&<Text accessibilityLiveRegion="polite" style={s.notice}>Heard {monitoring.last_phrase==='HELP'?'Help':'Bachao / बचाओ'}</Text>}
   {monitoring?.remote_consent==='UNCONFIRMED_OFFLINE'&&<Text style={s.small}>Offline. Listening is local; Stop still works.</Text>}
-  {monitoring?.status==='DEGRADED'&&<Text accessibilityRole="alert" style={s.small}>Listening stopped. Check microphone access and try again. Manual SOS is available on Home.</Text>}
+  {monitoring?.status==='DEGRADED'&&!motionOnly&&<Text accessibilityRole="alert" style={s.small}>Listening stopped. Check microphone access and try again. Manual SOS is available on Home.</Text>}
   {monitoring?.auto_dispatch&&active&&<Text style={s.small}>Help words heard: {monitoring.repeat_count??0} of 5</Text>}
   {monitoring?.auto_sos_state==='SAVED'&&<Text accessibilityLiveRegion="polite" style={s.notice}>SOS saved. See Home for delivery updates.</Text>}
   {monitoring?.auto_sos_state==='FAILED'&&<Text accessibilityRole="alert" style={s.notice}>Could not save SOS. Please use the SOS button on Home.</Text>}

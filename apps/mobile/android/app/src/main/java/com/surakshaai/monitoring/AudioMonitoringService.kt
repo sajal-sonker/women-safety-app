@@ -16,7 +16,7 @@ import com.surakshaai.triggers.DiscreetControls
 import org.json.JSONObject
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.math.sqrt
+
 
 class AudioMonitoringService:Service(),SensorEventListener {
     companion object {
@@ -64,8 +64,7 @@ class AudioMonitoringService:Service(),SensorEventListener {
     private var uid=""
     @Volatile private var motionAt:Long?=null
     @Volatile private var checkInUntil=0L
-    private var spikes=0
-    private var lastSpike=0L
+    private val shakeDetector=ShakeDetector()
     private val latency=java.util.ArrayDeque<Double>()
     private val consentPolling=AtomicBoolean(false)
     private var consentPollAt=0L
@@ -254,8 +253,9 @@ class AudioMonitoringService:Service(),SensorEventListener {
         stopForeground(STOP_FOREGROUND_REMOVE);stopSelf()
     }
     override fun onSensorChanged(event:SensorEvent){
-        if(!running.get())return;val now=SystemClock.elapsedRealtime();val g=sqrt(event.values.sumOf{(it*it).toDouble()})/9.80665
-        if(g>2.7&&now-lastSpike>180){spikes=if(now-lastSpike<1800)spikes+1 else 1;lastSpike=now;if(spikes>=3){motionAt=now;spikes=0}}
+        if(!running.get()||event.sensor.type!=Sensor.TYPE_ACCELEROMETER||event.values.size<3)return
+        val now=SystemClock.elapsedRealtime()
+        if(shakeDetector.accept(event.values[0].toDouble(),event.values[1].toDouble(),event.values[2].toDouble(),now))motionAt=now
     }
     override fun onAccuracyChanged(sensor:Sensor?,accuracy:Int){}
     override fun onBind(intent:Intent?)=null

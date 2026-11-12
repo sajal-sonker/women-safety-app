@@ -9,7 +9,7 @@ export function VoiceCheckIn({monitoring,onCancel,onSend}:{monitoring?:Monitorin
   <View style={popup.shade}><View accessibilityViewIsModal style={popup.card}>
    <View style={popup.symbol}><Text style={popup.symbolText}>♡</Text></View>
    <Text accessibilityRole="header" style={popup.title}>{seconds>0?'Sending SOS in '+seconds+'s':'Do you need help?'}</Text>
-   <Text accessibilityLiveRegion="polite" style={popup.body}>{seconds>0?'Repeated help words were heard. Your contacts will be alerted unless you cancel.':'We heard a help word or a sudden sound. You can alert your trusted people now.'}</Text>
+   <Text accessibilityLiveRegion="polite" style={popup.body}>{seconds>0?'Repeated help words were heard. Your contacts will be alerted unless you cancel.':monitoring?.decision==='MOTION_CHECK_IN'?'We noticed repeated shaking. Are you okay? You can request SOS if you need help.':'We heard a help word or a sudden sound. You can alert your trusted people now.'}</Text>
    <Text style={s.small}>Demo · messages are simulated</Text>
    <Button title="Request SOS now" onPress={onSend}/>
    <Button title={seconds>0?'Cancel SOS — I’m okay':'I’m okay'} secondary onPress={onCancel}/>

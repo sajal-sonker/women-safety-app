@@ -10,9 +10,11 @@ Start with [your demo checklist](docs/USER_CHECKLIST.md): run `npm run doctor`, 
 
 The latest phone-test build includes offline English **Help** and Hindi **Bachao / बचाओ** recognition using bundled Vosk speech models, alongside YAMNet sound classification and motion check-ins. A recognized word shows a check-in. An optional repeated-word setting starts a cancellable SOS countdown after five Help/Bachao words within30seconds. Audio/transcripts stay local and are not saved/uploaded. See [phone setup](docs/PHONE_TEST.md), [phrase implementation evidence](docs/validation/help-bachao.md) and [ML tools](ml/README.md). Test actual phone behavior before presenting it; pretrained speech recognition is implemented, while human distress accuracy remains unmeasured.
 
-The 12 November phone-feedback update simplifies navigation to Home, Journey, Contacts and More, fixes an Android recognized-word rendering exception, and adds automatic receiver inbox/tracking updates with connection recovery. Install the rebuilt demo APK before retesting; see [fixes and verification](docs/validation/phone-feedback-fixes.md).
+The 12 November phone-feedback update simplifies navigation (now Home, Voice, Journey, Contacts and More), fixes an Android recognized-word rendering exception, and adds automatic receiver inbox/tracking updates with connection recovery. Install the rebuilt demo APK before retesting; see [fixes and verification](docs/validation/phone-feedback-fixes.md).
 
 The latest [friendly phone update](docs/validation/friendly-phone.md) adds the separate repeated-word SOS option, visible check-in pop-ups, place-name lookup/Maps directions and caller-style fake calls. Real place lookup depends on the phone’s location service and connectivity; route-risk comparison remains fictional.
+
+The latest motion/profile update adds a dedicated Voice tab, hamburger settings, a saved name/Home greeting and a revised foreground shake check-in. See [names, custom users and PINs](docs/DEMO_ACCOUNTS_AND_PIN.md) and [motion/profile verification](docs/validation/motion-profile.md).
 
 See [RUNNING.md](RUNNING.md) for clean setup, test accounts, Android instructions and troubleshooting. See the [Phase 1 evidence](docs/validation/phase-1.md) and [Phase 2 evidence](docs/validation/phase-2.md) for implemented scope and remaining acceptance work. This is not a production emergency deployment.
 

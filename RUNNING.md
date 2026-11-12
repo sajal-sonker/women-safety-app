@@ -118,3 +118,7 @@ After an SOS is accepted, optional evidence requires separate consent and select
 Run `npm run test:monitoring`, `npm run test:security`, `npm run test:load`, and `npm run ml:evaluate`. The last command returns exit2 without private data/model, never a fake ML pass. See [operations](infra/OPERATIONS.md) for encrypted backup/restore and the separate erasure ledger. `npm run restore:verify -- <archive>` replaces only the explicitly named local restore-test database.
 
 A bundled arm64 controlled-demo APK can be built with `./gradlew :app:assembleDemo -PreactNativeArchitectures=arm64-v8a` (Windows: `.\gradlew.bat`). This uses local debug signing, `.demo` application ID and emulated auth/local HTTP; it is not a production signed release. Production release signing is deliberately unconfigured. Final artifact/build observations are in [Phase4 evidence](docs/validation/phase-4.md). Physical/device claims remain pending.
+
+## Personal settings and motion update
+
+Bottom navigation: Home, Voice, Journey, Contacts, More. The top-right menu opens profile/name/language/privacy/sign-out. More contains motion, PIN, fake-call and extras. Motion-only is a deliberately started foreground shake check-in, not automatic dispatch; stop Voice before starting it. See [accounts, custom numbers and PIN practice](docs/DEMO_ACCOUNTS_AND_PIN.md) and [verification](docs/validation/motion-profile.md). Receiver UI remains http://localhost:3000 in a separate browser profile; API4001 and Auth9099 are service ports.
