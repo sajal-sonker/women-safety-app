@@ -10,6 +10,8 @@ Start with [your demo checklist](docs/USER_CHECKLIST.md): run `npm run doctor`, 
 
 The latest phone-test build includes offline English **Help** and Hindi **Bachao / बचाओ** recognition using bundled Vosk speech models, alongside YAMNet sound classification and motion check-ins. A recognized word asks for confirmation; it does not send an automatic SOS. Audio/transcripts stay local and are not saved/uploaded. See [phone setup](docs/PHONE_TEST.md), [phrase implementation evidence](docs/validation/help-bachao.md) and [ML tools](ml/README.md). Test actual phone behavior before presenting it; pretrained speech recognition is implemented, while human distress accuracy remains unmeasured.
 
+The 12 November phone-feedback update simplifies navigation to Home, Journey, Contacts and More, fixes an Android recognized-word rendering exception, and adds automatic receiver inbox/tracking updates with connection recovery. Install the rebuilt demo APK before retesting; see [fixes and verification](docs/validation/phone-feedback-fixes.md).
+
 See [RUNNING.md](RUNNING.md) for clean setup, test accounts, Android instructions and troubleshooting. See the [Phase 1 evidence](docs/validation/phase-1.md) and [Phase 2 evidence](docs/validation/phase-2.md) for implemented scope and remaining acceptance work. This is not a production emergency deployment.
 
 The repository contains `apps/mobile`, `apps/responder-web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `scripts` and `tests`. The [machine-readable API](packages/contracts/openapi.yaml) includes controlled-demo Phase 3/4 operations and explicitly disabled conditional capabilities. See the [contract lock](packages/contracts/CONTRACT_LOCK.md).

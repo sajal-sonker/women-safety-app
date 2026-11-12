@@ -10,8 +10,11 @@ import com.google.firebase.auth.*
 import com.surakshaai.codegen.NativeSafetySpec
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
 class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(context){
+    private val controls=Executors.newSingleThreadExecutor()
     private val evidence=com.surakshaai.evidence.EvidenceCapture(context)
     override fun captureEvidence(eventId:String,kind:String,recipientIds:String,promise:Promise){evidence.capture(eventId,kind,recipientIds,promise)}
     override fun stopEvidenceCapture(promise:Promise){com.surakshaai.evidence.EvidenceCapture.recording=false;promise.resolve("{}")}
@@ -27,24 +30,25 @@ class NativeSafetyModule(context:ReactApplicationContext):NativeSafetySpec(conte
         }
     }
     override fun getName()=NAME
-    private fun async(p:Promise,work:()->String){SafetyRuntime.io.execute{try{p.resolve(work())}catch(e:Exception){
+    override fun invalidate(){controls.shutdown();super.invalidate()}
+    private fun async(p:Promise,executor:Executor=SafetyRuntime.io,work:()->String){executor.execute{try{p.resolve(work())}catch(e:Exception){
         val allowed=setOf("RECENT_AUTH_REQUIRED","MICROPHONE_BUSY","PERMISSION_UNAVAILABLE","FOREGROUND_REQUIRED","CONSENT_REQUIRED","AUTO_DISPATCH_DISABLED","TRY_LATER","SETUP_REQUIRED")
         val code=if(e is HttpFailure)e.code else e.message?.takeIf{it in allowed}?:"ACTION_FAILED"
         val message=when(code){"RECENT_AUTH_REQUIRED"->"Sign in again before changing PINs or requesting private account actions.";"MICROPHONE_BUSY"->"Stop the current microphone session before starting another capture.";"AUTO_DISPATCH_DISABLED"->"Automatic sensor dispatch is disabled. Use confirmation-only monitoring or manual SOS.";"TRY_LATER"->"Wait before trying the app PIN again.";"PERMISSION_UNAVAILABLE"->"Microphone and notification permissions are required for audio monitoring.";else->"Action could not complete. Check permissions and connection."}
         p.reject(code,message)
     }}}
     override fun initialize(config:String,promise:Promise)=async(promise){SafetyRuntime.initialize(config)}
-    override fun getAuthState(promise:Promise)=async(promise){SafetyRuntime.authState().toString()}
+    override fun getAuthState(promise:Promise)=async(promise,controls){SafetyRuntime.authState().toString()}
     override fun apiRequest(path:String,method:String,body:String,key:String,headers:String,promise:Promise)=async(promise){SafetyRuntime.request(path,method,body,key,JSONObject(headers))}
-    override fun activateSos(trigger:String,promise:Promise)=async(promise){SafetyRuntime.activate(trigger).toString()}
-    override fun getIntent(clientRequestId:String,promise:Promise)=async(promise){SafetyRuntime.state().optJSONObject("intent")?.takeIf{it.optString("client_request_id")==clientRequestId}?.toString()?:"{}"}
+    override fun activateSos(trigger:String,promise:Promise)=async(promise,controls){SafetyRuntime.activate(trigger).toString()}
+    override fun getIntent(clientRequestId:String,promise:Promise)=async(promise,controls){SafetyRuntime.state().optJSONObject("intent")?.takeIf{it.optString("client_request_id")==clientRequestId}?.toString()?:"{}"}
     override fun terminateIntent(clientRequestId:String,reason:String,promise:Promise)=async(promise){SafetyRuntime.terminate(clientRequestId,reason).toString()}
     override fun startLocation(purpose:String,resourceId:String,expiresAt:String,promise:Promise)=async(promise){SafetyRuntime.startLocation(purpose,resourceId,expiresAt).toString()}
     override fun stopLocation(purpose:String,resourceId:String,promise:Promise)=async(promise){SafetyRuntime.stopLocation(purpose,resourceId);"{}"}
-    override fun getSafetyState(promise:Promise)=async(promise){SafetyRuntime.state().toString()}
-    override fun startMonitoring(config:String,promise:Promise)=async(promise){val value=JSONObject(config);if(value.optString("mode")=="MOTION_ONLY_CONFIRMATION"){require(!com.surakshaai.monitoring.AudioMonitoringService.isActive());com.surakshaai.monitoring.MotionSession.start(value).toString()}else com.surakshaai.monitoring.AudioMonitoringService.start(value).toString()}
-    override fun stopMonitoring(promise:Promise)=async(promise){com.surakshaai.monitoring.AudioMonitoringService.stop();com.surakshaai.monitoring.MotionSession.stop();"{}"}
-    override fun dismissMonitoringCheckIn(promise:Promise)=async(promise){com.surakshaai.monitoring.AudioMonitoringService.dismissCheckIn();com.surakshaai.monitoring.MotionSession.dismissCheckIn();"{}"}
+    override fun getSafetyState(promise:Promise)=async(promise,controls){SafetyRuntime.state().toString()}
+    override fun startMonitoring(config:String,promise:Promise)=async(promise,controls){val value=JSONObject(config);if(value.optString("mode")=="MOTION_ONLY_CONFIRMATION"){require(!com.surakshaai.monitoring.AudioMonitoringService.isActive());com.surakshaai.monitoring.MotionSession.start(value).toString()}else com.surakshaai.monitoring.AudioMonitoringService.start(value).toString()}
+    override fun stopMonitoring(promise:Promise)=async(promise,controls){com.surakshaai.monitoring.AudioMonitoringService.stop();com.surakshaai.monitoring.MotionSession.stop();"{}"}
+    override fun dismissMonitoringCheckIn(promise:Promise)=async(promise,controls){com.surakshaai.monitoring.AudioMonitoringService.dismissCheckIn();com.surakshaai.monitoring.MotionSession.dismissCheckIn();"{}"}
     override fun configurePins(normal:String,duress:String,promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.setup(normal,duress).toString()}
     override fun enterPin(pin:String,practice:Boolean,promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.unlock(pin,practice).toString()}
     override fun resetPins(promise:Promise)=async(promise){com.surakshaai.triggers.DiscreetControls.reset().toString()}

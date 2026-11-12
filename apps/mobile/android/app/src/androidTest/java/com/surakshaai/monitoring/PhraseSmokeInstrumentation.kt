@@ -8,6 +8,17 @@ import org.json.JSONObject
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
+import android.view.View
+import com.facebook.react.views.text.ReactTextView
+import com.facebook.react.views.text.ReactTextViewManager
+import com.facebook.react.bridge.BridgeReactContext
+import com.facebook.react.bridge.Callback
+import com.facebook.react.bridge.PromiseImpl
+import com.surakshaai.NativeSafetyModule
+import com.surakshaai.SafetyRuntime
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 // Runs the real Android Vosk/JNA runtime on generated files. No microphone,
 // permissions, user accounts, network requests or SOS transport are exercised.
@@ -16,6 +27,30 @@ class PhraseSmokeInstrumentation:Instrumentation() {
     override fun onStart(){
         val result=Bundle()
         try {
+            // Reproduce the old recognized-label crash in the real view manager,
+            // then verify the supported polite live-region rendering path.
+            runOnMainSync {
+                val label=ReactTextView(targetContext)
+                val manager=ReactTextViewManager()
+                var oldRoleRejected=false
+                try{manager.setAccessibilityRole(label,"status")}catch(_:IllegalArgumentException){oldRoleRejected=true}
+                require(oldRoleRejected){"Update regression: native role contract changed"}
+                manager.setAccessibilityRole(label,null)
+                manager.setAccessibilityLiveRegion(label,"polite")
+                for(word in listOf("Help","Bachao / बचाओ")){label.text="Heard $word";require(label.accessibilityLiveRegion==View.ACCESSIBILITY_LIVE_REGION_POLITE)}
+            }
+            val module=NativeSafetyModule(BridgeReactContext(targetContext))
+            val held=CountDownLatch(3)
+            val release=CountDownLatch(1)
+            val controlsDone=CountDownLatch(2)
+            val controlFailed=AtomicBoolean(false)
+            try {
+                repeat(3){SafetyRuntime.io.execute{held.countDown();release.await(5,TimeUnit.SECONDS)}}
+                require(held.await(2,TimeUnit.SECONDS))
+                fun response()=PromiseImpl(Callback{controlsDone.countDown()},Callback{controlFailed.set(true);controlsDone.countDown()})
+                module.getSafetyState(response());module.stopMonitoring(response())
+                require(controlsDone.await(2,TimeUnit.SECONDS)&&!controlFailed.get()){"Local controls blocked behind network work"}
+            }finally{release.countDown();module.invalidate()}
             val catalog=JSONObject(context.assets.open("manifest.json").bufferedReader().use{it.readText()})
             require(catalog.getString("kind")=="GENERATED_ESPEAK_NG_1.52.0_TOOLCHAIN_ONLY")
             val fixtures=catalog.getJSONArray("fixtures")
@@ -47,7 +82,7 @@ class PhraseSmokeInstrumentation:Instrumentation() {
                 rows.put(JSONObject().put("fixture",item.getString("file")).put("passed",labels==expected).put("labels",JSONArray(labels.toList())))
                 require(labels==expected){"Generated fixture mismatch: "+item.getString("file")}
             }
-            result.putString("result",JSONObject().put("status","PASS_ANDROID_GENERATED_SPEECH_ONLY").put("cases",rows).put("microphone_opened",false).put("automatic_dispatch",false).toString())
+            result.putString("result",JSONObject().put("status","PASS_ANDROID_GENERATED_SPEECH_ONLY").put("recognition_label_crash_reproduced_and_fixed",true).put("local_controls_responsive_with_network_queue_blocked",true).put("cases",rows).put("microphone_opened",false).put("automatic_dispatch",false).toString())
             finish(Activity.RESULT_OK,result)
         }catch(error:Throwable){
             result.putString("result",JSONObject().put("status","FAIL").put("error_class",error.javaClass.simpleName).put("detail",error.message?:"Android runtime failure").put("microphone_opened",false).toString())

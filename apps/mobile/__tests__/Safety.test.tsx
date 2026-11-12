@@ -29,9 +29,21 @@ test('manual activation shows local pending truthfully rather than claiming deli
  expect(button).toBeDefined();
  await act(async()=>{button.props.onPress();});
  const text=JSON.stringify(tree!.toJSON());
- expect(text).toContain('LOCAL PENDING');
+ expect(text).toContain('Saved on this phone');
  expect(text).toContain('Not sent or outcome unknown');
  expect(text).not.toContain('DELIVERED');
+ await act(async()=>tree!.unmount());
+});
+test('navigation has four tabs and optional tools open one at a time',async()=>{
+ mockState={...mockState,uid:'owner-demo',phone:'+16505550101'};
+ let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<App/>);});
+ const labels=new Set(tree!.root.findAll(n=>typeof n.props.accessibilityLabel==='string'&&/tab, \d of 4/.test(n.props.accessibilityLabel)).map(n=>n.props.accessibilityLabel));expect(labels.size).toBe(4);
+ const button=(label:string)=>tree!.root.findAll(n=>n.props.accessibilityRole==='button'&&n.props.accessibilityLabel===label)[0];
+ await act(async()=>{button('Manage voice check-in').props.onPress();});
+ expect(button('Start listening')).toBeDefined();expect(button('Save PINs')).toBeUndefined();
+ await act(async()=>{button('Back to More').props.onPress();});
+ expect(button('Fake call')).toBeDefined();await act(async()=>{button('Fake call').props.onPress();});
+ expect(button('Start fake call')).toBeDefined();expect(button('Start listening')).toBeUndefined();
  await act(async()=>tree!.unmount());
 });
 test('decoy screen omits safety contacts, emergency status and delivery claims',async()=>{

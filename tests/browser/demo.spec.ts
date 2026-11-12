@@ -1,6 +1,6 @@
 import {test,expect,type Page,type APIRequestContext} from '@playwright/test';
-async function login(page:Page,request:APIRequestContext,phone:string,path='/'){
- await page.goto(path);
+async function login(page:Page,request:APIRequestContext,phone:string,path:string|null='/'){
+ if(path!==null)await page.goto(path);
  await page.getByLabel('Phone number',{exact:true}).fill(phone);
  await page.getByRole('button',{name:'Send verification code',exact:true}).click();
  await expect(page.getByLabel('Verification code',{exact:true})).toBeVisible({timeout:20000});
@@ -15,13 +15,16 @@ async function login(page:Page,request:APIRequestContext,phone:string,path='/'){
 test('emulator phone login → SOS → simulated recipient message → acknowledgement → resolve',async({browser,request})=>{
  const a=await browser.newContext(),b=await browser.newContext();
  const owner=await a.newPage(),contact=await b.newPage();
+ await login(contact,request,'+16505550501');
+ await contact.getByRole('button',{name:'Received alerts',exact:true}).click();
+ await expect(contact.getByText('Live updates',{exact:true})).toBeVisible();
+ const before=await contact.getByRole('link',{name:'Open secure link ↗'}).first().getAttribute('href').catch(()=>null);
  await login(owner,request,'+16505550101');
  await owner.getByRole('button',{name:'SOS Send test alert'}).click();
  await expect(owner.getByRole('heading',{name:'Active alert',exact:true})).toBeVisible();
- await login(contact,request,'+16505550501');
- await contact.getByRole('button',{name:'Test inbox',exact:true}).click();
- await contact.getByRole('button',{name:'Refresh',exact:true}).click();
- await expect(contact.getByRole('link',{name:'Open secure link ↗'}).first()).toBeVisible({timeout:15000});
+ await contact.bringToFront();
+ // The recipient was already waiting: no Refresh click or navigation reload.
+ await expect.poll(async()=>{const value=await contact.getByRole('link',{name:'Open secure link ↗'}).first().getAttribute('href').catch(()=>null);return !!value&&value!==before;},{timeout:7000}).toBe(true);
  const url=await contact.getByRole('link',{name:'Open secure link ↗'}).first().getAttribute('href');
  await contact.goto(url!);
  await contact.getByRole('button',{name:'Open private tracking',exact:true}).click();
@@ -29,6 +32,7 @@ test('emulator phone login → SOS → simulated recipient message → acknowled
  await contact.getByRole('button',{name:'I can help',exact:true}).click();
  await expect(contact.getByText(/Current response: CAN ASSIST/)).toBeVisible();
  await owner.getByRole('button',{name:'Resolve — I am safe',exact:true}).click();
+ await contact.bringToFront();
  await expect(contact.getByRole('alert').filter({hasText:/expired|revoked/})).toBeVisible({timeout:15000});
  await a.close();await b.close();
 });
@@ -60,4 +64,40 @@ test('dark controls expose consented evidence, withdrawal and private export sta
  await page.getByRole('button',{name:'Request private export',exact:true}).click();
  await page.getByRole('button',{name:'Refresh export status',exact:true}).click();
  await expect(async()=>{await page.getByRole('button',{name:'Refresh export status',exact:true}).click();await expect(page.getByRole('button',{name:'Download my private export'})).toBeVisible();}).toPass({timeout:15000});
+});
+test('receiver inbox recovers automatically after a connection failure',async({page,request})=>{
+ await login(page,request,'+16505550501');
+ await page.getByRole('button',{name:'Received alerts',exact:true}).click();
+ await expect(page.getByText('Live updates',{exact:true})).toBeVisible();
+ await page.route('**/v1/dev/inbox',route=>route.abort('failed'));
+ await expect(page.getByRole('status').filter({hasText:'Retrying automatically'})).toBeVisible({timeout:10000});
+ await page.unroute('**/v1/dev/inbox');
+ // No page reload, manual Refresh or Retry click is needed after recovery.
+ await expect(page.getByText('Live updates',{exact:true})).toBeVisible({timeout:15000});
+ await page.context().setOffline(true);
+ await expect(page.getByRole('status').filter({hasText:'You are offline'})).toBeVisible();
+ await page.context().setOffline(false);
+ await expect(page.getByText('Live updates',{exact:true})).toBeVisible({timeout:7000});
+});
+test('slow inbox polling never overlaps request batches',async({page,request})=>{
+ await login(page,request,'+16505550501');await page.getByRole('button',{name:'Received alerts',exact:true}).click();
+ await expect(page.getByText('Live updates',{exact:true})).toBeVisible();
+ let inFlight=0,maximum=0,completed=0;
+ await page.route('**/v1/dev/inbox',async route=>{inFlight++;maximum=Math.max(maximum,inFlight);try{await new Promise(resolve=>setTimeout(resolve,2200));await route.continue();completed++;}finally{inFlight--;}});
+ await expect.poll(()=>completed,{timeout:15000}).toBeGreaterThanOrEqual(2);expect(maximum).toBe(1);
+ await page.unroute('**/v1/dev/inbox');
+});
+test('a late inbox response cannot restore data from the previous account',async({page,request})=>{
+ await login(page,request,'+16505550501');await page.getByRole('button',{name:'Received alerts',exact:true}).click();
+ await expect(page.getByText('Live updates',{exact:true})).toBeVisible();
+ let release:()=>void=()=>{},held=false;
+ const pending=new Promise<void>(resolve=>{release=resolve;});
+ await page.route('**/v1/dev/inbox',async route=>{if(held){await route.continue();return;}held=true;await pending;try{await route.fulfill({json:{items:[{id:'old-account-fixture',kind:'PREVIOUS_ACCOUNT_PRIVATE_FIXTURE',url:null,created_at:new Date().toISOString()}]}});}catch{/* Disposed requests are expected to be aborted. */}});
+ await expect.poll(()=>held).toBe(true);
+ await page.getByRole('button',{name:'Sign out',exact:true}).click();
+ await expect(page.getByLabel('Phone number',{exact:true})).toBeVisible();
+ await login(page,request,'+16505550101',null);
+ await page.getByRole('button',{name:'Received alerts',exact:true}).click();release();
+ await expect(page.getByText('Live updates',{exact:true})).toBeVisible();
+ await expect(page.getByText('PREVIOUS_ACCOUNT_PRIVATE_FIXTURE',{exact:true})).toHaveCount(0);
 });

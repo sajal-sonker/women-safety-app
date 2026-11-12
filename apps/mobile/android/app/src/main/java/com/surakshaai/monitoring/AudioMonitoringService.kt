@@ -70,6 +70,8 @@ class AudioMonitoringService:Service(),SensorEventListener {
     @Volatile private var audioScore=0.0
     @Volatile private var decision="NORMAL"
     @Volatile private var windows=0
+    @Volatile private var nativePssKb:Long?=null
+    private var memorySampleAt=0L
     private var phraseEnabled=false
     @Volatile private var phraseStatus="DISABLED"
     @Volatile private var lastPhrase:String?=null
@@ -168,6 +170,10 @@ class AudioMonitoringService:Service(),SensorEventListener {
                     val start=SystemClock.elapsedRealtimeNanos();val score=model.score(pcm);val elapsed=(SystemClock.elapsedRealtimeNanos()-start)/1e6
                     synchronized(latency){latency.add(elapsed);if(latency.size>120)latency.removeFirst()}
                     audioScore=score;windows++;decision=reducer.update(score,motionAt,SystemClock.elapsedRealtime())
+                    // Process memory sampling can walk large native model mappings.
+                    // Keep it off the main/notification loop and sample at most once/minute.
+                    val now=SystemClock.elapsedRealtime()
+                    if(now-memorySampleAt>=60000){memorySampleAt=now;nativePssKb=Debug.getPss()}
                     if(decision!="NORMAL")prompt(decision)
                     // 50% overlap. Only this bounded in-memory window exists; no persistence/upload.
                     pcm.copyInto(pcm,0,7800,15600);pcm.fill(0,7800,15600);filled=7800;publish()
@@ -190,7 +196,7 @@ class AudioMonitoringService:Service(),SensorEventListener {
             .put("audio_score",audioScore).put("windows",windows).put("model_id","yamnet-classification-tflite-1").put("phrase_recognition",phraseStatus=="ACTIVE").put("phrase_status",phraseStatus)
             .put("last_phrase",lastPhrase?:JSONObject.NULL).put("phrase_confidence",phraseConfidence?:JSONObject.NULL).put("phrase_model_id",if(phraseEnabled)"vosk-help-bachao-v1" else JSONObject.NULL).put("motion_available",sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!=null)
             .put("remote_consent",remoteConsent)
-            .put("inference_p95_ms",if(measurements.isEmpty())JSONObject.NULL else measurements[((measurements.size-1)*.95).toInt()]).put("native_pss_kb",Debug.getPss())
+            .put("inference_p95_ms",if(measurements.isEmpty())JSONObject.NULL else measurements[((measurements.size-1)*.95).toInt()]).put("native_pss_kb",nativePssKb?:JSONObject.NULL)
     }
     private fun prompt(value:String){
         if(!running.get())return

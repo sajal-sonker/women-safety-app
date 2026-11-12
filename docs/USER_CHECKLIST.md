@@ -16,11 +16,11 @@ The phone cannot be authorized from this PC without accepting its USB prompt. No
 ## Rehearse the working flow
 
 1. Sign in on the phone as the emulated owner `+16505550101`. In a separate PC browser profile at `http://localhost:3000`, sign in as contact1 `+16505550501`.
-2. Send a simulated SOS from the phone. In the recipient browser, open Test inbox, follow the private tracking link and acknowledge. Resolve from the owner and check tracking revokes.
+2. Send a simulated SOS from the phone. In the recipient browser, open Received alerts before sending the SOS; the alert should appear automatically within a few seconds. Follow the private tracking link and acknowledge. Resolve from the owner and check tracking revokes.
 3. Compare the fictional Lucknow routes; start a journey and mark arrival. Explain that this is sample route data.
-4. Rehearse fake call and PIN practice. Demonstrate duress sending only if you deliberately intend another simulated SOS.
-5. Enable audio/motion/phrase monitoring visibly and grant permissions. Wait for phrase recognition **ACTIVE** and the microphone/window counter. Say **Help**, pause, and verify the recognized target/check-in. Restart the session or wait120s for the shared cooldown, then say **Bachao / बचाओ** and pause. Stop and verify the microphone closes. A recognized word asks for manual confirmation; it does not automatically send an SOS.
-6. If included in your presentation, demonstrate selected-recipient evidence and consent withdrawal, then private export. Test account deletion last because it disables that account.
+4. Under More, rehearse Fake call and App PIN & duress practice. Demonstrate duress sending only if you deliberately intend another simulated SOS.
+5. Open More → Voice check-in, enable consent and tap Start listening. Grant permissions and wait for Listening (Session details shows phrases ACTIVE and the microphone/window counter). Say **Help**, pause, and verify the recognized target/check-in. Restart the session or wait120s for the shared cooldown, then say **Bachao / बचाओ** and pause. Stop and verify the microphone closes. A recognized word asks for manual confirmation; it does not automatically send an SOS.
+6. If included in your presentation, demonstrate selected-recipient evidence and consent withdrawal, then private export under More → Privacy & data. Test account deletion last because it disables that account.
 
 For a reliable presentation, show the actual sound-monitoring state and only demonstrate prompts you have observed on your phone. Detection may miss a sound or prompt on ordinary noise. Do not present a generated fixture, UI simulation or training-tool smoke test as measured distress recognition.
 
@@ -30,4 +30,4 @@ The app bundles pretrained English/Hindi Vosk models to recognize **Help** and *
 
 OTP and recipient messages are simulated locally. Shops/routes are fictional. Present the end-to-end prototype behavior without claiming real emergency delivery, police dispatch, validated safety predictions or production readiness.
 
-Production/live-service work is deferred by the user's scope decision. Historical [Phase3](validation/phase-3.md), [Phase4](validation/phase-4.md) and [local evidence](validation/final-local-work.md) preserve the original acceptance boundaries; missing production gates do not block this prototype. The remaining demo task is to run the phone rehearsal and fix any observed failures.
+Production/live-service work is deferred by the user's scope decision. Historical [Phase3](validation/phase-3.md), [Phase4](validation/phase-4.md) and [local evidence](validation/final-local-work.md) preserve the original acceptance boundaries; missing production gates do not block this prototype. The remaining demo task is to install the latest rebuilt APK and rerun the phone rehearsal. The 12 November [phone-feedback fixes](validation/phone-feedback-fixes.md) address recognized-word rendering, monitoring responsiveness, simpler navigation and automatic receiver updates; physical Moto Android16 verification remains yours.
