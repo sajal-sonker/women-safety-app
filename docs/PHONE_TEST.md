@@ -4,7 +4,7 @@ The latest arm64 demo APK includes bundled offline English/Hindi speech models f
 
 ## Connect and run
 
-1. On the PC follow [RUNNING](../RUNNING.md): local PostGIS, Auth emulator, migrated/seeded API/worker/web. Keep their terminals running. The bundled APK needs no Metro server.
+1. On the PC follow [RUNNING](../RUNNING.md): local PostGIS, Auth emulator, migrated/seeded API/worker/web. Keep their terminals running. This update changes the backend’s local repeated-word trigger gate: restart `npm run dev` once if source watching has not already reloaded it. Keep the existing database/Auth emulator running. The bundled APK needs no Metro server.
 2. Enable Android USB debugging, connect the phone and accept its authorization prompt. Android10/API29+ and arm64 are this artifact's target; build the correct ABI for another device.
 3. From PowerShell at the repository root run `powershell -ExecutionPolicy Bypass -File scripts/phone-test.ps1 -Install`. This process-only script flag does not change machine policy. Alternatively run `adb reverse tcp:4001 tcp:4001`, `adb reverse tcp:9099 tcp:9099`, then `adb install -r apps/mobile/android/app/build/outputs/apk/demo/app-demo.apk`.
 4. Open SurakshaAI Demo. Use seeded emulated owner `+16505550101`. Request an OTP, then read the code in the local Auth emulator (or its verificationCodes endpoint). No real SMS is sent. In another browser profile use a seeded contact to view the simulated inbox and tracking link.
