@@ -1,3 +1,7 @@
+# Latest13 November2026 — unified Android receiver
+
+Main **d87f828500efb458595fb0f13a6b41166a553399** contains the runtime. Read newest EXECUTION_STATE and main docs/validation/native-receiver.md / docs/TWO_ANDROID_DEMO.md. Same APK on both USB phones, Contacts Inbox accepts and receives; foreground only/no closed-app push. APK SHA2561e62c1c9f6f369664825dfd4a6b42b2b12a7351edc2481cdac1196e1adec2039. Local tests pass; one Android emulator+API sender tested, two physical phones pending. PC services left running. This context branch retains its historical app snapshot; do not run/merge that app or agent files into main.
+
 # Latest12 November2026 — motion/profile update
 
 Application main **f2bf6a56ab3cad23a525f733b26010a0e710c456**. Read newest EXECUTION_STATE and main docs/validation/motion-profile.md. Voice bottom tab, hamburger Settings/name, filtered foreground Motion and PIN guidance. APK SHA2560c390f17229aa2d63fefedd07ef5fc34f4c75ce3782ad57e582d50741617f7c4. PC services restarted/left running; no device connected. Physical Moto motion retest pending. Use main to run, not this historical context-branch application.
