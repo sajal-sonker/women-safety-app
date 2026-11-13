@@ -1,5 +1,7 @@
 # Aegis — Android safety companion
 
+**Cable-free PC setup:** the user selected free private VPN access over mobile data. The PC runs API/worker, local PostgreSQL and demo OTP; both phones use Tailscale and the rebuilt Aegis Demo APK. See [PC/VPN steps](docs/PC_VPN_DEMO.md). Use `npm run auth:pc` and `npm run dev:pc` with private `.local/pc.env`; root `.env` may retain Supabase credentials. The PC stays awake/online. No paid cloud server is provisioned; [VPN validation](docs/validation/pc-vpn.md) distinguishes server checks from pending phone checks.
+
 **Current work,13 November2026:** Aegis branding, saved responder answers, automatic voice SOS entry fix, clearer PIN/permission errors, foreground volume shortcut fixes and simpler help discovery. See [verification and remaining device checks](docs/validation/aegis-polish.md). Fully hosted mobile-data access is now requested; [hosting preparation](docs/HOSTED_PILOT.md) supersedes the older local-only scope for this next step. No public backend is deployed yet. Existing Demo still requires the PC/USB mappings; the separate Pilot build requires real Firebase configuration and a deployed HTTPS API.
 
 **Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](docs/TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.

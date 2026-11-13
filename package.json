@@ -20,7 +20,7 @@
     "contracts:check": "node scripts/generate-contracts.mjs --check",
     "db:migrate": "tsx services/api/src/platform/db/migrate.ts",
     "seed:demo": "tsx services/api/src/seed.ts",
-    "test": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/scoring.test.ts tests/monitoring.test.ts tests/media.test.ts tests/ml-workflow.test.ts tests/hosted-config.test.ts",
+    "test": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/scoring.test.ts tests/monitoring.test.ts tests/media.test.ts tests/ml-workflow.test.ts tests/hosted-config.test.ts tests/pc-demo-config.test.mjs tests/pc-apk-download.test.mjs",
     "test:unit": "tsx --test tests/scoring.test.ts tests/contracts.test.ts",
     "test:contract": "tsx --test tests/contracts.test.ts",
     "test:integration": "node scripts/test-db.mjs tests/api.test.ts",
@@ -49,7 +49,13 @@
     "ml:workflow-smoke": "node scripts/ml-workflow-smoke.mjs",
     "doctor": "node scripts/doctor.mjs",
     "ml:phrases-smoke": "node scripts/ml-python.mjs ml/runtime/phrases_smoke.py",
-    "start:hosted": "node scripts/start-hosted.mjs"
+    "start:hosted": "node scripts/start-hosted.mjs",
+    "dev:pc": "node scripts/pc-demo.mjs",
+    "auth:pc": "node scripts/pc-demo.mjs auth",
+    "doctor:pc": "node scripts/pc-demo.mjs check",
+    "test:pc": "node scripts/pc-demo.mjs test",
+    "auth:snapshot:pc": "node scripts/pc-demo.mjs snapshot-auth",
+    "db:migrate:pc": "node scripts/pc-demo.mjs migrate"
   },
   "dependencies": {
     "ajv": "8.20.0",

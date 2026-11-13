@@ -1,5 +1,7 @@
 # SurakshaAI controlled local demo
 
+**Private VPN / mobile data:** use [PC/VPN setup](docs/PC_VPN_DEMO.md), `npm run auth:pc` and `npm run dev:pc` with ignored `.local/pc.env`. This keeps root.env/Supabase separate. Old localhost/USB APKs need the VPN build before cable-free testing.
+
 **Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](docs/TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.
 
 This implementation is for a controlled demonstration. It never sends real emergency SMS/push. Phone verification is emulated; all seeded contacts, routes, reports and shops are fictional. The Lucknow walking grid is not an imported street map and must not be used for travel.
