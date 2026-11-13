@@ -1,5 +1,7 @@
 # Frozen integration design — v1 / review-1.2
 
+CR-009 (13 November2026): [native recipient catalogue](05_API_CONTRACTS.md) adds five bearer operations over existing invitation and temporary grant storage. Principal AND exact invited phone are required on recipient reads/ACK; live consent/expiry/terminal revocation applies before cached mutation replay. Browser tracking cookies remain unchanged; no migration or native transport change. Shared generated types/hash were regenerated together. Poll only while the app is foreground; no claim of background push. See [two-Android rehearsal](TWO_ANDROID_DEMO.md).
+
 This document freezes engineering semantics for implementation. [05_API_CONTRACTS.md](05_API_CONTRACTS.md) owns the wire catalogue and [04_DATA_MODEL.md](04_DATA_MODEL.md) owns persistence. No production schemas or clients exist yet. **G0-FROZEN** occurs only after P1-T03 generates schemas/fixtures, M verifies consumers and R records their hash. All v1 endpoints are defined now even when implemented in later phases; unavailable capabilities return an explicit disabled/dependency error.
 
 ## 1. Contract artifacts and ownership

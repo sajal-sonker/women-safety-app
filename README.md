@@ -1,5 +1,7 @@
 # SurakshaAI — Agent-ready project specification (v1.0)
 
+**Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](docs/TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.
+
 **Working name:** SurakshaAI (changeable; do not hard-code product branding).
 **Product:** Android-first, India-focused women's safety mobile app with emergency alerting, explainable time-aware route risk indicators, verified/registered safe-shop discovery, situational on-device distress detection, and discreet safety controls.
 **Documentation baseline:** review-1.2, 10 November 2026. **Current target, confirmed11 November2026:** a working local demonstration prototype. The implementation includes Phase3 discreet controls, private evidence/context, Phase4 export/deletion/recovery tooling and a black/purple interface. Authentication, delivery and storage are local/emulated; Lucknow routes/shops are fictional. The prototype is ready for phone testing. Production hosting/providers, release certification and research-grade model graduation are outside this demo's completion criteria. Historical [Phase3](docs/validation/phase-3.md) and [Phase4](docs/validation/phase-4.md) acceptance remains partial rather than being retroactively certified. No production emergency release is claimed.

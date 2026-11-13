@@ -1,10 +1,13 @@
 import React from 'react';
 import Renderer,{act} from 'react-test-renderer';
+import {AppState} from 'react-native';
 import App from '../src/App';
 let mockState={uid:null as string|null,phone:null as string|null,intent:null as null|{client_request_id:string,state:string,event_id:null,error:null},position:null,location_status:'STOPPED',decoy:false,fake_call:null as {label:string;ringing:boolean}|null};
 let mockDisplayName='Demo';
+let mockReceivedItems:unknown[]=[];
 const mockApi=jest.fn(async(path:string,method='GET',body='')=>{
  if(path==='/me'){if(method==='PATCH')mockDisplayName=JSON.parse(body).display_name;return JSON.stringify({display_name:mockDisplayName});}
+ if(path==='/received-alerts')return JSON.stringify({items:mockReceivedItems,next_cursor:null});
  return JSON.stringify({items:[],next_cursor:null});
 });
 jest.mock('../specs/NativeSafety',()=>({__esModule:true,default:{
@@ -55,6 +58,18 @@ test('manual activation shows local pending truthfully rather than claiming deli
  expect(text).toContain('Not sent or outcome unknown');
  expect(text).not.toContain('DELIVERED');
  await act(async()=>tree!.unmount());
+});
+
+test('a received alert banner opens the same app inbox and can return to its own contacts',async()=>{
+ AppState.currentState='active';mockReceivedItems=[{grant_id:'demo-grant',kind:'SOS_READ',shared_name:'Synthetic sibling',started_at:new Date().toISOString(),expires_at:new Date(Date.now()+60000).toISOString()}];
+ mockState={...mockState,uid:'owner-demo',phone:'+16505550101'};
+ let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<App/>);});
+ const button=(label:string)=>tree!.root.findAll(n=>n.props?.accessibilityRole==='button'&&n.props?.accessibilityLabel===label)[0];
+ await act(async()=>button('Open incoming invitations and alerts').props.onPress());
+ expect(button('Check for updates')).toBeDefined();
+ expect(button('Open received SOS')).toBeDefined();
+ await act(async()=>button('My contacts').props.onPress());expect(button('Add a contact')).toBeDefined();
+ await act(async()=>tree!.unmount());mockReceivedItems=[];
 });
 test('navigation has five tabs and optional tools open one at a time',async()=>{
  mockState={...mockState,uid:'owner-demo',phone:'+16505550101'};

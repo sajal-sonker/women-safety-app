@@ -32,6 +32,64 @@ async function call(path:string,options:{uid?:string;method?:string;body?:unknow
  return {status:res.status,body:res.status===204?null:await res.json() as any,headers:res.headers};
 }
 const sosBody=(key:string)=>({trigger_type:'MANUAL',client_request_id:key,triggered_at:new Date().toISOString(),location:null,location_status:'UNAVAILABLE'});
+test('same-app recipients accept by ID, track only consented grants, acknowledge and lose access on resolve',async()=>{
+ const owner='native-owner',receiver='native-contact',stranger='native-stranger';
+ for(const [uid,phone] of [[owner,'+16505550711'],[receiver,'+16505550712'],[stranger,'+16505550713']])identities.set(uid,phone);
+ await call('/me',{uid:owner});await call('/me',{uid:stranger});
+ const contact=await call('/contacts',{uid:owner,method:'POST',body:{name:'Synthetic sibling',phone_e164:'+16505550712',priority:1}});
+ assert.equal(contact.status,201);
+ const invite=await call('/contacts/'+contact.body.id+'/invite',{uid:owner,method:'POST',body:{}});
+ // Invitation precedes the recipient's first sign-in; no SMS, token or browser exchange needed.
+ assert.equal(invite.status,200);await call('/me',{uid:receiver});
+ const invitations=await call('/contacts/invitations',{uid:receiver});assert.equal(invitations.body.items[0].invite_id,invite.body.invite_id);
+ assert.equal((await call('/contacts/invitations',{uid:stranger})).body.items.length,0);
+ const path='/contacts/invitations/'+invite.body.invite_id+'/accept',body={consent_version:'consent-v1'},key=randomUUID();
+ assert.equal((await call(path,{uid:stranger,method:'POST',body})).status,403);
+ assert.equal((await call(path,{uid:receiver,method:'POST',body,key})).body.invite_status,'VERIFIED');
+ assert.equal((await call(path,{uid:receiver,method:'POST',body,key})).status,200);
+ const eventKey=randomUUID(),location={lat:26.85,lon:80.946,accuracy_m:15,captured_at:new Date().toISOString(),source:'gps'};
+ const event=await call('/sos',{uid:owner,method:'POST',body:{...sosBody(eventKey),location,location_status:'CURRENT'},key:eventKey});assert.equal(event.status,201);
+ const received=await call('/received-alerts',{uid:receiver});assert.equal(received.status,200);assert.equal(received.body.items.length,1);
+ const grantId=received.body.items[0].grant_id,route='/received-alerts/'+grantId;
+ assert.equal((await call('/received-alerts',{uid:stranger})).body.items.length,0);
+ assert.equal((await call(route,{uid:stranger})).status,404);assert.equal((await call(route,{uid:owner})).status,404);
+ const view=await call(route,{uid:receiver});assert.equal(view.status,200);assert.equal(view.body.event.event_id,event.body.event_id);assert.equal(view.body.event.position.lat,location.lat);assert.equal(view.body.journey,null);
+ // A matching phone alone cannot read a grant bound to another principal.
+ const strangerId=(await call('/me',{uid:stranger})).body.id;
+ await pool.query('UPDATE emergency_contacts SET principal_id=$2 WHERE id=$1',[contact.body.id,strangerId]);
+ assert.equal((await call(route,{uid:receiver})).status,404);
+ await pool.query('UPDATE emergency_contacts SET principal_id=$2 WHERE id=$1',[contact.body.id,(await call('/me',{uid:receiver})).body.id]);
+ assert.equal('recipients' in view.body.event,false);assert.equal('token' in received.body.items[0],false);
+ assert.equal((await call('/sos/'+event.body.event_id,{uid:receiver})).status,404);
+ const ackKey=randomUUID(),ack={uid:receiver,method:'POST',body:{can_assist:true,eta_minutes:5},key:ackKey};
+ assert.equal((await call(route+'/acknowledge',ack)).body.acknowledgement,'CAN_ASSIST');
+ assert.equal((await call('/sos/'+event.body.event_id,{uid:owner})).body.recipients[0].acknowledgement,'CAN_ASSIST');
+ await call('/sos/'+event.body.event_id+'/resolve',{uid:owner,method:'POST',body:{resolution:'SAFE'}});
+ assert.equal((await call(route,{uid:receiver})).status,410);assert.equal((await call(route+'/acknowledge',ack)).status,410,'cached ACK cannot bypass revocation');
+ assert.equal((await call('/received-alerts',{uid:receiver})).body.items.length,0);
+ const journey=await call('/journeys',{uid:owner,method:'POST',body:{origin:null,destination:{lat:26.85,lon:80.946},expected_arrival_at:new Date(Date.now()+900000).toISOString(),auto_escalate:false,share_with_contacts:true,contact_ids:[contact.body.id]}});assert.equal(journey.status,201);
+ const shared=(await call('/received-alerts',{uid:receiver})).body.items[0];assert.equal(shared.kind,'JOURNEY_READ');
+ const jr='/received-alerts/'+shared.grant_id;assert.equal((await call(jr,{uid:receiver})).body.journey.journey_id,journey.body.journey_id);
+ assert.equal((await call(jr+'/acknowledge',{uid:receiver,method:'POST',body:{can_assist:true}})).status,403);
+ assert.equal((await call('/contact-consents/'+contact.body.id,{uid:receiver,method:'DELETE'})).status,204);
+ assert.equal((await call(jr,{uid:receiver})).status,410);assert.equal((await call('/received-alerts',{uid:receiver})).body.items.length,0);
+});
+
+test('native invitation decline and expired invitation never create consent',async()=>{
+ for(const [uid,phone] of [['invite-owner','+16505550721'],['invite-receiver','+16505550722']]){identities.set(uid,phone);await call('/me',{uid});}
+ const c=await call('/contacts',{uid:'invite-owner',method:'POST',body:{name:'Synthetic contact',phone_e164:'+16505550722',priority:1}});
+ const i=await call('/contacts/'+c.body.id+'/invite',{uid:'invite-owner',method:'POST',body:{}});
+ const root='/contacts/invitations/'+i.body.invite_id;
+ assert.equal((await call(root+'/decline',{uid:'invite-receiver',method:'POST',body:{block_future_invites:true}})).status,204);
+ assert.equal((await call(root+'/accept',{uid:'invite-receiver',method:'POST',body:{consent_version:'consent-v1'}})).status,410);
+ assert.equal((await call('/contacts/'+c.body.id+'/invite',{uid:'invite-owner',method:'POST',body:{}})).status,409);
+ assert.equal((await call('/contact-consents',{uid:'invite-receiver'})).body.items[0].status,'DECLINED');
+ identities.set('expired-receiver','+16505550723');await call('/me',{uid:'expired-receiver'});
+ const expiredContact=await call('/contacts',{uid:'invite-owner',method:'POST',body:{name:'Synthetic expired contact',phone_e164:'+16505550723',priority:2}});
+ const expired=await call('/contacts/'+expiredContact.body.id+'/invite',{uid:'invite-owner',method:'POST',body:{}});
+ await pool.query("UPDATE contact_invitations SET expires_at=now()-interval '1 second' WHERE id=$1",[expired.body.invite_id]);
+ assert.equal((await call('/contacts/invitations/'+expired.body.invite_id+'/accept',{uid:'expired-receiver',method:'POST',body:{consent_version:'consent-v1'}})).status,410);
+});
 test('five concurrent SOS replays persist one event and one intent per recipient, without GPS',async()=>{
  const key=randomUUID(),body=sosBody(key);
  const replies=await Promise.all(Array.from({length:5},()=>call('/sos',{method:'POST',body,key})));

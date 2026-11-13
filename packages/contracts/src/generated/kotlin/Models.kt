@@ -649,3 +649,31 @@ data class ShopTracking(
     @SerializedName("arrival_eta_s") val arrival_eta_s: Double?,
     @SerializedName("expires_at") val expires_at: String
 )
+
+data class AcceptInboxInvite(
+    @SerializedName("consent_version") val consent_version: String
+)
+
+data class DeclineInboxInvite(
+    @SerializedName("block_future_invites") val block_future_invites: Boolean
+)
+
+data class ReceivedAlert(
+    @SerializedName("grant_id") val grant_id: String,
+    @SerializedName("kind") val kind: String,
+    @SerializedName("shared_name") val shared_name: String,
+    @SerializedName("started_at") val started_at: String,
+    @SerializedName("expires_at") val expires_at: String
+)
+
+data class ReceivedAlerts(
+    @SerializedName("items") val items: List<ReceivedAlert>,
+    @SerializedName("next_cursor") val next_cursor: String?
+)
+
+data class ReceivedAlertDetail(
+    @SerializedName("grant_id") val grant_id: String,
+    @SerializedName("kind") val kind: String,
+    @SerializedName("event") val event: TrackingView?,
+    @SerializedName("journey") val journey: JourneyTracking?
+)

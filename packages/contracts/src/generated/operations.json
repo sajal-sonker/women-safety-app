@@ -768,5 +768,55 @@
     "auth": "bearer",
     "success": 200,
     "operationId": "get__me_deletion__jobId_"
+  },
+  {
+    "method": "POST",
+    "path": "/contacts/invitations/{inviteId}/accept",
+    "input": "AcceptInboxInvite",
+    "output": "Contact",
+    "phase": 4,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post__contacts_invitations__inviteId__accept"
+  },
+  {
+    "method": "POST",
+    "path": "/contacts/invitations/{inviteId}/decline",
+    "input": "DeclineInboxInvite",
+    "output": null,
+    "phase": 4,
+    "auth": "bearer",
+    "success": 204,
+    "operationId": "post__contacts_invitations__inviteId__decline"
+  },
+  {
+    "method": "GET",
+    "path": "/received-alerts",
+    "input": null,
+    "output": "ReceivedAlerts",
+    "phase": 4,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get__received_alerts"
+  },
+  {
+    "method": "GET",
+    "path": "/received-alerts/{grantId}",
+    "input": null,
+    "output": "ReceivedAlertDetail",
+    "phase": 4,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "get__received_alerts__grantId_"
+  },
+  {
+    "method": "POST",
+    "path": "/received-alerts/{grantId}/acknowledge",
+    "input": "Acknowledge",
+    "output": "Acknowledged",
+    "phase": 4,
+    "auth": "bearer",
+    "success": 200,
+    "operationId": "post__received_alerts__grantId__acknowledge"
   }
 ]

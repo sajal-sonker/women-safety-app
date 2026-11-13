@@ -1,5 +1,7 @@
 # SurakshaAI phone test
 
+**Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.
+
 The latest arm64 demo APK includes bundled offline English/Hindi speech models for Help/Bachao recognition, YAMNet sound classification and native microphone/motion check-ins. It uses debug/demo signing and local fake providers. It is a prototype test build. You can perform the real-device matrix below; no physical-device pass is claimed by the executor. Both language models are bundled; first start copies about153MB of public model weights into private app storage and may take several seconds. Allow free storage for the larger APK and extracted weights.
 
 ## Connect and run

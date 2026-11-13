@@ -1,5 +1,19 @@
 # 05 — API contracts (v1)
 
+## CR-009: authenticated Android recipient (13 November2026)
+
+The same account can be an owner and a recipient. All five added operations use Firebase bearer identity and the usual UUID idempotency header for mutations:
+
+| Operation | Request → response |
+|---|---|
+| POST `/contacts/invitations/{inviteId}/accept` | `AcceptInboxInvite {consent_version:'consent-v1'}` → Contact |
+| POST `/contacts/invitations/{inviteId}/decline` | `DeclineInboxInvite {block_future_invites:boolean}` →204 |
+| GET `/received-alerts` | ReceivedAlerts: active grant summaries, max100, no secret tokens or positions |
+| GET `/received-alerts/{grantId}` | ReceivedAlertDetail: kind plus either TrackingView event or JourneyTracking journey |
+| POST `/received-alerts/{grantId}/acknowledge` | Existing Acknowledge → Acknowledged; SOS grants only |
+
+Invitation decisions require the authenticated exact invited phone, pending/unexpired invitation and active contact. Recipient access additionally requires the contact's accepted principal ID, VERIFIED consent and a live grant/event/journey. Wrong identity returns404; expired/revoked sharing returns410. Revalidate before idempotent ACK replay. Uses existing invitation/grant/recipient tables and view/ACK functions; no migration. Existing web token/cookie routes retain their security model. Mobile never calls the local fake-message endpoint or exchanges browser link tokens. Native Contacts polls the existing invitations/consents/own contacts plus recipient summaries while foreground, with account generation guards and no overlapping scheduled polls. Details poll separately and clear positions on failed access. Physical two-phone checks remain separate.
+
 **Base:** `/v1` over HTTPS; authenticated mobile requests carry `Authorization: Bearer <Firebase ID token>`. API validates tokens server-side and maps `auth_uid` to internal UUID. Standard JSON with UTC ISO timestamps. All mutable actions perform ownership checks; do not trust user IDs supplied by app.
 
 **Review-1.2 normative closure:** Read [INTEGRATION_CONTRACTS.md](INTEGRATION_CONTRACTS.md) for exact authentication, state, validation, consent, retry, privacy, native and provider semantics. The catalogue below plus its closure is the schema input for P1-T03; no independent mobile/server types. The SOS example is a complete minimal instance; compact table objects expand through the named schemas. All routes below are relative to `/v1`.

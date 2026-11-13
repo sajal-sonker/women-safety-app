@@ -13,6 +13,7 @@ import {after,iso,metadata,audit,cursorPage,decodeCursor,assertHours,validateLoc
 import {createContact,contactView,ownContact,invite,decideInvite,revokeContact,contactPosition} from './modules/contacts/index.ts';
 import {createSos,ownEvent,sosView,resolveSos,terminateIntent,appendLocation,grant,enqueue,eventChange} from './modules/sos/index.ts';
 import {exchange,trackingSession,trackingView,acknowledge,cookieName} from './modules/tracking/index.ts';
+import {recipientGrant,receivedAlerts} from './modules/tracking/recipient.ts';
 import {createJourney,ownJourney,journeyView,checkIn,shareJourney,finishJourney,journeyTracking} from './modules/journeys/index.ts';
 import {evaluateRoutes,cellId,cellGeometry} from './modules/routing/index.ts';
 import {shopView} from './modules/shops/index.ts';
@@ -100,6 +101,14 @@ async function dispatch(c:Context,key:string):Promise<unknown>{
  }
  if(key==='POST /contacts/invitations/accept')return decideInvite(db,user,b,true);
  if(key==='POST /contacts/invitations/decline'){await decideInvite(db,user,b,false);return;}
+ if(key==='POST /contacts/invitations/{inviteId}/accept')return decideInvite(db,user,b,true,p.inviteId);
+ if(key==='POST /contacts/invitations/{inviteId}/decline'){await decideInvite(db,user,b,false,p.inviteId);return;}
+ if(key==='GET /received-alerts')return receivedAlerts(db,user);
+ if(key.startsWith('GET /received-alerts/')||key.startsWith('POST /received-alerts/')){
+  const g=await recipientGrant(db,user,p.grantId);
+  if(key==='POST /received-alerts/{grantId}/acknowledge'){requireCondition(g.kind==='SOS_READ',403,'FORBIDDEN');return acknowledge(db,g,b);}
+  return {grant_id:g.id,kind:g.kind,event:g.kind==='SOS_READ'?await trackingView(db,g):null,journey:g.kind==='JOURNEY_READ'?await journeyTracking(db,g):null};
+ }
  if(key.includes('/contact-consents/')){
   const r=await db.query('SELECT * FROM emergency_contacts WHERE id=$1 AND principal_id=$2 AND phone_e164=$3 AND revoked_at IS NULL FOR UPDATE',[p.contactId,user.id,user.phone_e164]);
   requireCondition(r.rowCount,404,'NOT_FOUND');
@@ -328,6 +337,8 @@ export function createApp(verify:VerifyToken=verifyFirebase){
      // Tracking authorization runs inside dispatch and validates its selected cookie on every access.
      let principalId=String(user.id??'');
      if(op.auth==='tracking'){const g=await trackingSession(db,req);principalId=(await db.query('SELECT principal_id FROM emergency_contacts WHERE id=$1',[g.contact_id])).rows[0]?.principal_id??'';scopeUser={id:principalId};}
+     // Authorization must precede cached acknowledgements after resolution/revocation.
+     if(op.path.startsWith('/received-alerts/{grantId}'))await recipientGrant(db,user,String(req.params.grantId));
      const cache=isMutation&&!exempt&&op.path!=='/sos'&&op.path!=='/me';
      const digest=bodyHash(b),scope=operation+':'+req.path+(op.auth==='tracking'?':'+String(req.headers['x-tracking-grant-id']):'');
      if(cache){

@@ -1,5 +1,9 @@
 # 17 — Architecture decisions, assumptions and unresolved questions
 
+## 13 November 2026 — one Android app for both people (CR-009)
+
+User explicitly requests invitation acceptance and receiver alerts in the same APK, tested with different Android accounts. Add bearer-authenticated invitation decisions by invitation ID and a recipient inbox over existing temporary tracking grants. Require the signed-in principal AND exact invited phone for grant reads/acknowledgements; validate consent, expiry, resolution and revocation on every access, including idempotent replays. Existing browser token/cookie flows remain compatible. No migration, public location endpoint or automatic contact acceptance. Native Contacts gains My contacts/Inbox, consent withdrawal, live SOS/journey tracking and acknowledgement. Foreground polling pauses on background and guards account changes; closed-app push remains unavailable in the local prototype. Both USB phones use the same APK/API/Auth emulator, separate numbers. No production providers or deployment added.
+
 ## Decision record (approved design direction from conversation)
 
 CR-005 / 10 November2026: finish feasible local work and give the user a concrete ownership checklist. Serialize erasure-ledger publication and merge/re-purge before API/worker start; preserve newer disk tombstones across older DB restores and fail closed on an unreadable ledger. Isolate test ledgers per run. Complete ML candidate scoring/validation-only threshold freeze. GitHub's application job for b0bc9c5 passed; Android failed at setup-android before compiling. Replace that dependency with the official runner SDK, pin Ubuntu24.04/Java21 (locally verified), and record actual remote results. No schema change, live-provider choice, deployment/spending or physical acceptance implied.

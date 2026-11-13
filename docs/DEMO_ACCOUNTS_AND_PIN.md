@@ -1,5 +1,7 @@
 # Names, users, contacts and PINs in the local demo
 
+**Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.
+
 The receiver browser is **http://localhost:3000**. Use a separate browser profile/incognito window so the owner and recipient stay signed in independently. The seeded owner is `+16505550101`; contact1 is `+16505550501`. Open Received alerts before sending a simulated SOS. The API uses port4001; that is not the receiver webpage.
 
 ## Your name and settings

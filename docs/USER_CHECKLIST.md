@@ -1,5 +1,7 @@
 # Working prototype: demo checklist
 
+**Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.
+
 The user confirmed on11 November2026 that the goal is a working demo prototype. The black/purple theme, manual SOS, journeys, discreet controls, private evidence, export/deletion and offline sound check-ins are implemented. Use the existing local backend, Auth emulator, simulated delivery and fictional route/shop fixtures. Production accounts, hosting, release signing and independent release approval are not prerequisites for this demo.
 
 ## Do now: connect your Android phone

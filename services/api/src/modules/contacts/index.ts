@@ -38,8 +38,8 @@ export async function invite(db:DB,user:Row,contactId:string){
  await enqueue(db,null,null,'INVITE',{to:c.phone_e164,kind:'INVITE',url:config.trackingBase+'/contacts/invite#token='+raw,contact_id:c.id},'INVITE:'+inviteId,expires);
  return {invite_id:inviteId,status:'PENDING',expires_at:expires};
 }
-export async function decideInvite(db:DB,user:Row,body:Row,accept:boolean){
- const r=await db.query('SELECT i.*,c.phone_e164,c.owner_user_id,c.revoked_at FROM contact_invitations i JOIN emergency_contacts c ON c.id=i.contact_id WHERE i.token_hash=$1 FOR UPDATE OF i,c',[hash(body.token)]);
+export async function decideInvite(db:DB,user:Row,body:Row,accept:boolean,inviteId?:string){
+ const r=await db.query('SELECT i.*,c.phone_e164,c.owner_user_id,c.revoked_at FROM contact_invitations i JOIN emergency_contacts c ON c.id=i.contact_id WHERE '+(inviteId?'i.id=$1':'i.token_hash=$1')+' FOR UPDATE OF i,c',[inviteId??hash(body.token)]);
  requireCondition(r.rowCount,404,'NOT_FOUND');
  const invitation=r.rows[0];
  requireCondition(invitation.phone_e164===user.phone_e164,403,'FORBIDDEN');

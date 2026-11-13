@@ -4034,5 +4034,141 @@
       "expires_at"
     ],
     "additionalProperties": false
+  },
+  "AcceptInboxInvite": {
+    "type": "object",
+    "properties": {
+      "consent_version": {
+        "type": "string",
+        "enum": [
+          "consent-v1"
+        ]
+      }
+    },
+    "required": [
+      "consent_version"
+    ],
+    "additionalProperties": false
+  },
+  "DeclineInboxInvite": {
+    "type": "object",
+    "properties": {
+      "block_future_invites": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "block_future_invites"
+    ],
+    "additionalProperties": false
+  },
+  "ReceivedAlert": {
+    "type": "object",
+    "properties": {
+      "grant_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "SOS_READ",
+          "JOURNEY_READ"
+        ]
+      },
+      "shared_name": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "started_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$"
+      }
+    },
+    "required": [
+      "grant_id",
+      "kind",
+      "shared_name",
+      "started_at",
+      "expires_at"
+    ],
+    "additionalProperties": false
+  },
+  "ReceivedAlerts": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ReceivedAlert"
+        },
+        "maxItems": 100
+      },
+      "next_cursor": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "items",
+      "next_cursor"
+    ],
+    "additionalProperties": false
+  },
+  "ReceivedAlertDetail": {
+    "type": "object",
+    "properties": {
+      "grant_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "SOS_READ",
+          "JOURNEY_READ"
+        ]
+      },
+      "event": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/TrackingView"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "journey": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/JourneyTracking"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "grant_id",
+      "kind",
+      "event",
+      "journey"
+    ],
+    "additionalProperties": false
   }
 }
