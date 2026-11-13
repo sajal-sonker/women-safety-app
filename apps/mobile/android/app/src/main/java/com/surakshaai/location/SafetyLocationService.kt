@@ -32,7 +32,7 @@ class SafetyLocationService: Service(), LocationListener {
         val nm=getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(NotificationChannel("safety_location","Active safety location",NotificationManager.IMPORTANCE_LOW))
         val open=PendingIntent.getActivity(this,0,Intent(this,MainActivity::class.java),PendingIntent.FLAG_IMMUTABLE)
-        val notification=NotificationCompat.Builder(this,"safety_location").setContentTitle("SurakshaAI location sharing")
+        val notification=NotificationCompat.Builder(this,"safety_location").setContentTitle("Aegis location sharing")
             .setContentText("Active SOS or journey. Open the app to stop sharing.")
             .setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentIntent(open).setOngoing(true).build()
         startForeground(4101,notification,ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)

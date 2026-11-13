@@ -49,7 +49,7 @@ object SafetyRuntime {
         context = ctx.applicationContext
         store = SecureStore(context)
         val app = FirebaseApp.getApps(context).firstOrNull() ?: FirebaseApp.initializeApp(context,
-            FirebaseOptions.Builder().setApplicationId("1:1234567890:android:0000000000000000")
+            FirebaseOptions.Builder().setApplicationId(BuildConfig.FIREBASE_APP_ID)
                 .setProjectId(BuildConfig.FIREBASE_PROJECT_ID).setApiKey(BuildConfig.FIREBASE_API_KEY).build())
         auth = FirebaseAuth.getInstance(app)
         if (BuildConfig.CONTROLLED_DEMO && BuildConfig.FIREBASE_PROJECT_ID.startsWith("demo-")) {
@@ -61,14 +61,15 @@ object SafetyRuntime {
         val value = JSONObject(json)
         if(value.has("contract_sha256"))require(value.getString("contract_sha256")==Contract.SHA256)
         val requested = value.optString("api_base_url", baseUrl)
-        val uri = URI(requested)
-        val local = uri.host in listOf("127.0.0.1", "localhost", "10.0.2.2")
-        require((BuildConfig.CONTROLLED_DEMO && local && uri.scheme == "http") || requested == BuildConfig.API_BASE_URL && uri.scheme == "https")
+        val localEmulator=BuildConfig.CONTROLLED_DEMO&&BuildConfig.FIREBASE_PROJECT_ID.startsWith("demo-")
+        require(NetworkEndpointPolicy.allowed(requested,localEmulator)&&
+            (requested.trimEnd('/')==BuildConfig.API_BASE_URL.trimEnd('/')||localEmulator&&URI(requested).host in listOf("127.0.0.1","localhost","10.0.2.2"))){"SERVER_CONFIGURATION_REQUIRED"}
         baseUrl = requested.trimEnd('/')
         recover()
         return state().toString()
     }
     fun authState(): JSONObject = JSONObject().apply {
+        put("auth_mode",if(BuildConfig.CONTROLLED_DEMO&&BuildConfig.FIREBASE_PROJECT_ID.startsWith("demo-"))"EMULATOR" else "FIREBASE")
         put("uid", auth.currentUser?.uid ?: JSONObject.NULL)
         put("phone", auth.currentUser?.phoneNumber ?: JSONObject.NULL)
     }
@@ -112,9 +113,17 @@ object SafetyRuntime {
     fun wire(location: Location): WireLocation = WireLocation(location.latitude,location.longitude,
         if(location.hasAccuracy())location.accuracy.toDouble() else null,Instant.ofEpochMilli(location.time).toString(),"gps")
     fun locationJson(location: Location): JSONObject = JSONObject(gson.toJson(wire(location)))
-    @Synchronized fun activate(trigger: String): JSONObject {
-        require(trigger in listOf("MANUAL","DURESS_PIN","VOLUME_CODE")) { "FEATURE_DISABLED" }
+    fun activate(trigger:String):JSONObject = activateIntent(trigger,false,null)
+    fun activateForAccount(trigger:String,expectedUid:String):JSONObject=activateIntent(trigger,false,expectedUid)
+    fun activateVoiceSos(expectedUid:String):JSONObject {
+        require(auth.currentUser?.uid==expectedUid && com.surakshaai.monitoring.AudioMonitoringService.allowsAutomaticSos(expectedUid)) { "AUTO_DISPATCH_DISABLED" }
+        return activateIntent("ML_FUSION",true,expectedUid)
+    }
+    @Synchronized private fun activateIntent(trigger: String,automaticSessionAuthorized:Boolean,expectedUid:String?): JSONObject {
+        require(SosTriggerPolicy.allowed(trigger,BuildConfig.CONTROLLED_DEMO,automaticSessionAuthorized)) { "FEATURE_DISABLED" }
         val user = auth.currentUser ?: throw HttpFailure(401,"UNAUTHENTICATED")
+        require(expectedUid==null||expectedUid==user.uid){"AUTH_FLOW_EXPIRED"}
+        if(trigger=="ML_FUSION")require(com.surakshaai.monitoring.AudioMonitoringService.allowsAutomaticSos(user.uid)){"AUTO_DISPATCH_DISABLED"}
         val existing=store.read().optJSONObject("active")
         if(existing?.optString("state")=="RECONFIRM_REQUIRED")throw HttpFailure(409,"TERMINATE_PREVIOUS_INTENT")
         if(existing!=null && existing.optString("uid")==user.uid && existing.optString("state") !in listOf("TERMINATED","RECONFIRM_REQUIRED"))
@@ -236,6 +245,7 @@ object SafetyRuntime {
         SafetyLocationService.current?.removePurpose("$purpose:$resource")
     }
     fun state(): JSONObject = authState().apply {
+        put("volume_shortcut",com.surakshaai.triggers.DiscreetControls.keyState())
         val audio=com.surakshaai.monitoring.AudioMonitoringService.state()
         val motion=com.surakshaai.monitoring.MotionSession.state()
         // A previous audio error must not mask a newly active motion fallback.

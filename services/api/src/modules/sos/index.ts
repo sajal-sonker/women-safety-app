@@ -27,7 +27,7 @@ export async function enqueue(db:DB,eventId:string|null,recipientId:string|null,
  if(inserted.rowCount)await db.query('INSERT INTO notification_outbox(id,intent_id,material_ciphertext,deadline) VALUES($1,$2,$3,$4)',[outboxId,intentId,encrypt(material),iso(new Date(Math.min(Date.parse(expires),Date.now()+600000)))]);
 }
 export async function createSos(db:DB,user:Row,body:Row,serverGenerated=false):Promise<{event:Row,replayed:boolean}>{
- requireCondition(serverGenerated||['MANUAL','DURESS_PIN'].includes(body.trigger_type)||(config.env==='local'&&(body.trigger_type==='VOLUME_CODE'||body.trigger_type==='ML_FUSION'&&user.consents?.monitoring===true)),503,'FEATURE_DISABLED');
+ requireCondition(serverGenerated||['MANUAL','DURESS_PIN'].includes(body.trigger_type)||(config.controlledDemo&&(body.trigger_type==='VOLUME_CODE'||body.trigger_type==='ML_FUSION'&&user.consents?.monitoring===true)),503,'FEATURE_DISABLED');
  validateLocation(body.location,true);
  const digest=bodyHash(body),key=body.client_request_id;
  await lock(db,'intent:'+user.id+':'+key);

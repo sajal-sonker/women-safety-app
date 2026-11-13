@@ -2,6 +2,7 @@
 import {initializeApp,getApps} from 'firebase/app';
 import {getAuth,connectAuthEmulator} from 'firebase/auth';
 let configured=false;
+export const isEmulatorProject=()=>(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID??'demo-surakshaai').startsWith('demo-');
 export function browserAuth(){
  const projectId=process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID??'demo-surakshaai';
  const app=getApps()[0]??initializeApp({projectId,apiKey:process.env.NEXT_PUBLIC_FIREBASE_API_KEY??'demo-api-key',authDomain:projectId+'.firebaseapp.com',appId:process.env.NEXT_PUBLIC_FIREBASE_APP_ID??'1:1234567890:web:demo'});

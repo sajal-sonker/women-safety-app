@@ -49,6 +49,10 @@ class AudioMonitoringService:Service(),SensorEventListener {
         }
         fun state():JSONObject=JSONObject(last.toString())
         fun isActive()=current!=null||pending!=null
+        fun allowsAutomaticSos(expectedUid:String):Boolean=current?.let {
+            it.running.get() && it.uid==expectedUid && it.repeatedWords.enabled &&
+            it.dispatchState=="SAVING" && SystemClock.elapsedRealtime()<it.expires
+        }==true
         fun dismissCheckIn(){current?.cancelCheckIn()}
     }
     private val running=AtomicBoolean(false)
@@ -134,7 +138,7 @@ class AudioMonitoringService:Service(),SensorEventListener {
             require(notificationsAllowed(this)){"PERMISSION_UNAVAILABLE"}
             val open=PendingIntent.getActivity(this,4201,Intent(this,MainActivity::class.java),PendingIntent.FLAG_IMMUTABLE)
             val stop=PendingIntent.getService(this,4202,Intent(this,AudioMonitoringService::class.java).setAction("STOP"),PendingIntent.FLAG_IMMUTABLE)
-            val notification=NotificationCompat.Builder(this,"audio_monitoring").setSmallIcon(android.R.drawable.ic_btn_speak_now).setContentTitle("SurakshaAI microphone monitoring")
+            val notification=NotificationCompat.Builder(this,"audio_monitoring").setSmallIcon(android.R.drawable.ic_btn_speak_now).setContentTitle("Aegis microphone monitoring")
                 .setContentText(if(repeatedWords.enabled)"Repeated-word SOS is on. Stop ends listening and countdowns." else "Voice check-ins are on. Tap Stop to end listening.").setContentIntent(open).addAction(android.R.drawable.ic_media_pause,"Stop",stop).setOngoing(true).setVisibility(NotificationCompat.VISIBILITY_PRIVATE).build()
             startForeground(4201,notification,ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
             current=this;running.set(true)
@@ -237,7 +241,10 @@ class AudioMonitoringService:Service(),SensorEventListener {
     private fun sendSos(trigger:String){
         getSystemService(NotificationManager::class.java).cancel(CheckInAlerts.ID);checkInUntil=0L
         actions.execute{if(running.get()&&uid==SafetyRuntime.auth.currentUser?.uid&&SystemClock.elapsedRealtime()<expires){
-            try{SafetyRuntime.activate(trigger);dispatchState="SAVED"}catch(_:Exception){dispatchState="FAILED"}
+            try{
+                if(trigger=="ML_FUSION")SafetyRuntime.activateVoiceSos(uid) else SafetyRuntime.activate(trigger)
+                dispatchState="SAVED"
+            }catch(_:Exception){dispatchState="FAILED"}
             handler.post{publish()}
         }}
     }

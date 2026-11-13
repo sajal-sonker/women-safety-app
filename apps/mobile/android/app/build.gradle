@@ -99,6 +99,7 @@ android {
         buildConfigField "String", "API_BASE_URL", groovy.json.JsonOutput.toJson(providers.gradleProperty("apiBaseUrl").orElse("http://10.0.2.2:4001").get())
         buildConfigField "String", "FIREBASE_PROJECT_ID", groovy.json.JsonOutput.toJson(providers.gradleProperty("firebaseProjectId").orElse("demo-surakshaai").get())
         buildConfigField "String", "FIREBASE_API_KEY", groovy.json.JsonOutput.toJson(providers.gradleProperty("firebaseApiKey").orElse("demo-api-key").get())
+        buildConfigField "String", "FIREBASE_APP_ID", groovy.json.JsonOutput.toJson(providers.gradleProperty("firebaseAppId").orElse("1:1234567890:android:0000000000000000").get())
     }
     buildTypes {
         debug {
@@ -114,6 +115,7 @@ android {
             buildConfigField "boolean", "CONTROLLED_DEMO", "true"
             manifestPlaceholders = [usesCleartextTraffic: "true"]
             signingConfig signingConfigs.debug
+            resValue "string", "app_name", "Aegis Demo"
         }
         release {
             buildConfigField "boolean", "CONTROLLED_DEMO", "false"
@@ -121,6 +123,27 @@ android {
             // see https://reactnative.dev/docs/signed-apk-android.
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+        pilot {
+            initWith demo
+            matchingFallbacks = ["release"]
+            applicationIdSuffix ".pilot"
+            versionNameSuffix "-hosted-pilot"
+            manifestPlaceholders = [usesCleartextTraffic: "false"]
+            resValue "string", "app_name", "Aegis Pilot"
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    def requested = gradle.startParameter.taskNames.collect { it.tokenize(':').last() }
+    if (requested.any { it ==~ /(?i)(assemble|bundle|install|package)(Pilot|Release).*/ } || requested.any { it in ['assemble','build'] }) {
+        def endpoint = new URI(providers.gradleProperty("apiBaseUrl").orElse("").get())
+        def projectId = providers.gradleProperty("firebaseProjectId").orElse("").get()
+        def apiKey = providers.gradleProperty("firebaseApiKey").orElse("").get()
+        def appId = providers.gradleProperty("firebaseAppId").orElse("").get()
+        if (endpoint.scheme != "https" || !endpoint.host || endpoint.userInfo || endpoint.query || endpoint.fragment || !(endpoint.path in ["", "/"]) || projectId.startsWith("demo-") || !projectId || !apiKey || !appId.startsWith("1:")) {
+            throw new GradleException("Hosted builds require an HTTPS apiBaseUrl and real firebaseProjectId/firebaseApiKey/firebaseAppId. Supply public Firebase app identifiers; never bundle server credentials.")
         }
     }
 }

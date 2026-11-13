@@ -27,6 +27,7 @@ export function AudioMonitoringControls({monitoring,busy,run,setNotice}:{monitor
    const permissions=await PermissionsAndroid.requestMultiple([PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,...(Number(Platform.Version)>=33?[PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS]:[])]);
    if(!valid())return;
    if(permissions[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]!==PermissionsAndroid.RESULTS.GRANTED)throw Error('Microphone permission denied. Manual SOS remains available.');
+   if(Number(Platform.Version)>=33&&permissions[PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS]!==PermissionsAndroid.RESULTS.GRANTED)throw Error('Allow notifications so you can see check-ins and stop listening. Manual SOS remains available.');
    await api('/me/consents','PATCH',{version:'consent-v1',monitoring:true});
    if(!valid()){
     if(!consentNow.current)try{await api('/me/consents','PATCH',{version:'consent-v1',monitoring:false});}catch{/* Local start is cancelled regardless of connectivity. */}
@@ -48,6 +49,7 @@ export function AudioMonitoringControls({monitoring,busy,run,setNotice}:{monitor
   {!active&&<><View style={s.split}><Text style={s.option}>Listen for help words for 30 minutes</Text><Switch accessibilityLabel="Consent to audio, motion and phrase monitoring" value={consent} onValueChange={value=>{if(value){generation.current++;consentNow.current=true;setConsent(true);}else{void stop();}}}/></View>
    <View style={s.split}><Text style={s.option}>Send SOS after repeated help words</Text><Switch accessibilityLabel="Enable repeated-word automatic SOS" disabled={pending||busy} value={autoSos} onValueChange={setAutoSos}/></View>
    <Text style={s.small}>When enabled: 5 Help or Bachao words within 30 seconds start a 10-second cancel countdown. Ordinary speech can also trigger it.</Text>
+   {autoSos&&<Button title="Check voice alert permissions" secondary onPress={()=>run(async()=>{await NativeSafety.openVoiceNotificationSettings();})}/>}
    {!pending&&<Button title="Start listening" disabled={busy||!consent} onPress={start}/>}</>}
   {pending&&<Text style={s.small}>Getting ready… You can cancel at any time.</Text>}
   {monitoring?.last_phrase&&<Text accessibilityLiveRegion="polite" style={s.notice}>Heard {monitoring.last_phrase==='HELP'?'Help':'Bachao / बचाओ'}</Text>}
@@ -58,6 +60,6 @@ export function AudioMonitoringControls({monitoring,busy,run,setNotice}:{monitor
   {monitoring?.auto_sos_state==='FAILED'&&<Text accessibilityRole="alert" style={s.notice}>Could not save SOS. Please use the SOS button on Home.</Text>}
   {monitoring?.check_in&&<><Text accessibilityRole="alert" style={s.notice}>{(monitoring.auto_sos_seconds??0)>0?'SOS countdown is running. Cancel if you’re okay.':checkInMessage(monitoring.decision)}</Text><Button title="Request SOS now" onPress={()=>run(async()=>{await NativeSafety.dismissMonitoringCheckIn();await NativeSafety.activateSos('MANUAL');})}/><Button title="I am okay — dismiss check-in" secondary onPress={()=>run(async()=>{await NativeSafety.dismissMonitoringCheckIn();})}/></>}
   {(active||pending)&&<Button title={pending?'Cancel start':'Stop listening'} secondary onPress={stop}/>}
-  <Disclosure title="How voice check-in works"><Text style={s.small}>Pause after speaking. Check-in prompts have a 2-minute cooldown; repeated-word SOS counts separately. Voices can be missed or misheard. Stop ends listening and any pending countdown. Calls or permission changes can end the session.</Text><Button title="Notification settings" secondary onPress={()=>{void Linking.openSettings().catch(()=>setNotice('Open your phone settings, then SurakshaAI notifications.'));}}/></Disclosure>
+  <Disclosure title="How voice check-in works"><Text style={s.small}>Pause after speaking. Check-in prompts have a 2-minute cooldown; repeated-word SOS counts separately. Voices can be missed or misheard. Stop ends listening and any pending countdown. Calls or permission changes can end the session.</Text><Button title="Notification settings" secondary onPress={()=>{void Linking.openSettings().catch(()=>setNotice('Open your phone settings, then Aegis notifications.'));}}/></Disclosure>
  </Card>;
 }

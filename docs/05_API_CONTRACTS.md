@@ -2,6 +2,8 @@
 
 ## CR-009: authenticated Android recipient (13 November2026)
 
+**CR-010 update (13 November2026):** `GET /received-alerts` includes required `own_acknowledgement` on every ReceivedAlert: PENDING, CAN_ASSIST or CANNOT_ASSIST for SOS grants; null for journey grants. This comes from the existing recipient record. After a successful ACK, consumers dismiss response controls and keep a saved status; an older pending poll cannot immediately restore the prompt. Reopening details shows the saved response and an explicit Change my response action. Failed POSTs never show success. Current source hash is in [CONTRACT_LOCK.md](../packages/contracts/CONTRACT_LOCK.md). No new table, endpoint or delivery guarantee.
+
 The same account can be an owner and a recipient. All five added operations use Firebase bearer identity and the usual UUID idempotency header for mutations:
 
 | Operation | Request → response |

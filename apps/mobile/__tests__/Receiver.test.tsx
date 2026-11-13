@@ -2,7 +2,7 @@ import React from 'react';
 import Renderer,{act} from 'react-test-renderer';
 import {AppState,type AppStateStatus} from 'react-native';
 import {Inbox} from '../src/Inbox';
-import {useReceiver,type ReceiverState} from '../src/receiver';
+import {useReceiver,needsResponse,type ReceiverState} from '../src/receiver';
 const mockRequest=jest.fn();
 jest.mock('../specs/NativeSafety',()=>({__esModule:true,default:{apiRequest:(...args:unknown[])=>mockRequest(...args)}}));
 let listeners:Set<(state:AppStateStatus)=>void>;
@@ -11,16 +11,23 @@ beforeEach(()=>{
  jest.spyOn(AppState,'addEventListener').mockImplementation((_event,callback)=>{listeners.add(callback);return {remove:()=>listeners.delete(callback)};});
 });
 afterEach(()=>{jest.restoreAllMocks();jest.useRealTimers();});
-const inbox:ReceiverState={invitations:[],alerts:[],consents:[],updated:Date.now(),error:'',reload:jest.fn()};
-const alert={grant_id:'grant-a',kind:'SOS_READ' as const,shared_name:'Synthetic sibling',started_at:new Date().toISOString(),expires_at:new Date(Date.now()+60000).toISOString()};
+const inbox:ReceiverState={invitations:[],alerts:[],consents:[],updated:Date.now(),error:'',reload:jest.fn(),responded:jest.fn(),opened:jest.fn(),unseenJourneys:0};
+const alert={grant_id:'grant-a',kind:'SOS_READ' as const,shared_name:'Synthetic sibling',started_at:new Date().toISOString(),expires_at:new Date(Date.now()+60000).toISOString(),own_acknowledgement:'PENDING' as const};
 const detail={grant_id:'grant-a',kind:'SOS_READ',journey:null,event:{shared_name:'Synthetic sibling',started_at:alert.started_at,position:{lat:26.85,lon:80.946,captured_at:alert.started_at,accuracy_m:12},own_acknowledgement:'PENDING',assisting_count:0}};
 function button(tree:Renderer.ReactTestRenderer,label:string){return tree.root.findAll(n=>n.props?.accessibilityRole==='button'&&n.props?.accessibilityLabel===label)[0];}
 test('recipient opens SOS, responds in-app, and immediately hides location on revocation',async()=>{
- mockRequest.mockImplementation(async(_path:string,method:string)=>JSON.stringify(method==='POST'?{}:detail));
+ let answered=false;
+ mockRequest.mockImplementation(async(_path:string,method:string)=>{if(method==='POST'){answered=true;return '{}';}return JSON.stringify({...detail,event:{...detail.event,own_acknowledgement:answered?'CAN_ASSIST':'PENDING'}});});
  let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<Inbox inbox={{...inbox,alerts:[alert]}}/>);});
  await act(async()=>button(tree!,'Open received SOS').props.onPress());expect(button(tree!,'View shared location in Maps')).toBeDefined();
  await act(async()=>button(tree!,'I can help').props.onPress());
  expect(mockRequest).toHaveBeenCalledWith('/received-alerts/grant-a/acknowledge','POST',JSON.stringify({can_assist:true}),'','{}');
+ expect(button(tree!,'I can help')).toBeUndefined();
+ expect(JSON.stringify(tree!.toJSON())).toContain('can see that you are on your way');
+ await act(async()=>{jest.advanceTimersByTime(6000);});
+ expect(JSON.stringify(tree!.toJSON())).toContain('can see that you are on your way');
+ await act(async()=>button(tree!,'Open received SOS').props.onPress());
+ expect(button(tree!,'I can help')).toBeUndefined();expect(button(tree!,'Change my response')).toBeDefined();
  mockRequest.mockRejectedValue(Object.assign(new Error('Action could not complete. Check permissions and connection.'),{code:'GRANT_REVOKED'}));
  await act(async()=>{jest.advanceTimersByTime(2000);});
  expect(button(tree!,'View shared location in Maps')).toBeUndefined();expect(button(tree!,'I can help')).toBeUndefined();
@@ -61,5 +68,17 @@ test('backgrounding a selected alert hides the shared position',async()=>{
  await act(async()=>{tree=Renderer.create(<Inbox inbox={{...inbox,alerts:[alert]}}/>);});
  await act(async()=>button(tree!,'Open received SOS').props.onPress());expect(button(tree!,'View shared location in Maps')).toBeDefined();
  await act(async()=>{listeners.forEach(fn=>fn('background'));});expect(button(tree!,'View shared location in Maps')).toBeUndefined();
+ await act(async()=>tree!.unmount());
+});
+test('accepted response suppresses the urgent banner even when an older pending snapshot arrives',async()=>{
+ let state:ReceiverState;const contacts=jest.fn();
+ function Probe(){state=useReceiver('recipient-a',contacts);return null;}
+ mockRequest.mockImplementation(async(path:string)=>JSON.stringify({items:path==='/received-alerts'?[alert]:[]}));
+ let tree:Renderer.ReactTestRenderer;await act(async()=>{tree=Renderer.create(<Probe/>);});
+ expect(needsResponse(state!.alerts[0])).toBe(true);
+ await act(async()=>state!.responded('grant-a','CAN_ASSIST'));
+ expect(needsResponse(state!.alerts[0])).toBe(false);
+ await act(async()=>{jest.advanceTimersByTime(2000);});
+ expect(needsResponse(state!.alerts[0])).toBe(false);
  await act(async()=>tree!.unmount());
 });

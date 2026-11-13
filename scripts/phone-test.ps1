@@ -19,5 +19,5 @@ if($Install){
  & $adbPath -s $DeviceId install -r $apk
  if($LASTEXITCODE -ne 0){throw 'APK installation failed.'}
 }
-Write-Output 'USB API/Auth mappings ready. Keep local Auth/API/worker running and open SurakshaAI Demo. Receiver: Contacts > Inbox in the same app; browser is optional.'
+Write-Output 'USB API/Auth mappings ready. Keep local Auth/API/worker running and open Aegis Demo. Receiver: Contacts > Inbox in the same app; browser is optional.'
 Write-Output 'Use only simulated alerts. Do not dial112 or send real emergency messages during testing.'

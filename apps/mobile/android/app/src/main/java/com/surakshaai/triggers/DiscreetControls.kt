@@ -19,9 +19,19 @@ object DiscreetControls {
     private var tone:Ringtone?=null
     private var focus:AudioFocusRequest?=null
     @Volatile var visible=false
-    var focusedKeys=false
-    private val keys=mutableListOf<Pair<Int,Long>>()
-    private var lastKeyTrigger=0L
+    @Volatile private var focusedKeyUid:String?=null
+    @Volatile private var keyStatus="OFF"
+    private val keySequence=FocusedKeySequence()
+    fun keysArmed()=BuildConfig.CONTROLLED_DEMO&&visible&&focusedKeyUid!=null&&focusedKeyUid==SafetyRuntime.auth.currentUser?.uid
+    fun setFocusedKeys(enabled:Boolean){
+        require(!enabled||visible){"FOREGROUND_REQUIRED"}
+        require(!enabled||SafetyRuntime.auth.currentUser!=null){"UNAUTHENTICATED"}
+        require(!enabled||BuildConfig.CONTROLLED_DEMO){"FEATURE_DISABLED"}
+        focusedKeyUid=if(enabled)SafetyRuntime.auth.currentUser!!.uid else null
+        keySequence.reset();keyStatus=if(enabled)"READY" else "OFF"
+    }
+    fun keyState()=JSONObject().put("enabled",keysArmed()).put("progress",if(keysArmed())keySequence.progress else 0).put("status",if(keysArmed())keyStatus else "OFF")
+    fun resetKeySequence(){keySequence.reset()}
     private fun encode(b:ByteArray)=Base64.encodeToString(b,Base64.NO_WRAP)
     private fun derive(pin:String,salt:ByteArray)=SCrypt.generate(pin.toByteArray(Charsets.UTF_8),salt,32768,8,1,32)
     private fun recentAuth(){
@@ -31,8 +41,7 @@ object DiscreetControls {
         require(Instant.now().epochSecond-at in 0..300){"RECENT_AUTH_REQUIRED"}
     }
     @Synchronized fun setup(normal:String,duress:String):JSONObject {
-        require(visible);recentAuth()
-        require(normal.matches(Regex("[0-9]{6,12}"))&&duress.matches(Regex("[0-9]{6,12}"))&&normal!=duress)
+        require(visible){"FOREGROUND_REQUIRED"};PinPolicy.validatePair(normal,duress);recentAuth()
         val saltA=ByteArray(32).also(random::nextBytes);val saltB=ByteArray(32).also(random::nextBytes)
         val started=SystemClock.elapsedRealtime()
         val value=JSONObject().put("uid",SafetyRuntime.auth.currentUser!!.uid).put("salt_a",encode(saltA)).put("salt_b",encode(saltB))
@@ -42,9 +51,9 @@ object DiscreetControls {
         return JSONObject().put("status","CONFIGURED").put("kdf_ms",value.getLong("kdf_ms"))
     }
     @Synchronized fun unlock(pin:String,practice:Boolean):JSONObject {
-        require(visible&&pin.matches(Regex("[0-9]{6,12}")))
+        require(visible){"FOREGROUND_REQUIRED"};PinPolicy.validate(pin)
         val value=SafetyRuntime.store.read().optJSONObject("pins")?:throw HttpFailure(409,"SETUP_REQUIRED")
-        require(value.getString("uid")==SafetyRuntime.auth.currentUser?.uid)
+        require(value.getString("uid")==SafetyRuntime.auth.currentUser?.uid){"SETUP_REQUIRED"}
         val until=value.optLong("blocked_until");val now=System.currentTimeMillis()
         require(now>=until&&now>=value.optLong("last_attempt_wall")){"TRY_LATER"}
         val a=derive(pin,Base64.decode(value.getString("salt_a"),Base64.NO_WRAP))
@@ -57,10 +66,10 @@ object DiscreetControls {
             throw HttpFailure(401,"PIN_NOT_ACCEPTED")
         }
         SafetyRuntime.store.update{it.getJSONObject("pins").put("attempts",0).put("blocked_until",0).put("last_attempt_wall",now);if(!practice)it.put("decoy",duress)}
-        if(duress&&!practice)SafetyRuntime.activate("DURESS_PIN")
+        if(duress&&!practice)SafetyRuntime.activateForAccount("DURESS_PIN",value.getString("uid"))
         return JSONObject().put("screen",if(duress)"NOTES" else "HOME").put("practice",practice)
     }
-    fun reset():JSONObject {require(visible);recentAuth();SafetyRuntime.store.update{it.remove("pins");it.remove("decoy")};return JSONObject().put("status","RESET")}
+    fun reset():JSONObject {require(visible){"FOREGROUND_REQUIRED"};recentAuth();SafetyRuntime.store.update{it.remove("pins");it.remove("decoy")};return JSONObject().put("status","RESET")}
     private fun alarmIntent():PendingIntent=PendingIntent.getBroadcast(SafetyRuntime.context,611,Intent(SafetyRuntime.context,FakeCallReminder::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     fun schedule(label:String,seconds:Int):JSONObject {
         require(visible&&SafetyRuntime.auth.currentUser!=null&&label.length in 1..80&&seconds in 0..3600)
@@ -94,10 +103,12 @@ object DiscreetControls {
     }
     fun cancel(){(SafetyRuntime.context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarmIntent());stopSound();SafetyRuntime.store.update{it.remove("fake_call")};NotificationManagerCompat.from(SafetyRuntime.context).cancel(611)}
     fun onKey(code:Int,repeat:Int){
-        if(!focusedKeys||!visible||repeat!=0||code !in listOf(24,25))return
-        val now=SystemClock.elapsedRealtime();keys.removeAll{now-it.second>2500};keys.add(code to now)
-        if(keys.size>4)keys.removeAt(0)
-        if(keys.map{it.first}==listOf(24,25,24,25)&&(lastKeyTrigger==0L||now-lastKeyTrigger>120000)){lastKeyTrigger=now;keys.clear();SafetyRuntime.io.execute{runCatching{SafetyRuntime.activate("VOLUME_CODE")}}}
+        if(!keysArmed())return
+        if(keySequence.accept(code,repeat,SystemClock.elapsedRealtime())){
+            keyStatus="SAVING"
+            val uid=focusedKeyUid?:return
+            SafetyRuntime.io.execute{try{SafetyRuntime.activateForAccount("VOLUME_CODE",uid);keyStatus="SAVED"}catch(_:Exception){keyStatus="FAILED"}}
+        }
     }
 }
 class FakeCallReminder:BroadcastReceiver(){

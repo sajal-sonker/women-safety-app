@@ -1,0 +1,16 @@
+FROM node:26.13.0-bookworm-slim
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+COPY services/api/package.json services/api/package.json
+COPY services/worker/package.json services/worker/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
+RUN npm ci --omit=dev --workspace @surakshaai/api --workspace @surakshaai/worker --workspace @surakshaai/contracts --include-workspace-root --no-audit --no-fund
+COPY --chown=node:node services ./services
+COPY --chown=node:node packages/contracts ./packages/contracts
+COPY --chown=node:node scripts/start-hosted.mjs ./scripts/start-hosted.mjs
+RUN mkdir -p /var/data && chown node:node /var/data
+USER node
+ENV HOST=0.0.0.0 PORT=4001
+EXPOSE 4001
+CMD ["node","scripts/start-hosted.mjs"]

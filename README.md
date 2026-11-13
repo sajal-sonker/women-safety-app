@@ -1,8 +1,10 @@
-# SurakshaAI — Agent-ready project specification (v1.0)
+# Aegis — Android safety companion
+
+**Current work,13 November2026:** Aegis branding, saved responder answers, automatic voice SOS entry fix, clearer PIN/permission errors, foreground volume shortcut fixes and simpler help discovery. See [verification and remaining device checks](docs/validation/aegis-polish.md). Fully hosted mobile-data access is now requested; [hosting preparation](docs/HOSTED_PILOT.md) supersedes the older local-only scope for this next step. No public backend is deployed yet. Existing Demo still requires the PC/USB mappings; the separate Pilot build requires real Firebase configuration and a deployed HTTPS API.
 
 **Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](docs/TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.
 
-**Working name:** SurakshaAI (changeable; do not hard-code product branding).
+**App name:** Aegis (renamed from SurakshaAI on13 November2026). Internal package/database identifiers remain stable to preserve existing installations and encrypted data.
 **Product:** Android-first, India-focused women's safety mobile app with emergency alerting, explainable time-aware route risk indicators, verified/registered safe-shop discovery, situational on-device distress detection, and discreet safety controls.
 **Documentation baseline:** review-1.2, 10 November 2026. **Current target, confirmed11 November2026:** a working local demonstration prototype. The implementation includes Phase3 discreet controls, private evidence/context, Phase4 export/deletion/recovery tooling and a black/purple interface. Authentication, delivery and storage are local/emulated; Lucknow routes/shops are fictional. The prototype is ready for phone testing. Production hosting/providers, release certification and research-grade model graduation are outside this demo's completion criteria. Historical [Phase3](docs/validation/phase-3.md) and [Phase4](docs/validation/phase-4.md) acceptance remains partial rather than being retroactively certified. No production emergency release is claimed.
 

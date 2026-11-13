@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {onAuthStateChanged,RecaptchaVerifier,signInWithPhoneNumber,type User,type ConfirmationResult,signOut} from 'firebase/auth';
-import {browserAuth} from '../lib/auth';
+import {browserAuth,isEmulatorProject} from '../lib/auth';
 export function useIdentity(){
  const [user,setUser]=useState<User|null>(null),[ready,setReady]=useState(false);
  useEffect(()=>onAuthStateChanged(browserAuth(),u=>{setUser(u);setReady(true);}),[]);
@@ -21,6 +21,6 @@ export function SignIn({initialPhone='+16505550101'}:{initialPhone?:string}){
  <label>Phone number<input aria-label="Phone number" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} /></label>
  {confirmation?<><label>Verification code<input aria-label="Verification code" inputMode="numeric" value={code} onChange={e=>setCode(e.target.value)} /></label><button onClick={confirm} disabled={busy}>Verify and continue</button><button className="text-button" onClick={()=>setConfirmation(null)}>Use another code or number</button></>:<button onClick={send} disabled={busy}>Send verification code</button>}
  <div id="recaptcha"/>{error&&<p role="alert" className="error">{error}</p>}
- <p className="small">Local demo: use the <a href="http://127.0.0.1:4000/auth" target="_blank" rel="noreferrer">Authentication Emulator</a> for the test code. No SMS is sent.</p></section>;
+ <p className="small">{isEmulatorProject()?<>Local demo: use the <a href="http://127.0.0.1:4000/auth" target="_blank" rel="noreferrer">Authentication Emulator</a> for the test code. No SMS is sent.</>:<>Use the SMS sent to your phone, or the verification code configured for your Firebase test number.</>}</p></section>;
 }
 export function Logout(){return <button className="text-button" onClick={()=>signOut(browserAuth())}>Sign out</button>;}

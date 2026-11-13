@@ -50,6 +50,7 @@ test('same-app recipients accept by ID, track only consented grants, acknowledge
  const eventKey=randomUUID(),location={lat:26.85,lon:80.946,accuracy_m:15,captured_at:new Date().toISOString(),source:'gps'};
  const event=await call('/sos',{uid:owner,method:'POST',body:{...sosBody(eventKey),location,location_status:'CURRENT'},key:eventKey});assert.equal(event.status,201);
  const received=await call('/received-alerts',{uid:receiver});assert.equal(received.status,200);assert.equal(received.body.items.length,1);
+ assert.equal(received.body.items[0].own_acknowledgement,'PENDING');
  const grantId=received.body.items[0].grant_id,route='/received-alerts/'+grantId;
  assert.equal((await call('/received-alerts',{uid:stranger})).body.items.length,0);
  assert.equal((await call(route,{uid:stranger})).status,404);assert.equal((await call(route,{uid:owner})).status,404);
@@ -63,12 +64,14 @@ test('same-app recipients accept by ID, track only consented grants, acknowledge
  assert.equal((await call('/sos/'+event.body.event_id,{uid:receiver})).status,404);
  const ackKey=randomUUID(),ack={uid:receiver,method:'POST',body:{can_assist:true,eta_minutes:5},key:ackKey};
  assert.equal((await call(route+'/acknowledge',ack)).body.acknowledgement,'CAN_ASSIST');
+ assert.equal((await call('/received-alerts',{uid:receiver})).body.items[0].own_acknowledgement,'CAN_ASSIST');
  assert.equal((await call('/sos/'+event.body.event_id,{uid:owner})).body.recipients[0].acknowledgement,'CAN_ASSIST');
  await call('/sos/'+event.body.event_id+'/resolve',{uid:owner,method:'POST',body:{resolution:'SAFE'}});
  assert.equal((await call(route,{uid:receiver})).status,410);assert.equal((await call(route+'/acknowledge',ack)).status,410,'cached ACK cannot bypass revocation');
  assert.equal((await call('/received-alerts',{uid:receiver})).body.items.length,0);
  const journey=await call('/journeys',{uid:owner,method:'POST',body:{origin:null,destination:{lat:26.85,lon:80.946},expected_arrival_at:new Date(Date.now()+900000).toISOString(),auto_escalate:false,share_with_contacts:true,contact_ids:[contact.body.id]}});assert.equal(journey.status,201);
  const shared=(await call('/received-alerts',{uid:receiver})).body.items[0];assert.equal(shared.kind,'JOURNEY_READ');
+ assert.equal(shared.own_acknowledgement,null);
  const jr='/received-alerts/'+shared.grant_id;assert.equal((await call(jr,{uid:receiver})).body.journey.journey_id,journey.body.journey_id);
  assert.equal((await call(jr+'/acknowledge',{uid:receiver,method:'POST',body:{can_assist:true}})).status,403);
  assert.equal((await call('/contact-consents/'+contact.body.id,{uid:receiver,method:'DELETE'})).status,204);

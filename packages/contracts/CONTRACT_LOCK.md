@@ -1,5 +1,11 @@
 # Phase 1/2 integration baseline
 
+## Current CR-010 — Aegis polish and hosted pilot preparation,13 November2026
+
+Canonical SHA256 **56c07ea3fe5250f7c50a85ea41fc5b07f493c0798f1a6cbd8324f692d5523a5c**, **85 operations /90 schemas**. `ReceivedAlert.own_acknowledgement` is required and nullable: PENDING/CAN_ASSIST/CANNOT_ASSIST for SOS, null for journeys. Existing recipient/phone/grant checks are unchanged. All TS/Ajv/Kotlin consumers were regenerated together; no migrations or endpoint additions. Mobile hides answered prompts; accepted local ACK state resists an older in-flight PENDING snapshot. Browser also hides saved response controls.
+
+Native seam adds requestReauthentication(), confirmReauthentication(code), openVoiceNotificationSettings(); auth state adds auth_mode EMULATOR/FIREBASE, safety state adds volume_shortcut {enabled,progress,status}. Same-account reauthentication renews auth_time without signing out or resolving alerts. ML_FUSION uses a session-authorized native entry rather than the generic manual entry; five-word/10s cancellation/default-off semantics are unchanged. Focused volume sequence is four alternating presses within5s,5s cooldown, foreground only. Hosted controlled pilot enables monitoring capability while evidence remains local-only. See [semantics](../../docs/INTEGRATION_CONTRACTS.md) and [evidence](../../docs/validation/aegis-polish.md). Earlier hashes below are historical.
+
 ## Current CR-009 — native recipient,13 November2026
 
 Canonical OpenAPI now has **85 operations /90 named schemas**, SHA256 **3da863ac36a7b0923ce4014466018acac32bb78da1023d1f9f00522e7371b633**. Five bearer invitation/received-alert operations are documented in [the API catalogue](../../docs/05_API_CONTRACTS.md). No migration, native method or provider change. Reuses accepted contact principal+phone, live grants, scoped tracking views and acknowledgement. All consumers regenerated together; existing browser routes retained. Test evidence: [native receiver report](../../docs/validation/native-receiver.md). The older canonical hashes/counts below describe historical integration baselines, not the current input.

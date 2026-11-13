@@ -1,3 +1,3 @@
 // Generated; do not edit.
 package com.surakshaai.contracts
-object Contract { const val SHA256 = "3da863ac36a7b0923ce4014466018acac32bb78da1023d1f9f00522e7371b633" }
+object Contract { const val SHA256 = "56c07ea3fe5250f7c50a85ea41fc5b07f493c0798f1a6cbd8324f692d5523a5c" }

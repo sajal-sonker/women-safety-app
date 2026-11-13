@@ -1,4 +1,4 @@
-import {getApps,initializeApp} from 'firebase-admin/app';
+import {getApps,initializeApp,cert} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
 import type {Request} from 'express';
 import {pool,transaction,type Row} from './db/index.ts';
@@ -7,7 +7,10 @@ import {ApiError,id,hash,requireCondition} from './security.ts';
 export type Identity={uid:string,phone_number:string,auth_time:number};
 export type VerifyToken=(token:string,revoked:boolean)=>Promise<Identity>;
 export const verifyFirebase:VerifyToken=async(value,revoked)=>{
- if(!getApps().length)initializeApp({projectId:config.projectId});
+ if(!getApps().length){
+  const raw=process.env.FIREBASE_ADMIN_CREDENTIALS_JSON;
+  initializeApp({projectId:config.projectId,...(raw?{credential:cert(JSON.parse(raw))}:{})});
+ }
  const decoded=await getAuth().verifyIdToken(value,revoked);
  requireCondition(typeof decoded.phone_number==='string',401,'UNAUTHENTICATED');
  return {uid:decoded.uid,phone_number:decoded.phone_number,auth_time:decoded.auth_time};

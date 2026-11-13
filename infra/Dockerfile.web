@@ -1,0 +1,24 @@
+FROM node:26.13.0-bookworm-slim AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY apps/responder-web/package.json apps/responder-web/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
+RUN npm ci --ignore-scripts --workspace @surakshaai/web --workspace @surakshaai/contracts --include-workspace-root --no-audit --no-fund
+COPY apps/responder-web ./apps/responder-web
+COPY packages/contracts ./packages/contracts
+ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ARG NEXT_PUBLIC_FIREBASE_API_KEY
+ARG NEXT_PUBLIC_FIREBASE_APP_ID
+ARG API_BASE_URL
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID API_BASE_URL=$API_BASE_URL NEXT_TELEMETRY_DISABLED=1
+RUN node -e "const e=process.env,u=new URL(e.API_BASE_URL);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||u.pathname!=='/'||!e.NEXT_PUBLIC_FIREBASE_PROJECT_ID||e.NEXT_PUBLIC_FIREBASE_PROJECT_ID.startsWith('demo-')||!e.NEXT_PUBLIC_FIREBASE_API_KEY||!e.NEXT_PUBLIC_FIREBASE_APP_ID)process.exit(1)"
+RUN npm run build -w @surakshaai/web
+
+FROM node:26.13.0-bookworm-slim
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+COPY --from=builder --chown=node:node /app/apps/responder-web/.next/standalone ./
+COPY --from=builder --chown=node:node /app/apps/responder-web/.next/static ./apps/responder-web/.next/static
+USER node
+EXPOSE 3000
+CMD ["sh","-c","HOSTNAME=0.0.0.0 node apps/responder-web/server.js"]

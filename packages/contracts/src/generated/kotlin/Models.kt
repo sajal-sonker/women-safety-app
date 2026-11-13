@@ -663,7 +663,8 @@ data class ReceivedAlert(
     @SerializedName("kind") val kind: String,
     @SerializedName("shared_name") val shared_name: String,
     @SerializedName("started_at") val started_at: String,
-    @SerializedName("expires_at") val expires_at: String
+    @SerializedName("expires_at") val expires_at: String,
+    @SerializedName("own_acknowledgement") val own_acknowledgement: String?
 )
 
 data class ReceivedAlerts(

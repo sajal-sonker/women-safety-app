@@ -5,6 +5,8 @@ export interface Spec extends TurboModule {
   getAuthState():Promise<string>;
   startPhone(phone:string):Promise<string>;
   confirmPhone(code:string):Promise<string>;
+  requestReauthentication():Promise<string>;
+  confirmReauthentication(code:string):Promise<string>;
   clearAccount():Promise<string>;
   apiRequest(path:string,method:string,body:string,key:string,headers:string):Promise<string>;
   activateSos(trigger:string):Promise<string>;
@@ -15,6 +17,7 @@ export interface Spec extends TurboModule {
   getSafetyState():Promise<string>;
   startMonitoring(config:string):Promise<string>;
   stopMonitoring():Promise<string>;
+  openVoiceNotificationSettings():Promise<string>;
   dismissMonitoringCheckIn():Promise<string>;
   configurePins(normal:string,duress:string):Promise<string>;
   enterPin(pin:string,practice:boolean):Promise<string>;

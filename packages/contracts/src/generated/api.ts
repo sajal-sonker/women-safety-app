@@ -2067,6 +2067,7 @@ export interface components {
             started_at: string;
             /** Format: date-time */
             expires_at: string;
+            own_acknowledgement: ("PENDING" | "CAN_ASSIST" | "CANNOT_ASSIST") | null;
         };
         ReceivedAlerts: {
             items: components["schemas"]["ReceivedAlert"][];

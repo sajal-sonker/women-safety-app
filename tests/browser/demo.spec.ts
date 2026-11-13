@@ -1,6 +1,7 @@
 import {test,expect,type Page,type APIRequestContext} from '@playwright/test';
 async function login(page:Page,request:APIRequestContext,phone:string,path:string|null='/'){
- if(path!==null)await page.goto(path);
+ await page.bringToFront();
+ if(path!==null)await page.goto(path,{waitUntil:'domcontentloaded'});
  await page.getByLabel('Phone number',{exact:true}).fill(phone);
  await page.getByRole('button',{name:'Send verification code',exact:true}).click();
  await expect(page.getByLabel('Verification code',{exact:true})).toBeVisible({timeout:20000});
@@ -18,19 +19,25 @@ test('emulator phone login → SOS → simulated recipient message → acknowled
  await login(contact,request,'+16505550501');
  await contact.getByRole('button',{name:'Received alerts',exact:true}).click();
  await expect(contact.getByText('Live updates',{exact:true})).toBeVisible();
- const before=await contact.getByRole('link',{name:'Open secure link ↗'}).first().getAttribute('href').catch(()=>null);
+ const links=contact.getByRole('link',{name:'Open secure link ↗'});
+ const before=await links.count()?await links.first().getAttribute('href'):null;
  await login(owner,request,'+16505550101');
  await owner.getByRole('button',{name:'SOS Send test alert'}).click();
  await expect(owner.getByRole('heading',{name:'Active alert',exact:true})).toBeVisible();
  await contact.bringToFront();
  // The recipient was already waiting: no Refresh click or navigation reload.
- await expect.poll(async()=>{const value=await contact.getByRole('link',{name:'Open secure link ↗'}).first().getAttribute('href').catch(()=>null);return !!value&&value!==before;},{timeout:7000}).toBe(true);
+ await expect.poll(async()=>{const value=await links.count()?await links.first().getAttribute('href'):null;return !!value&&value!==before;},{timeout:7000}).toBe(true);
  const url=await contact.getByRole('link',{name:'Open secure link ↗'}).first().getAttribute('href');
  await contact.goto(url!);
  await contact.getByRole('button',{name:'Open private tracking',exact:true}).click();
  await expect(contact.getByRole('heading',{name:'Demo user',exact:true})).toBeVisible();
  await contact.getByRole('button',{name:'I can help',exact:true}).click();
- await expect(contact.getByText(/Current response: CAN ASSIST/)).toBeVisible();
+ await expect(contact.getByRole('status').filter({hasText:'Your response is saved.'})).toBeVisible();
+ await expect(contact.getByRole('button',{name:'I can help',exact:true})).toHaveCount(0);
+ await contact.waitForTimeout(2200);
+ await expect(contact.getByRole('button',{name:'I can help',exact:true})).toHaveCount(0);
+ await contact.getByRole('button',{name:'Change my response',exact:true}).click();
+ await expect(contact.getByRole('button',{name:'I cannot assist',exact:true})).toBeVisible();
  await owner.getByRole('button',{name:'Resolve — I am safe',exact:true}).click();
  await contact.bringToFront();
  await expect(contact.getByRole('alert').filter({hasText:/expired|revoked/})).toBeVisible({timeout:15000});
