@@ -1,3 +1,7 @@
+# Latest14 November2026 — retain original VPN server
+
+Main **a35d819e38d57a178e19675071afb8f109999a91**. User confirms the previously configured PC stays the server; do not move/reset its private DB/Auth/keys/VPN/signer. Read newest EXECUTION_STATE and main docs/validation/demo-completion.md / USER_CHECKLIST.md / PC_VPN_DEMO.md. Packaging/readiness fixed; local50backend +39mobile +40native tests pass. Original server must pull, restart dev:pc only, build/publish verified APK and run verify:pc; then physical two-phone mobile-data rehearsal. This checkout has no VPN profile and its local APK is old USB. Paid hosting/real providers deferred. This branch is context/history only; application execution belongs on main.
+
 # Latest13 November2026 — unified Android receiver
 
 Main **d87f828500efb458595fb0f13a6b41166a553399** contains the runtime. Read newest EXECUTION_STATE and main docs/validation/native-receiver.md / docs/TWO_ANDROID_DEMO.md. Same APK on both USB phones, Contacts Inbox accepts and receives; foreground only/no closed-app push. APK SHA2561e62c1c9f6f369664825dfd4a6b42b2b12a7351edc2481cdac1196e1adec2039. Local tests pass; one Android emulator+API sender tested, two physical phones pending. PC services left running. This context branch retains its historical app snapshot; do not run/merge that app or agent files into main.
