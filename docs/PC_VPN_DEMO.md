@@ -2,6 +2,8 @@
 
 The user selected a free private VPN for cable-free testing. The PC runs PostgreSQL/PostGIS, API, worker and demo phone authentication. Both phones run Tailscale and Aegis Demo. The PC must remain awake, online and connected to Tailscale. No paid cloud server, Supabase connection or real Firebase SMS is needed for this mode. Supabase and the real Firebase Pilot app remain separate future deployment work.
 
+Confirmed14 November2026: **the previously configured PC remains the server**. Run server/build/publish commands there. A second development checkout does not acquire its ignored private configuration, Auth snapshot, local database or signer through Git. Do not migrate/reset those resources to follow this guide. Use [the final demo checklist](USER_CHECKLIST.md) for the remaining phone tests.
+
 Tailscale still provides its VPN coordination/relay service; the application backend and data remain on this PC. Its Personal plan supports non-commercial personal use; check [current eligibility](https://tailscale.com/docs/account/manage-plans/free-plans-discounts). This is a private prototype. Maps/shops and delivery providers remain fictional/fake, and recipient updates require the app to be open.
 
 ## Private configuration and startup
@@ -49,7 +51,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-private-vpn-ph
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-private-vpn.ps1 -PublishApk
 ```
 
+The build records the endpoint, committed source revision, contract and APK checksum privately. Publishing refuses an old USB build, a changed file/revision/contract or a build for a different VPN hostname, and copies the verified file to `.local/published/aegis-demo.apk`. The download helper serves that fixed copy, so later Gradle builds cannot silently replace the phone download. After pulling this update, rebuild/publish once on the original server to create the receipt; repeat after later main updates. If `dev:pc` was already running before this update, stop/restart that terminal once to load the new helper; keep Auth running.
+
 The second command proxies HTTPS8443 to the single-file APK helper on127.0.0.1:4002, started by `dev:pc`. This works without Windows administrator file-serving privileges. It shares only `/aegis-demo.apk`; other paths and directory traversal are refused. Open the printed URL in each phone's browser while Tailscale is connected, download the APK, and approve installation/update of **Aegis Demo**. The APK is about163MB; downloading over Wi-Fi first avoids unnecessary mobile-data usage. Android may ask you to allow APK installation from that browser. Do not uninstall or clear the existing app's data. Same PC signing identity is required to update an existing installation; a signature mismatch needs recovery review rather than wiping PINs/accounts.
+
+Finally run `npm.cmd run verify:pc` on that server. It reads the existing private profile, checks the published endpoint/contract/checksum and tests private API/database health, demo Auth and APK download HEAD. It also rejects an older helper that has not been restarted onto the fixed-copy code. It creates no account, SOS or microphone session. A successful PC check still needs the actual mobile-data test from each phone.
 
 This APK embeds the private PC endpoint. The old USB/localhost APK needs updating on both phones. Do not run `scripts/phone-test.ps1` to test VPN connectivity: that helper installs/maps the USB flow. After installation no USB cables, Metro or Android debugging are needed. Keep Tailscale connected whenever using this build.
 

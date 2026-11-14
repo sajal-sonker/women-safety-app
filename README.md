@@ -2,7 +2,7 @@
 
 **Cable-free PC setup:** the user selected free private VPN access over mobile data. The PC runs API/worker, local PostgreSQL and demo OTP; both phones use Tailscale and the rebuilt Aegis Demo APK. See [PC/VPN steps](docs/PC_VPN_DEMO.md). Use `npm run auth:pc` and `npm run dev:pc` with private `.local/pc.env`; root `.env` may retain Supabase credentials. The PC stays awake/online. No paid cloud server is provisioned; [VPN validation](docs/validation/pc-vpn.md) distinguishes server checks from pending phone checks.
 
-**Current work,13 November2026:** Aegis branding, saved responder answers, automatic voice SOS entry fix, clearer PIN/permission errors, foreground volume shortcut fixes and simpler help discovery. See [verification and remaining device checks](docs/validation/aegis-polish.md). Fully hosted mobile-data access is now requested; [hosting preparation](docs/HOSTED_PILOT.md) supersedes the older local-only scope for this next step. No public backend is deployed yet. Existing Demo still requires the PC/USB mappings; the separate Pilot build requires real Firebase configuration and a deployed HTTPS API.
+**Current choice,14 November2026:** keep the previously configured PC as the server and use private Tailscale access on both phones. [Hosted Pilot preparation](docs/HOSTED_PILOT.md) is deferred; it is not a prerequisite for this demo. Aegis branding, saved responder answers, automatic word SOS, PIN/permission feedback and focused volume controls are implemented; see [validation](docs/validation/aegis-polish.md). Use the VPN APK, not an older localhost/USB build.
 
 **Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](docs/TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.
 
@@ -12,7 +12,7 @@
 
 ## Run the demo
 
-Start with [your demo checklist](docs/USER_CHECKLIST.md): run `npm run doctor`, connect/authorize a USB phone, install the bundled demo APK and rehearse the phone/browser flow. No production service accounts or deployment are needed.
+Start with [your demo checklist](docs/USER_CHECKLIST.md). On the existing server PC keep `auth:pc`/`dev:pc` running, publish its verified VPN APK and run `npm run verify:pc`. Install that APK on both phones and rehearse over mobile data with Tailscale connected. No USB, Metro, production service account or paid hosting is required for this path.
 
 The latest phone-test build includes offline English **Help** and Hindi **Bachao / बचाओ** recognition using bundled Vosk speech models, alongside YAMNet sound classification and motion check-ins. A recognized word shows a check-in. An optional repeated-word setting starts a cancellable SOS countdown after five Help/Bachao words within30seconds. Audio/transcripts stay local and are not saved/uploaded. See [phone setup](docs/PHONE_TEST.md), [phrase implementation evidence](docs/validation/help-bachao.md) and [ML tools](ml/README.md). Test actual phone behavior before presenting it; pretrained speech recognition is implemented, while human distress accuracy remains unmeasured.
 

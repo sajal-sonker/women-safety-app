@@ -16,6 +16,14 @@ $serve=$serveRaw | ConvertFrom-Json
 if($serve.AllowFunnel -and @($serve.AllowFunnel.PSObject.Properties | Where-Object {$_.Value -eq $true}).Count){throw 'Public Funnel is enabled. Disable it before sharing this demo; Auth emulator access must remain private.'}
 $apiOrigin='https://'+$hostname
 if($CheckOnly){Write-Output ('Tailscale connected. Private API origin: '+$apiOrigin);exit 0}
+if($PublishApk){
+ $savedConfig=Join-Path $repoRoot '.local/vpn.json'
+ if(!(Test-Path -LiteralPath $savedConfig)){throw 'Configure the VPN first without -PublishApk, then build its APK.'}
+ $saved=Get-Content -Raw -LiteralPath $savedConfig | ConvertFrom-Json
+ if($saved.api_origin -ne $apiOrigin){throw 'This PC hostname differs from the saved VPN build. Configure and rebuild before publishing.'}
+ & node (Join-Path $repoRoot 'scripts/private-vpn-artifact.mjs') publish
+ if($LASTEXITCODE -ne 0){throw 'APK verification failed. The previous published APK was not replaced.'}
+}
 # Refuse to overwrite another service on our two ports.
 $existingProxy=$serve.Web.($hostname+':443').Handlers.'/'.Proxy
 if($serve.TCP.'443' -and $existingProxy -ne 'http://127.0.0.1:4001'){throw 'Port443 already serves another application; leave it unchanged and review the conflict.'}

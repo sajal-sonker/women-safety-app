@@ -20,7 +20,7 @@
     "contracts:check": "node scripts/generate-contracts.mjs --check",
     "db:migrate": "tsx services/api/src/platform/db/migrate.ts",
     "seed:demo": "tsx services/api/src/seed.ts",
-    "test": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/scoring.test.ts tests/monitoring.test.ts tests/media.test.ts tests/ml-workflow.test.ts tests/hosted-config.test.ts tests/pc-demo-config.test.mjs tests/pc-apk-download.test.mjs",
+    "test": "node scripts/test-db.mjs tests/api.test.ts tests/contracts.test.ts tests/scoring.test.ts tests/monitoring.test.ts tests/media.test.ts tests/ml-workflow.test.ts tests/hosted-config.test.ts tests/pc-demo-config.test.mjs tests/pc-apk-download.test.mjs tests/private-vpn-artifact.test.mjs",
     "test:unit": "tsx --test tests/scoring.test.ts tests/contracts.test.ts",
     "test:contract": "tsx --test tests/contracts.test.ts",
     "test:integration": "node scripts/test-db.mjs tests/api.test.ts",
@@ -55,7 +55,8 @@
     "doctor:pc": "node scripts/pc-demo.mjs check",
     "test:pc": "node scripts/pc-demo.mjs test",
     "auth:snapshot:pc": "node scripts/pc-demo.mjs snapshot-auth",
-    "db:migrate:pc": "node scripts/pc-demo.mjs migrate"
+    "db:migrate:pc": "node scripts/pc-demo.mjs migrate",
+    "verify:pc": "node scripts/verify-pc-demo.mjs"
   },
   "dependencies": {
     "ajv": "8.20.0",

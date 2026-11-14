@@ -1,5 +1,9 @@
 # 17 — Architecture decisions, assumptions and unresolved questions
 
+## 14 November 2026 — retain the existing VPN server (CR-011)
+
+User confirms the previously configured PC stays the demo server and authorizes completing remaining prototype work. Do not move its database/Auth state, regenerate keys or replace its VPN hostname from this checkout. Close the packaging gap where a later USB build could silently replace the APK offered to phones: record the successful VPN build's endpoint/contract/hash, validate before publishing, and serve a fixed verified copy. Add a read-only server readiness command and one current cable-free acceptance guide. App/API contracts and production scope remain unchanged; physical two-phone/microphone/permissions acceptance remains a separate user-performed gate.
+
 ## 13 November 2026 — one Android app for both people (CR-009)
 
 User explicitly requests invitation acceptance and receiver alerts in the same APK, tested with different Android accounts. Add bearer-authenticated invitation decisions by invitation ID and a recipient inbox over existing temporary tracking grants. Require the signed-in principal AND exact invited phone for grant reads/acknowledgements; validate consent, expiry, resolution and revocation on every access, including idempotent replays. Existing browser token/cookie flows remain compatible. No migration, public location endpoint or automatic contact acceptance. Native Contacts gains My contacts/Inbox, consent withdrawal, live SOS/journey tracking and acknowledgement. Foreground polling pauses on background and guards account changes; closed-app push remains unavailable in the local prototype. Both USB phones use the same APK/API/Auth emulator, separate numbers. No production providers or deployment added.

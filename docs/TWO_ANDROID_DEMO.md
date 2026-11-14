@@ -1,6 +1,8 @@
 # Test the same app on two Android phones
 
-Both people install **SurakshaAI Demo**. Each account can send alerts and receive alerts; there is no separate receiver APK. The browser at localhost:3000 is optional.
+**Current path,14 November2026:** retain the existing server PC and use the [cable-free checklist](USER_CHECKLIST.md) with the [private VPN build](PC_VPN_DEMO.md). The USB setup below is a fallback only. Do not use its APK/install commands for the selected VPN rehearsal.
+
+Both people install **Aegis Demo** (renamed from SurakshaAI). Each account can send alerts and receive alerts; there is no separate receiver APK. The browser at localhost:3000 is optional.
 
 ## 1. Keep the PC services running
 

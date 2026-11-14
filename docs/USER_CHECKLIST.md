@@ -1,39 +1,49 @@
-# Working prototype: demo checklist
+# Aegis: final cable-free demo checklist
 
-**Latest,13 November2026:** sender and receiver now use the same Android APK. Open **Contacts > Inbox** to accept invitations, view shared SOS/journeys and respond. The web console is optional. Follow the [two-Android demo steps](TWO_ANDROID_DEMO.md). Foreground updates only; no closed-app push. This supersedes the older browser-receiver instructions below.
+The **previously configured PC remains the server**. Keep its database, keys, Auth snapshot, Tailscale identity and Android signing identity. Both phones install the same Aegis Demo APK and use separate app accounts. This is a working prototype with fictional shops/routes and emulated OTP/delivery. Paid hosting and real SMS/push are deferred.
 
-The user confirmed on11 November2026 that the goal is a working demo prototype. The black/purple theme, manual SOS, journeys, discreet controls, private evidence, export/deletion and offline sound check-ins are implemented. Use the existing local backend, Auth emulator, simulated delivery and fictional route/shop fixtures. Production accounts, hosting, release signing and independent release approval are not prerequisites for this demo.
+## Finish the server update once
 
-## Do now: connect your Android phone
+On that PC, open the repository on `main` and pull the latest changes. If needed, use its prepared Node26/JDK21/Android SDK terminal. Keep PostgreSQL, Tailscale and the Auth emulator running. Start `npm.cmd run auth:pc` only if Auth is stopped; it imports the existing snapshot. Do not start duplicate listeners or seed/reset accounts.
 
-1. Keep the PC and phone together. Start the local services using [RUNNING](../RUNNING.md) if they have stopped.
-2. At the repository root run `npm run doctor`. On this PC, if global Node is older, first run `$env:PATH=(Resolve-Path .tools).Path+';'+$env:PATH`, then use `npm.cmd run doctor`. The check reads configuration privately and prints readiness, never secrets or OTPs.
-3. Enable USB debugging on an arm64 Android10+ phone, connect USB and accept the authorization prompt.
-4. Run `powershell -ExecutionPolicy Bypass -File scripts/phone-test.ps1 -Install`. The local bundled demo APK needs no Metro server.
-5. Follow [PHONE_TEST](PHONE_TEST.md). Use the seeded emulated owner `+16505550101`; read the OTP locally from the Auth emulator. Test simulated SOS/inbox/acknowledgement, journeys, permission denial, fake call, PIN rehearsal, evidence and audio Stop/offline behavior.
-6. Record phone model, Android version, permission state and actual failures. One phone is enough for this prototype rehearsal; use a separate PC browser profile as the recipient. Broader device/battery certification is outside the demo target.
+For this update, stop the old `dev:pc` terminal with Ctrl+C and start `npm.cmd run dev:pc` again so the fixed APK helper loads. Keep Auth in its separate terminal. Then run:
 
-The phone cannot be authorized from this PC without accepting its USB prompt. Notifications, OEM power management, real incoming-call behavior, TalkBack and microphone indicators require physical observation. Share the observations and errors; do not share OTPs, personal recordings or credentials.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-private-vpn-phone.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-private-vpn.ps1 -PublishApk
+npm.cmd run verify:pc
+```
 
-## Rehearse the working flow
+The verified VPN build is published as a fixed copy; a later USB build cannot replace it. If a build, checksum, endpoint or connection check fails, correct that failure before downloading. Detailed setup/recovery: [PC/VPN guide](PC_VPN_DEMO.md). The commands must run on the server, not a fresh development checkout missing its private files. No public Funnel, router port forwarding or cloud migration is needed.
 
-1. Sign in on the phone as the emulated owner `+16505550101`. In a separate PC browser profile at `http://localhost:3000`, sign in as contact1 `+16505550501`.
-2. Send a simulated SOS from the phone. In the recipient browser, open Received alerts before sending the SOS; the alert should appear automatically within a few seconds. Follow the private tracking link and acknowledge. Resolve from the owner and check tracking revokes.
-3. Compare the fictional Lucknow routes; start a journey and mark arrival. Explain that this is sample route data.
-4. Under More, rehearse Fake call and App PIN & duress practice. Demonstrate duress sending only if you deliberately intend another simulated SOS.
-5. Open Voice tab, enable consent and tap Start listening. Grant permissions and wait for Listening (the Android microphone indicator is visible). Say **Help**, pause, and verify the recognized target/check-in. Restart the session or wait120s for the shared cooldown, then say **Bachao / बचाओ** and pause. Stop and verify the microphone closes. The default mode asks first. To test the separate repeated-word SOS option, follow the new five-word/countdown/cancel flow in PHONE_TEST.
-6. If included in your presentation, demonstrate selected-recipient evidence and consent withdrawal, then private export under ☰ Settings → Privacy & data. Test account deletion last because it disables that account.
+## Install and verify both phones
 
-For a reliable presentation, show the actual sound-monitoring state and only demonstrate prompts you have observed on your phone. Detection may miss a sound or prompt on ordinary noise. Do not present a generated fixture, UI simulation or training-tool smoke test as measured distress recognition.
+1. Connect Tailscale on both phones to the server's private network. Open the private APK URL printed by the publish command. Download/update Aegis Demo on both phones without uninstalling or clearing app data. Allow installation from the chosen browser if Android asks. Do not install the old localhost/USB APK.
+2. Disconnect USB, turn Wi-Fi off, enable mobile data and keep Tailscale connected. On each phone open the private API origin followed by `/v1/health/ready`; expect status `OK`.
+3. Sign in with different phone numbers including country code. Demo OTPs are visible on the server PC at `http://127.0.0.1:4000/auth`; no real SMS arrives. Set each name in Settings. Never reset accounts/PINs to resolve an update/signature error.
+4. On A add B as a contact using B's exact signed-in number, send an invitation, and on B open Contacts > Inbox and accept. A should show Verified. Existing synthetic fixture relationships may already be accepted. Receiving consent does not share B's GPS or automatically create the reverse relationship.
 
-## What to explain in the demo
+## Required end-to-end rehearsal
 
-The app bundles pretrained English/Hindi Vosk models to recognize **Help** and **बचाओ**, plus YAMNet for general sounds. These are separate on-device recognizers sharing the same microphone buffer. Only finalized exact words with sufficient ASR confidence qualify; nearby words and partial transcripts do not qualify. Real voices, accents and noise may still be missed or produce a false prompt. Automatic SOS is available only through the separately enabled local repeated-word countdown; base sound/motion scores never dispatch. The larger research graduation protocol is not a prerequisite for demonstrating this prototype. Custom four-class training remains an optional extension; see the [ML guide](../ml/README.md).
+| Test | Expected result |
+|---|---|
+| Manual SOS from A | One new alert appears in B's Inbox while both apps are open, even if A has no GPS fix |
+| B chooses I can help | Confirmation is saved; response controls close and remain hidden when reopened until Change my response; A sees the response |
+| A resolves SOS | B loses location/actions; the active card disappears after the next successful check |
+| Shared journey | B sees the deliberately shared journey; A marks arrived and B loses access |
+| Network interruption | Clear unavailable/queued state; reconnect retries without creating duplicate SOS; expired/reconfirm-required intent must be handled explicitly |
+| Permissions/GPS denied | Useful permission message and unavailable/stale position; no false claim of a fresh fix or confirmed delivery |
+| Voice | Start with consent and wait Listening; Help/Bachao shows check-in. For automatic mode explicitly enable repeated words, say five within30s, first cancel during10s countdown and confirm zero alerts, then deliberately allow one controlled alert |
+| Motion-only | Stop Voice first; More > Motion check-in > consent > Start > Ready, three deliberate shakes; check-in only. Background stops it; motion never auto-sends SOS |
+| Fake call | Start or schedule, Answer/Decline/End; ringing stops and no actual telephone call occurs |
+| PIN | Two different6–12digit codes; Practice sends no alert. Inline verification handles recent-auth requirement. Deliberate duress test opens Notes and creates one controlled alert |
+| Volume | Explicitly enable the shortcut; Up/Down/Up/Down while Aegis is visible creates one controlled alert. No screen-off/global interception is claimed |
+| Account/consent | Sign-out hides previous inbox/name; Stop receiving revokes access. Reverse-role testing needs a separate invitation |
 
-OTP and recipient messages are simulated locally. Shops/routes are fictional. Present the end-to-end prototype behavior without claiming real emergency delivery, police dispatch, validated safety predictions or production readiness.
+Use only simulated alerts; do not dial112 during rehearsal. For private evidence/export/delete, use the existing consent flows and disposable synthetic accounts for destructive deletion. Broader native/OS test cases are in [PHONE_TEST](PHONE_TEST.md).
 
-Production/live-service work is deferred by the user's scope decision. Historical [Phase3](validation/phase-3.md), [Phase4](validation/phase-4.md) and [local evidence](validation/final-local-work.md) preserve the original acceptance boundaries; missing production gates do not block this prototype. The remaining demo task is to install the latest rebuilt APK and rerun the phone rehearsal. The 12 November [phone-feedback fixes](validation/phone-feedback-fixes.md) address recognized-word rendering, monitoring responsiveness, simpler navigation and automatic receiver updates; physical Moto Android16 verification remains yours.
+## Record the result
 
-Latest phone changes and exact testing steps: [friendly phone update](validation/friendly-phone.md), including five-word opt-in, popup notification settings, named place search/Maps and caller-style simulation.
+Record each phone's model/Android version, which test failed, the exact on-screen error and time. Report failures without OTPs, PINs, recordings or credentials. Physical two-phone/mobile-data, microphone, notification/DND and OEM behavior remain **pending until observed**; builds and automated tests do not establish them.
 
-Latest navigation/motion/name/PIN guide: [accounts and PINs](DEMO_ACCOUNTS_AND_PIN.md). Voice is now a bottom tab; Settings is the top-right menu. Before testing motion-only, stop Voice, then More → Motion check-in → consent → Start → wait Ready for shakes. Three short back-and-forth shakes within2seconds should prompt a check-in; More responsive sensitivity is available after stopping. Backgrounding stops motion-only, and motion never sends SOS automatically.
+Keep the server awake, online and connected to Tailscale. The receiver inbox updates only while the app is foreground; closed-app push, real SMS and police dispatch are unavailable in this prototype. On normal server shutdown, let Auth export its snapshot. Neither USB nor Metro is required for the selected VPN build.
